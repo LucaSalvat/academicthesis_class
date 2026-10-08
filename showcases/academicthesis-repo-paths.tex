@@ -1,0 +1,27 @@
+% academicthesis-repo-paths.tex -- lets showcases find the packages in this
+% repository with ANY editor or engine (Texifier/Texpad, TeXShop, TeXstudio,
+% plain pdflatex), not only with latexmk.
+%
+% \input it on the first line of a showcase, BEFORE \documentclass:
+%
+%   \input{academicthesis-repo-paths}
+%   \documentclass[university=luiss]{academicthesis}
+%
+% It only extends LaTeX's own file search list (\input@path), which
+% \documentclass, \RequirePackage, \input, \IfFileExists and
+% \includegraphics all consult after TeX's normal search. The packages
+% themselves stay path-free and are still loaded purely by name. Paths are
+% relative to this showcases/ folder.
+%
+% \input@path does not search subfolders, so add one line per new
+% university folder here (languages/ and core/ are flat).
+\makeatletter
+\providecommand*\input@path{}
+\edef\input@path{%
+  \input@path
+  {../core/}%
+  {../languages/}%
+  {../universities/luiss/}%
+}
+\makeatother
+\endinput
