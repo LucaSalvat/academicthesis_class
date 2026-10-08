@@ -1,0 +1,374 @@
+%%
+%% academicthesis-luiss.sty
+%% --------------------------------------------------------------
+%% LUISS University plugin for the academicthesis class family.
+%%
+%% This package is a worked example of the plugin contract described
+%% in doc/ARCHITECTURE.md: it knows NOTHING about other universities,
+%% and the core class (academicthesis.cls) knows NOTHING about LUISS.
+%% The two communicate exclusively through the registries exposed by
+%% academicthesis-kernel.sty:
+%%
+%%   \DeclareThesisFrontPage  {luiss}{bachelor}{cs}
+%%   \DeclareThesisFrontPage  {luiss}{master}{cs}
+%%   \DeclareThesisFrontPage  {luiss}{phd}{cs}
+%%   \DeclareThesisRequirement{luiss}{<degree-bool>}{<key>}{<example>}
+%%   \DeclareThesisBibDefaults{luiss}{<biblatex options>}
+%%
+%% Everything else here (colours, the `luiss={...}` key interface,
+%% block layout) is private to this package and may change between
+%% versions without affecting the core or other university plugins.
+%%--------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\ProvidesExplPackage{academicthesis-luiss}{2026/01/01}{0.1.0}
+  {LUISS University front matter for the academicthesis class}
+
+\RequirePackage{academicthesis-kernel}
+\RequirePackage{l3keys2e}
+
+\ExplSyntaxOn
+
+% =====================================================================
+% 1. Package-local metadata: major, and PhD programme title
+% =====================================================================
+% `major` and `phdtitle` are LUISS-specific concepts; they live as
+% extra entries in the SAME metadata prop the core uses, but are only
+% ever written/read by this package -- the core does not know they
+% exist. This is the recommended way for plugins to extend metadata.
+
+\keys_define:nn { academicthesis-luiss / meta }
+  {
+    major    .code:n = { \academicthesis_meta_set:nn { luiss-major   } {#1} } ,
+    phdtitle .code:n = { \academicthesis_meta_set:nn { luiss-phdtitle} {#1} } ,
+  }
+
+\NewDocumentCommand \major { m }
+  { \keys_set:nn { academicthesis-luiss / meta } { major = #1 } }
+
+
+% =====================================================================
+% 2. Layout controller:  \luissthesissetup{ logo-align=..., ... }
+% =====================================================================
+\def\luiss@align@left{l}   \def\luiss@align@l{l}
+\def\luiss@align@center{c} \def\luiss@align@c{c}
+\def\luiss@align@right{r}  \def\luiss@align@r{r}
+
+\def\luiss@textalign@l{\raggedright}
+\def\luiss@textalign@c{\centering}
+\def\luiss@textalign@r{\raggedleft}
+
+\tl_new:N \l__luiss_logo_align_tl    \tl_set:Nn \l__luiss_logo_align_tl    { l }
+\tl_new:N \l__luiss_logo_width_tl    \tl_set:Nn \l__luiss_logo_width_tl    { 0.55\textwidth }
+\tl_new:N \l__luiss_logo_file_tl     \tl_set:Nn \l__luiss_logo_file_tl     { logoluissblue }
+\tl_new:N \l__luiss_title_align_tl   \tl_set:Nn \l__luiss_title_align_tl   { l }
+\tl_new:N \l__luiss_course_align_tl  \tl_set:Nn \l__luiss_course_align_tl  { l }
+\tl_new:N \l__luiss_major_align_tl   \tl_set:Nn \l__luiss_major_align_tl   { l }
+\tl_new:N \l__luiss_phdblock_align_tl \tl_set:Nn \l__luiss_phdblock_align_tl { l }
+\dim_new:N \l__luiss_contentwidth_dim
+\dim_set:Nn \l__luiss_contentwidth_dim { 0.9\textwidth }
+
+\keys_define:nn { academicthesis-luiss / layout }
+  {
+    % --- Content keys (forwarded to the metadata store) ---------------
+    % Accepting them here means \luissthesissetup{major=..., phdtitle=...}
+    % works in addition to the dedicated \major{} command.
+    major    .code:n = { \academicthesis_meta_set:nn { luiss-major    } {#1} } ,
+    phdtitle .code:n = { \academicthesis_meta_set:nn { luiss-phdtitle } {#1} } ,
+
+    % --- Logo file path (override default "logoluissblue") ------------
+    logo-file .tl_set:N = \l__luiss_logo_file_tl ,
+
+    % --- Alignment/layout keys ----------------------------------------
+    logo-align    .choice: ,
+    logo-align / left   .tl_set:N = \l__luiss_logo_align_tl ,
+    logo-align / center .tl_set:N = \l__luiss_logo_align_tl ,
+    logo-align / right  .tl_set:N = \l__luiss_logo_align_tl ,
+    logo-align .groups:n = {alignment-aliases} ,
+
+    logo-width  .tl_set:N = \l__luiss_logo_width_tl ,
+
+    title-align   .choice: ,
+    course-align  .choice: ,
+    major-align   .choice: ,
+    department-align .choice: ,
+  }
+% Each alignment key accepts left/center/right or l/c/r and is wired
+% directly to its target token list (kept explicit and unambiguous --
+% expl3 key names cannot be synthesised cleanly from a clist_map here):
+\keys_define:nn { academicthesis-luiss / layout }
+  {
+    title-align / left    .tl_set:N = \l__luiss_title_align_tl ,
+    title-align / l       .tl_set:N = \l__luiss_title_align_tl ,
+    title-align / center  .tl_set:N = \l__luiss_title_align_tl ,
+    title-align / c       .tl_set:N = \l__luiss_title_align_tl ,
+    title-align / right   .tl_set:N = \l__luiss_title_align_tl ,
+    title-align / r       .tl_set:N = \l__luiss_title_align_tl ,
+
+    course-align / left   .tl_set:N = \l__luiss_course_align_tl ,
+    course-align / l      .tl_set:N = \l__luiss_course_align_tl ,
+    course-align / center .tl_set:N = \l__luiss_course_align_tl ,
+    course-align / c      .tl_set:N = \l__luiss_course_align_tl ,
+    course-align / right  .tl_set:N = \l__luiss_course_align_tl ,
+    course-align / r      .tl_set:N = \l__luiss_course_align_tl ,
+
+    major-align / left    .tl_set:N = \l__luiss_major_align_tl ,
+    major-align / l       .tl_set:N = \l__luiss_major_align_tl ,
+    major-align / center  .tl_set:N = \l__luiss_major_align_tl ,
+    major-align / c       .tl_set:N = \l__luiss_major_align_tl ,
+    major-align / right   .tl_set:N = \l__luiss_major_align_tl ,
+    major-align / r       .tl_set:N = \l__luiss_major_align_tl ,
+
+    department-align / left   .tl_set:N = \l__luiss_phdblock_align_tl ,
+    department-align / l      .tl_set:N = \l__luiss_phdblock_align_tl ,
+    department-align / center .tl_set:N = \l__luiss_phdblock_align_tl ,
+    department-align / c      .tl_set:N = \l__luiss_phdblock_align_tl ,
+    department-align / right  .tl_set:N = \l__luiss_phdblock_align_tl ,
+    department-align / r      .tl_set:N = \l__luiss_phdblock_align_tl ,
+  }
+% Helper turning "left|center|right|l|c|r" into "l|c|r" robustly,
+% used by the explicit setters above through .tl_set:N + this filter:
+\cs_new_protected:Npn \__luiss_norm_align:N #1
+  {
+    \tl_set:Nx #1
+      {
+        \str_case_e:nnF { \tl_use:N #1 }
+          {
+            { left }   { l } { center } { c } { right }  { r }
+            { l } { l } { c } { c } { r } { r }
+          }
+          { l }
+      }
+  }
+
+\NewDocumentCommand \luissthesissetup { m }
+  {
+    \keys_set:nn { academicthesis-luiss / layout } { #1 }
+    \__luiss_norm_align:N \l__luiss_logo_align_tl
+    \__luiss_norm_align:N \l__luiss_title_align_tl
+    \__luiss_norm_align:N \l__luiss_course_align_tl
+    \__luiss_norm_align:N \l__luiss_major_align_tl
+    \__luiss_norm_align:N \l__luiss_phdblock_align_tl
+  }
+% Backwards-compatible alias for the name used in the original class
+\let\LuissThesisController\luissthesissetup
+
+
+% =====================================================================
+% 3. Building blocks (logo, title, name columns, ...)
+% =====================================================================
+\cs_new:Npn \__luiss_aligned:nn #1 #2
+  { \makebox[\textwidth][#2]{#1} }
+
+\cs_new:Npn \__luiss_alignedpar:nn #1 #2
+  {
+    \makebox[\textwidth][#2]{%
+      \begin{minipage}{\l__luiss_contentwidth_dim}%
+        \str_case:nn {#2} { {l}{\raggedright} {c}{\centering} {r}{\raggedleft} }%
+        #1%
+      \end{minipage}%
+    }
+  }
+
+\NewDocumentCommand \__luiss_namecolumn { m m }
+  {
+    \parbox[t]{0.31\textwidth}{%
+      \centering
+      \setlength{\parskip}{4pt}%
+      \textbf{#1}\par
+      \nointerlineskip
+      \rule{0.31\textwidth}{0.2pt}\par
+      \nointerlineskip
+      #2%
+    }%
+  }
+
+% ---- Logo -----------------------------------------------------------
+% Default logo file: "logoluissblue" (no extension; graphicx tries .pdf,
+% .eps, etc.).  Found via kpathsea when installed in a texmf tree; for
+% local compilation copy the logo next to your .tex file, add its
+% directory to TEXINPUTS, or override: \luissthesissetup{logo-file=path}.
+\NewDocumentCommand \__luiss_logobox: { }
+  {
+    \noindent
+    \__luiss_aligned:nn
+      { \includegraphics[width=\l__luiss_logo_width_tl]{\l__luiss_logo_file_tl} }
+      { \l__luiss_logo_align_tl }
+  }
+
+% ---- Title block -----------------------------------------------------
+\definecolor{BlueLuiss}{RGB}{21,57,108}
+\renewcommand{\LettrineFontHook}{\color{BlueLuiss}}
+
+\NewDocumentCommand \__luiss_title_formatted:n { m }
+  { {\TitleFont\bfseries\textcolor{BlueLuiss}{#1}\normalfont} }
+\NewDocumentCommand \__luiss_subtitle_formatted:n { m }
+  { {\SubtitleFont #1 \normalfont} }
+
+\NewDocumentCommand \__luiss_titleblock: { }
+  {
+    \noindent
+    \__luiss_alignedpar:nn
+      {
+        \__luiss_title_formatted:n { \academicthesis_meta_get:n{title} }
+        \par\vspace{0.02\textwidth}
+        \academicthesis_meta_if_empty:nF {subtitle}
+          { \__luiss_subtitle_formatted:n { \academicthesis_meta_get:n{subtitle} } }
+      }
+      { \l__luiss_title_align_tl }
+  }
+
+% ---- Degree & chair block (bachelor / master) ------------------------
+\NewDocumentCommand \__luiss_degree_chair: { }
+  {
+    \noindent
+    \__luiss_alignedpar:nn
+      {
+        \LowerFont
+        \thesisstring{CourseOf}~\academicthesis_meta_get:n{degree}\par
+        \academicthesis_meta_if_empty:nF {luiss-major}
+          { \__luiss_aligned:nn { \academicthesis_meta_get:n{luiss-major} } { \l__luiss_major_align_tl } }
+        \vspace*{0.02\textheight}
+        \thesisstring{ChairOf}~\academicthesis_meta_get:n{chair}
+      }
+      { \l__luiss_course_align_tl }
+  }
+
+% ---- Cycle & department block (PhD) -----------------------------------
+\NewDocumentCommand \__luiss_cycle_department: { }
+  {
+    \noindent
+    \__luiss_alignedpar:nn
+      {
+        \LowerFont
+        \thesisstring{DepartmentOf}~\academicthesis_meta_get:n{department}
+        \linebreak\linebreak
+        \thesisstring{PhDIn}~\academicthesis_meta_get:n{phdtitle}
+        \linebreak\vspace*{0.02\textheight}\noindent
+        \thesisstring{Cycle}~\academicthesis_meta_get:n{cycle}
+      }
+      { \l__luiss_phdblock_align_tl }
+  }
+
+% ---- Names block (author / supervisor[s] / co-supervisor[s]) ----------
+\NewDocumentCommand \__luiss_author_supervisor: { }
+  {
+    \noindent
+    \__luiss_namecolumn { \supervisorlabel } { \academicthesislist{supervisors} }
+    \hfill
+    \__luiss_namecolumn { \authorlabel }
+      { \academicthesis_meta_get:n{candidate}\linebreak\academicthesis_meta_get:n{idnumber} }
+  }
+
+\NewDocumentCommand \__luiss_author_supervisor_cosupervisor: { }
+  {
+    \noindent
+    \__luiss_namecolumn { \supervisorlabel }   { \academicthesislist{supervisors} }
+    \hfill
+    \__luiss_namecolumn { \cosupervisorlabel } { \academicthesislist{cosupervisors} }
+
+    \vspace{0.05\textheight}
+    \begin{center}
+      \__luiss_namecolumn { \authorlabel }
+        { \academicthesis_meta_get:n{candidate}\linebreak\academicthesis_meta_get:n{idnumber} }
+    \end{center}
+  }
+
+\NewDocumentCommand \__luiss_namesblock: { }
+  {
+    \noindent
+    \makebox[\textwidth][c]{%
+      \parbox{\textwidth}{%
+        \academicthesis_list_if_empty:nTF {cosupervisors}
+          { \__luiss_author_supervisor: }
+          { \__luiss_author_supervisor_cosupervisor: }
+      }%
+    }
+  }
+
+\NewDocumentCommand \__luiss_academicyear_footer: { }
+  {
+    \noindent
+    \parbox[c]{\textwidth}{\centering
+      \textbf{\thesisstring{AcademicYear}}\par
+      \academicthesis_meta_get:n{academicyear}
+    }
+  }
+
+
+% =====================================================================
+% 4. Front pages -- registered with the core via \DeclareThesisFrontPage
+% =====================================================================
+\NewDocumentCommand \__luiss_frontpage_undergrad: { }
+  {
+    \begin{titlepage}
+      \thispagestyle{empty}
+      \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
+
+      \__luiss_logobox:
+      \vspace{0.1\textheight}
+
+      \__luiss_degree_chair:
+      \vfill
+      \__luiss_titleblock:
+      \vfill
+      \__luiss_namesblock:
+      \vspace{0.1\textheight}
+
+      \__luiss_academicyear_footer:
+      \vspace*{0.05\textheight}
+
+      \restoregeometry
+    \end{titlepage}
+  }
+
+\NewDocumentCommand \__luiss_frontpage_phd: { }
+  {
+    \begin{titlepage}
+      \thispagestyle{empty}
+      \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
+
+      \__luiss_logobox:
+      \vspace{0.1\textheight}
+
+      \__luiss_cycle_department:
+      \vfill
+      \__luiss_titleblock:
+      \vfill
+      \__luiss_namesblock:
+      \vspace{0.1\textheight}
+
+      \__luiss_academicyear_footer:
+      \vspace*{0.05\textheight}
+
+      \restoregeometry
+    \end{titlepage}
+  }
+
+\DeclareThesisFrontPage { luiss } { bachelor } { \__luiss_frontpage_undergrad: }
+\DeclareThesisFrontPage { luiss } { master }   { \__luiss_frontpage_undergrad: }
+\DeclareThesisFrontPage { luiss } { phd }      { \__luiss_frontpage_phd: }
+
+
+% =====================================================================
+% 5. Required metadata for LUISS theses
+% =====================================================================
+\DeclareThesisRequirement { luiss } \g__academicthesis_bachelor_bool { degree } { \thesissetup{degree=Your~Degree} }
+\DeclareThesisRequirement { luiss } \g__academicthesis_master_bool   { degree } { \thesissetup{degree=Your~Degree} }
+\DeclareThesisRequirement { luiss } \g__academicthesis_bachelor_bool { chair }  { \thesissetup{chair=The~Chair} }
+\DeclareThesisRequirement { luiss } \g__academicthesis_master_bool   { chair }  { \thesissetup{chair=The~Chair} }
+
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { cycle }      { \thesissetup{cycle=XXXVI} }
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { department } { \thesissetup{department=Economics~and~Finance} }
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { phdtitle }   { \thesissetup{phdtitle=Economics} }
+
+
+% =====================================================================
+% 6. Bibliography defaults recommended for LUISS theses
+% =====================================================================
+\DeclareThesisBibDefaults { luiss } { style = authoryear, backend = biber }
+
+\ExplSyntaxOff
+\endinput

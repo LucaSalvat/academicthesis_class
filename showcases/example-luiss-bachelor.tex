@@ -1,0 +1,59 @@
+% Example: a LUISS bachelor's thesis using the new modular
+% academicthesis class + academicthesis-luiss plugin.
+\documentclass[university=luiss, bachelor, language=english, twoside, discussion]{academicthesis}
+
+\luissthesissetup{
+  logo-align  = center,
+  title-align = center,
+  course-align = left,
+  major       = Major~in~Finance,
+}
+
+\thesissetup{
+  title        = {On the Modularity of \LaTeX{} Thesis Classes},
+  subtitle     = {A Case Study in Plugin Architecture},
+  candidate    = {Luca Salvatore},
+  idnumber     = {123456},
+  degree       = {Economics and Management},
+  chair        = {Corporate Finance},
+  academicyear = {2025/2026},
+  supervisors  = {Prof. Jane Doe},
+  cosupervisor = {Dr. John Smith},
+  copyyear     = {2026},
+  authoremail  = {luca@example.com},
+  examdate     = {12 June 2026},
+  examiner     = {Prof. A, Prof. B, Prof. C},
+}
+
+%\addbibresource{example.bib}
+
+\begin{document}
+
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}
+  This is a short abstract demonstrating that the modular
+  \texttt{academicthesis} class correctly dispatches to the
+  LUISS plugin for its front matter.
+\end{abstractthesis}
+
+\dedication{To everyone who has ever fought with a LaTeX class file.}
+
+\begin{acknowledgements}
+  Thanks to everyone who helped test this new architecture.
+\end{acknowledgements}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+Hello, modular thesis world! Citing something: %\cite{example2024}.
+
+\chapter{Conclusion}
+It compiles.
+
+\backmatter
+%\printbibliography
+
+\end{document}
