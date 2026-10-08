@@ -1,0 +1,49 @@
+%%
+%% academicthesis-english.ldf
+%% Localisation strings for the academicthesis class family (English).
+%%
+%% Language files only ever call \ProvideThesisString{key}{text} -- they
+%% are plain data and require no LaTeX3 knowledge to write or maintain.
+%% University plugins may add their OWN keys here-style via their own
+%% .ldf files (e.g. academicthesis-luiss-english.ldf) for strings that
+%% only make sense for that institution (e.g. "PhD in", "Cycle").
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-english.ldf}[2026/01/01 v0.1.0 English strings]
+
+\ProvideThesisString{CandidateLabel}{Candidate}
+\ProvideThesisString{CandidateLabelFemale}{Candidate}
+\ProvideThesisString{IDNumber}{ID Number}
+
+\ProvideThesisString{SupervisorLabel}{Supervisor}
+\ProvideThesisString{SupervisorsLabel}{Supervisors}
+\ProvideThesisString{CoSupervisorLabel}{Co-Supervisor}
+\ProvideThesisString{CoSupervisorsLabel}{Co-Supervisors}
+
+\ProvideThesisString{CourseOf}{Course of}
+\ProvideThesisString{ChairOf}{Chair of}
+\ProvideThesisString{DepartmentOf}{Department of}
+\ProvideThesisString{Cycle}{Cycle}
+\ProvideThesisString{PhDIn}{PhD in}
+
+\ProvideThesisString{AcademicYear}{Academic Year}
+
+\ProvideThesisString{AbstractLabel}{Abstract}
+\ProvideThesisString{AcknowledgmentsLabel}{Acknowledgments}
+
+\ProvideThesisString{ThesisDiscussionBegin}{The present thesis was publicly discussed on}
+\ProvideThesisString{ThesisDiscussionFollowing}{before a duly appointed committee composed of:}
+\ProvideThesisString{NoDiscussion}{The present thesis has not been defended.}
+
+\ProvideThesisString{Copyrights}{%
+  All rights relating to this work are reserved to the author.\linebreak
+  No part of this thesis may be reproduced or distributed, in whole or in
+  part, except as permitted by applicable law.%
+}
+\ProvideThesisString{AuthorCopyright}{Author:}
+\ProvideThesisString{ContactCopyright}{Contact:}
+\ProvideThesisString{Website}{Website:}
+\ProvideThesisString{AcknowledgmentsCopyright}{%
+  Thesis prepared through \LaTeX{} with the class \textit{academicthesis}.%
+}
+
+\endinput

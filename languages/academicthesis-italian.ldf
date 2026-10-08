@@ -1,0 +1,43 @@
+%%
+%% academicthesis-italian.ldf
+%% Localisation strings for the academicthesis class family (Italiano).
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-italian.ldf}[2026/01/01 v0.1.0 Italian strings]
+
+\ProvideThesisString{CandidateLabel}{Candidato}
+\ProvideThesisString{CandidateLabelFemale}{Candidata}
+\ProvideThesisString{IDNumber}{Matricola}
+
+\ProvideThesisString{SupervisorLabel}{Relatore}
+\ProvideThesisString{SupervisorsLabel}{Relatori}
+\ProvideThesisString{CoSupervisorLabel}{Correlatore}
+\ProvideThesisString{CoSupervisorsLabel}{Correlatori}
+
+\ProvideThesisString{CourseOf}{Corso di Laurea}
+\ProvideThesisString{ChairOf}{Cattedra}
+\ProvideThesisString{DepartmentOf}{Dipartimento di}
+\ProvideThesisString{Cycle}{Ciclo}
+\ProvideThesisString{PhDIn}{Dottorato in}
+
+\ProvideThesisString{AcademicYear}{Anno Accademico}
+
+\ProvideThesisString{AbstractLabel}{Sommario}
+\ProvideThesisString{AcknowledgmentsLabel}{Ringraziamenti}
+
+\ProvideThesisString{ThesisDiscussionBegin}{La presente tesi è stata discussa in data}
+\ProvideThesisString{ThesisDiscussionFollowing}{davanti a una commissione composta da:}
+\ProvideThesisString{NoDiscussion}{La presente tesi non è stata discussa.}
+
+\ProvideThesisString{Copyrights}{%
+  Ogni diritto relativo al presente elaborato è riservato all'autore.\linebreak
+  La riproduzione o diffusione, anche parziale, è consentita esclusivamente
+  nei limiti previsti dalla normativa vigente.%
+}
+\ProvideThesisString{AuthorCopyright}{Autore:}
+\ProvideThesisString{ContactCopyright}{Contatto:}
+\ProvideThesisString{Website}{Sito web:}
+\ProvideThesisString{AcknowledgmentsCopyright}{%
+  Elaborato redatto con \LaTeX{} mediante la classe \textit{academicthesis}.%
+}
+
+\endinput

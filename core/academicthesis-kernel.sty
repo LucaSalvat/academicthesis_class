@@ -1,0 +1,458 @@
+%%
+%% academicthesis-kernel.sty
+%% --------------------------------------------------------------
+%% Shared LaTeX3 internals for the academicthesis ecosystem.
+%%
+%% This package is loaded by `academicthesis.cls` (the core class)
+%% AND by every university plugin (`academicthesis-<uni>.sty`).
+%% It must never be loaded directly by end users.
+%%
+%% It provides, in order:
+%%   1. Namespacing / messages
+%%   2. The metadata store (a property list + accessor functions)
+%%   3. The l3keys interface behind \thesissetup
+%%   4. List-valued metadata (supervisors, co-supervisors, examiners...)
+%%   5. The plugin registries (front pages, requirements, bib defaults)
+%%   6. The university loader
+%%   7. The localisation ("string") store used by language files
+%%
+%% Naming convention: every internal control sequence lives in the
+%% `academicthesis` / `__academicthesis` expl3 namespaces, e.g.
+%%   \academicthesis_meta_set:nn      (public-ish, stable internal API)
+%%   \__academicthesis_frontpage_dispatch:   (private)
+%% University plugins talk to the kernel ONLY through the documented
+%% \Declare... functions below -- never by poking at the prop/seq
+%% variables directly. That is what keeps core and plugins decoupled.
+%%--------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\ProvidesExplPackage{academicthesis-kernel}{2026/01/01}{0.1.0}
+  {Shared internals for the academicthesis class family}
+
+\RequirePackage{l3keys2e}
+
+\ExplSyntaxOn
+
+% =====================================================================
+% 1. Messages
+% =====================================================================
+% A single message module ("academicthesis") is shared by the core
+% class and all plugins, so errors look uniform regardless of which
+% file actually triggered them.
+
+\msg_new:nnnn { academicthesis } { unknown-university }
+  { Unknown~university~'#1'. }
+  {
+    No~package~academicthesis-#1~could~be~loaded.~Install~it,~or~check~
+    for~a~typo~in~the~'university=#1'~class~option.
+  }
+
+\msg_new:nnnn { academicthesis } { missing-frontpage }
+  { No~front~page~registered~for~university~'#1',~degree~'#2'. }
+  {
+    The~university~package~'academicthesis-#1'~does~not~provide~a~
+    front~page~for~the~'#2'~degree~type.~Check~the~package~
+    documentation~for~the~degree~types~it~supports.
+  }
+
+\msg_new:nnnn { academicthesis } { missing-metadata }
+  { Missing~required~thesis~metadata:~'#1'. }
+  { Define~it~in~the~preamble,~for~example:~\MessageBreak #2 }
+
+\msg_new:nnnn { academicthesis } { invalid-key-value }
+  { Invalid~value~'#2'~for~key~'#1'. }
+  { #3 }
+
+\msg_new:nnnn { academicthesis } { invalid-degree }
+  { No~degree~type~selected~or~degree~type~'#1'~is~unknown. }
+  {
+    Pass~one~of~the~degree~options~declared~by~your~university~
+    package~as~a~class~option,~e.g.~\MessageBreak
+    \exp_not:n { \documentclass[university=luiss,bachelor]{academicthesis} }
+  }
+
+
+% =====================================================================
+% 2. Metadata store
+% =====================================================================
+% All thesis metadata (title, candidate, degree...) lives in ONE
+% global property list keyed by string, instead of dozens of ad-hoc
+% \def\th@xxx{} pairs. This makes validation, iteration and plugin
+% extension uniform and easy to reason about.
+
+\prop_new:N \g__academicthesis_meta_prop
+
+\cs_new_protected:Npn \academicthesis_meta_set:nn #1 #2
+  { \prop_gput:Nnn \g__academicthesis_meta_prop { #1 } { #2 } }
+
+% Expandable getter -- safe to use directly in document text.
+\cs_new:Npn \academicthesis_meta_get:n #1
+  {
+    \prop_item:Nn \g__academicthesis_meta_prop { #1 }
+  }
+
+\prop_new:N \l__academicthesis_tmp_prop
+
+\cs_new:Npn \academicthesis_meta_get:nF #1 #2
+  {
+    \prop_get:NnNTF \g__academicthesis_meta_prop { #1 } \l__academicthesis_tmp_tl
+      { \tl_use:N \l__academicthesis_tmp_tl }
+      { #2 }
+  }
+\tl_new:N \l__academicthesis_tmp_tl
+
+\prop_new:N \g__academicthesis_meta_prop_aux % (placeholder kept for clarity)
+
+\cs_new:Npn \academicthesis_meta_if_empty_p:n #1
+  {
+    \prop_get:NnNTF \g__academicthesis_meta_prop { #1 } \l__academicthesis_tmp_tl
+      { \tl_if_empty_p:N \l__academicthesis_tmp_tl }
+      { \c_true_bool }
+  }
+\prg_new_protected_conditional:Npnn \academicthesis_meta_if_empty:n #1 { T , F , TF }
+  {
+    \bool_if:nTF { \academicthesis_meta_if_empty_p:n {#1} }
+      { \prg_return_true: } { \prg_return_false: }
+  }
+
+% Generic "required field" check, used both by the core (for the
+% common fields) and by plugins (for university-specific fields).
+%   #1 = metadata key       (e.g. {title})
+%   #2 = example invocation shown in the error message
+\cs_new_protected:Npn \academicthesis_require:nn #1 #2
+  {
+    \academicthesis_meta_if_empty:nTF { #1 }
+      { \msg_error:nnnn { academicthesis } { missing-metadata } { #1 } { #2 } }
+      { }
+  }
+
+% Conditional require: only check when a boolean is true.
+%   #1 = \bool_if:NTF -style boolean variable
+\cs_new_protected:Npn \academicthesis_require_if:Nnn #1 #2 #3
+  {
+    \bool_if:NT #1 { \academicthesis_require:nn {#2} {#3} }
+  }
+
+
+% =====================================================================
+% 3. l3keys interface behind \thesissetup{...}
+% =====================================================================
+% Base (university-agnostic) keys. University plugins add their own
+% keys in their OWN namespaces (see \DeclareThesisKey below) so that
+% e.g. `major` from academicthesis-luiss can never collide with a key
+% of the same name from academicthesis-bocconi.
+
+\keys_define:nn { academicthesis / meta }
+  {
+    title        .code:n = { \academicthesis_meta_set:nn { title }        {#1} } ,
+    subtitle     .code:n = { \academicthesis_meta_set:nn { subtitle }     {#1} } ,
+    candidate    .code:n = { \academicthesis_meta_set:nn { candidate }    {#1} } ,
+    degree       .code:n = { \academicthesis_meta_set:nn { degree }       {#1} } ,
+    chair        .code:n = { \academicthesis_meta_set:nn { chair }        {#1} } ,
+    department   .code:n = { \academicthesis_meta_set:nn { department }   {#1} } ,
+    academicyear .code:n = { \academicthesis_meta_set:nn { academicyear } {#1} } ,
+    idnumber     .code:n = { \academicthesis_meta_set:nn { idnumber }     {#1} } ,
+    copyyear     .code:n = { \academicthesis_meta_set:nn { copyyear }     {#1} } ,
+    examdate     .code:n = { \academicthesis_meta_set:nn { examdate }     {#1} } ,
+    authoremail  .code:n = { \academicthesis_meta_set:nn { authoremail }  {#1} } ,
+    website      .code:n = { \academicthesis_meta_set:nn { website }      {#1} } ,
+    cycle        .code:n = { \academicthesis_meta_set:nn { cycle }        {#1} } ,
+    phdtitle     .code:n = { \academicthesis_meta_set:nn { phdtitle }     {#1} } ,
+
+    %  Booleans / enumerations -----------------------------------
+    gender       .choice: ,
+    gender / male   .code:n = { \bool_gset_false:N \g__academicthesis_female_bool } ,
+    gender / female .code:n = { \bool_gset_true:N  \g__academicthesis_female_bool } ,
+    gender / m      .code:n = { \bool_gset_false:N \g__academicthesis_female_bool } ,
+    gender / f      .code:n = { \bool_gset_true:N  \g__academicthesis_female_bool } ,
+    gender .groups:n = { female-aware } ,
+
+    %  List-valued fields (see \S4) -------------------------------
+    supervisor    .code:n = { \academicthesis_list_set:nn   { supervisors }   {#1} } ,
+    supervisors   .code:n = { \academicthesis_list_set_csv:nn { supervisors } {#1} } ,
+    cosupervisor  .code:n = { \academicthesis_list_set:nn   { cosupervisors } {#1} } ,
+    cosupervisors .code:n = { \academicthesis_list_set_csv:nn { cosupervisors } {#1} } ,
+    examiner      .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
+    examiners     .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
+  }
+
+\bool_new:N \g__academicthesis_female_bool
+
+% Degree-type booleans. The *standard* triad shipped by the kernel;
+% plugins may test these in \DeclareThesisRequirement / \DeclareThesisFrontPage.
+% (A university is, of course, free to only register front pages for
+% the subset it actually offers.)
+\bool_new:N \g__academicthesis_bachelor_bool
+\bool_new:N \g__academicthesis_master_bool
+\bool_new:N \g__academicthesis_phd_bool
+
+\NewDocumentCommand \thesissetup { m }
+  { \keys_set:nn { academicthesis / meta } { #1 } }
+
+% Convenience "verb" commands kept for users who prefer the classic
+% \thtitle{..}/\candidate{..} style instead of \thesissetup{title=..}.
+% They are thin wrappers around the SAME key-value engine, so both
+% styles always stay in sync.
+\cs_new_protected:Npn \__academicthesis_def_setter:nn #1 #2
+  {
+    \exp_args:Nc \NewDocumentCommand { #2 } { m }
+      { \keys_set:nn { academicthesis / meta } { #1 = ##1 } }
+  }
+\__academicthesis_def_setter:nn { title }        { thtitle }
+\__academicthesis_def_setter:nn { subtitle }     { thsubtitle }
+\__academicthesis_def_setter:nn { candidate }    { candidate }
+\__academicthesis_def_setter:nn { degree }       { degree }
+\__academicthesis_def_setter:nn { chair }        { chair }
+\__academicthesis_def_setter:nn { department }   { department }
+\__academicthesis_def_setter:nn { academicyear } { academicyear }
+\__academicthesis_def_setter:nn { idnumber }     { idnumber }
+\__academicthesis_def_setter:nn { copyyear }     { copyyear }
+\__academicthesis_def_setter:nn { examdate }     { examdate }
+\__academicthesis_def_setter:nn { authoremail }  { authoremail }
+\__academicthesis_def_setter:nn { website }      { website }
+\__academicthesis_def_setter:nn { cycle }        { cycle }
+\__academicthesis_def_setter:nn { gender }       { gender }
+\__academicthesis_def_setter:nn { supervisor }   { supervisor }
+\__academicthesis_def_setter:nn { supervisors }  { supervisors }
+\__academicthesis_def_setter:nn { cosupervisor }  { cosupervisor }
+\__academicthesis_def_setter:nn { cosupervisors } { cosupervisors }
+\__academicthesis_def_setter:nn { examiner }     { examiner }
+
+
+% =====================================================================
+% 4. List-valued metadata  (supervisors, co-supervisors, examiners...)
+% =====================================================================
+% Stored as expl3 sequences in a prop-of-seqs emulation: one global
+% sequence per list name, created on first use.
+
+\clist_new:N \g__academicthesis_listnames_clist
+
+\cs_new_protected:Npn \__academicthesis_list_ensure:n #1
+  {
+    \clist_if_in:NnF \g__academicthesis_listnames_clist { #1 }
+      {
+        \clist_gput_right:Nn \g__academicthesis_listnames_clist { #1 }
+        \seq_new:c { g__academicthesis_list_ #1 _seq }
+      }
+  }
+
+\cs_new_protected:Npn \academicthesis_list_set:nn #1 #2
+  {
+    \__academicthesis_list_ensure:n { #1 }
+    \seq_gclear:c { g__academicthesis_list_ #1 _seq }
+    \seq_gput_right:cn { g__academicthesis_list_ #1 _seq } { #2 }
+  }
+
+\cs_new_protected:Npn \academicthesis_list_add:nn #1 #2
+  {
+    \__academicthesis_list_ensure:n { #1 }
+    \seq_gput_right:cn { g__academicthesis_list_ #1 _seq } { #2 }
+  }
+
+% Comma-separated convenience setter, e.g. supervisors={A, B, C}
+\cs_new_protected:Npn \academicthesis_list_set_csv:nn #1 #2
+  {
+    \__academicthesis_list_ensure:n { #1 }
+    \seq_gclear:c { g__academicthesis_list_ #1 _seq }
+    \clist_map_inline:nn { #2 }
+      { \seq_gput_right:cn { g__academicthesis_list_ #1 _seq } { ##1 } }
+  }
+
+% Expandable: number of entries in a list
+\cs_new:Npn \academicthesis_list_count:n #1
+  {
+    \int_eval:n { \seq_count:c { g__academicthesis_list_ #1 _seq } }
+  }
+
+% Typeset a list with a given separator (default: line break)
+\NewDocumentCommand \academicthesislist { O{\\} m }
+  {
+    \seq_use:cn { g__academicthesis_list_ #2 _seq } { #1 }
+  }
+
+\prg_new_conditional:Npnn \academicthesis_list_if_empty:n #1 { p , T , F , TF }
+  {
+    \int_compare:nNnTF { \academicthesis_list_count:n {#1} } = { 0 }
+      { \prg_return_true: } { \prg_return_false: }
+  }
+
+
+% =====================================================================
+% 5. Plugin registries
+% =====================================================================
+% University packages NEVER hard-code into the core. Instead they
+% register callbacks for the slots the core knows how to dispatch:
+%   * front pages          (per university + degree type)
+%   * required metadata    (per university + degree type)
+%   * bibliography defaults
+% The core looks these up at the right time and errors helpfully
+% when nothing is registered.
+
+% Declared here (rather than in \S6) because the registries below
+% reference them in code bodies that may run before \S6 is reached.
+\tl_new:N \g__academicthesis_university_tl
+\tl_new:N \g__academicthesis_degree_tl
+
+\prop_new:N \g__academicthesis_frontpage_prop
+\prop_new:N \g__academicthesis_bibdefaults_prop
+\seq_new:N  \g__academicthesis_requirements_seq
+
+% Variants taking a token-list *variable* (V) where the base expl3
+% signatures only accept literal token lists (n) -- the lookup keys
+% here are assembled at run time from \tl variables.
+% \prop_get:NVNTF and \prop_if_in_p:NV ship with the kernel already;
+% \prop_item:Nn only has a `c` variant built in, so add `NV` here.
+\cs_generate_variant:Nn \prop_item:Nn   { NV }
+
+% ---- Front pages ----------------------------------------------------
+% \DeclareThesisFrontPage{<university>}{<degree>}{<control sequence>}
+% <control sequence> is invoked with no arguments to typeset the title
+% page (it should set up its own \begin{titlepage}...\end{titlepage}).
+\NewDocumentCommand \DeclareThesisFrontPage { m m m }
+  {
+    \prop_gput:Nnn \g__academicthesis_frontpage_prop { #1 . #2 } { #3 }
+  }
+
+\tl_new:N \l__academicthesis_lookup_tl
+
+\cs_new_protected:Npn \__academicthesis_frontpage_dispatch:
+  {
+    \tl_set:Nx \l__academicthesis_lookup_tl
+      { \g__academicthesis_university_tl . \g__academicthesis_degree_tl }
+    \prop_get:NVNTF \g__academicthesis_frontpage_prop \l__academicthesis_lookup_tl
+    % (NV variant ships with l3kernel: prop name N, key as V-type tl)
+      \l__academicthesis_tmp_tl
+      { \tl_use:N \l__academicthesis_tmp_tl }
+      {
+        \msg_error:nnnn { academicthesis } { missing-frontpage }
+          { \g__academicthesis_university_tl } { \g__academicthesis_degree_tl }
+      }
+  }
+% (the dispatcher is exposed publicly as \frontpage in the core class)
+
+
+% ---- Per-university / per-degree metadata requirements -------------
+% \DeclareThesisRequirement{<university>}{<degree-bool>}{<key>}{<example>}
+% <degree-bool> is an expl3 boolean variable (e.g. \g__academicthesis_phd_bool)
+% or \c_true_bool to require unconditionally for that university.
+\NewDocumentCommand \DeclareThesisRequirement { m m m m }
+  {
+    \seq_gput_right:Nn \g__academicthesis_requirements_seq { { #1 } { #2 } { #3 } { #4 } }
+  }
+
+\cs_new_protected:Npn \__academicthesis_run_requirements:
+  {
+    \seq_map_inline:Nn \g__academicthesis_requirements_seq
+      {
+        \__academicthesis_run_requirement:nnnn ##1
+      }
+  }
+\cs_new_protected:Npn \__academicthesis_run_requirement:nnnn #1#2#3#4
+  {
+    \tl_if_eq:NnTF \g__academicthesis_university_tl { #1 }
+      {
+        \academicthesis_require_if:Nnn #2 { #3 } { #4 }
+      }
+      { }
+  }
+
+% ---- Bibliography defaults ------------------------------------------
+% \DeclareThesisBibDefaults{<university>}{<biblatex options, comma list>}
+% Applied only if the user has not already requested biblatex options
+% explicitly through the `biblatex-options` class/key interface.
+\NewDocumentCommand \DeclareThesisBibDefaults { m m }
+  {
+    \prop_gput:Nnn \g__academicthesis_bibdefaults_prop { #1 } { #2 }
+  }
+
+\cs_new:Npn \__academicthesis_bibdefaults_get:
+  {
+    \prop_item:NV \g__academicthesis_bibdefaults_prop \g__academicthesis_university_tl
+  }
+\prg_new_conditional:Npnn \__academicthesis_if_bibdefaults: { p , T , F , TF }
+  {
+    \bool_if:nTF
+      { \prop_if_in_p:NV \g__academicthesis_bibdefaults_prop \g__academicthesis_university_tl }
+      { \prg_return_true: } { \prg_return_false: }
+  }
+
+
+% =====================================================================
+% 6. University loader
+% =====================================================================
+% Resolves the `university=<id>` class option into a package load,
+% with a clear error if the plugin is missing -- this is the seam
+% that makes the family genuinely modular: the core ships with ZERO
+% built-in knowledge of LUISS, Bocconi, LUMSA, etc.
+
+% NOTE: \RequirePackage is safe to call here while \ExplSyntaxOn is in
+% effect -- this is the same pattern other expl3-based packages use
+% (e.g. acro.sty calls \RequirePackage{translations} from inside its own
+% \ExplSyntaxOn block and never restores the standard regime). Toggling
+% \ExplSyntaxOff/\ExplSyntaxOn around the load is unnecessary and was
+% found, empirically, to corrupt expl3's internal state-tracking and
+% hang a later \ExplSyntaxOn call -- so we deliberately do not do that.
+\cs_new_protected:Npn \academicthesis_load_university:n #1
+  {
+    % NOTE: do NOT \tl_gset:Nn \g__academicthesis_university_tl {#1} here --
+    % the class calls this as
+    %   \academicthesis_load_university:n { \g__academicthesis_university_tl }
+    % so #1 is that very csname (an unexpanded `n`-type token, not its
+    % expanded value). Globally setting the variable to contain itself
+    % creates a self-referential token list: the very next line has to
+    % fully expand "academicthesis-#1.sty" for \IfFileExists, which then
+    % expands \g__academicthesis_university_tl into itself forever --
+    % an infinite expansion loop. The variable is already populated by
+    % \keys_define:nn's `university .tl_set:N = \g__academicthesis_university_tl`
+    % during class-option processing, so no re-assignment is needed here.
+    \IfFileExists { academicthesis-#1.sty }
+      { \RequirePackage { academicthesis-#1 } }
+      { \msg_error:nnn { academicthesis } { unknown-university } { #1 } }
+  }
+
+
+% =====================================================================
+% 7. Localisation ("string") store
+% =====================================================================
+% Language files (academicthesis-<lang>.ldf) populate this prop with
+% plain text via \ProvideThesisString{key}{text}; the class/plugins
+% retrieve strings with \thesisstring{key}, which always expands to
+% *something* (falling back to the key name) so a missing translation
+% never produces a hard error mid-document.
+
+\prop_new:N \g__academicthesis_strings_prop
+
+\NewDocumentCommand \ProvideThesisString { m m }
+  { \prop_gput:Nnn \g__academicthesis_strings_prop { #1 } { #2 } }
+
+\NewDocumentCommand \thesisstring { m }
+  {
+    \prop_get:NnNTF \g__academicthesis_strings_prop { #1 } \l__academicthesis_tmp_tl
+      { \tl_use:N \l__academicthesis_tmp_tl }
+      { \tl_to_str:n { #1 } }
+  }
+
+\msg_new:nnn { academicthesis } { missing-language }
+  {
+    No~academicthesis-#1.ldf~language~file~found;~falling~back~to~English.
+  }
+
+% .ldf files are plain data (\ProvideThesisString calls); they are
+% \input, not \RequirePackage'd -- this is the same convention babel
+% uses for its own *.ldf language definition files.
+% Same note as \academicthesis_load_university:n above -- \input is
+% safe to call here without toggling \ExplSyntaxOff/\ExplSyntaxOn.
+\cs_new_protected:Npn \academicthesis_load_language:n #1
+  {
+    \IfFileExists { academicthesis-#1.ldf }
+      { \input { academicthesis-#1.ldf } }
+      {
+        \msg_warning:nnn { academicthesis } { missing-language } { #1 }
+        \input { academicthesis-english.ldf }
+      }
+  }
+
+\ExplSyntaxOff
+\endinput
