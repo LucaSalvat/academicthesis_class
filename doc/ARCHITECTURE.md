@@ -34,6 +34,7 @@ academicthesis_class/
 ├── showcases/                      Example documents / proofs
 │   ├── example-luiss-bachelor.tex
 │   ├── example.bib
+│   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc
 ├── latexmkrc                       Adds the source folders to TEXINPUTS
 └── doc/
@@ -61,6 +62,15 @@ them to the search path instead of changing the code:
   `cd showcases && latexmk example-luiss-bachelor.tex` or, from the root,
   `latexmk -cd showcases/example-luiss-bachelor.tex` both work.
   Overleaf and VS Code LaTeX Workshop run latexmk, so they pick this up too.
+- **Any editor, including Texifier/Texpad, TeXShop and TeXstudio**: each
+  showcase starts with `\input{academicthesis-repo-paths}` before
+  `\documentclass`. That file (in `showcases/`) only extends LaTeX's own
+  search list `\input@path` with `../core/`, `../languages/` and each
+  `../universities/<uni>/`, so it works whatever runs the build, with no
+  environment variables. It lives in the showcase, never in a package.
+  Two limits: `\input@path` does not search subfolders, so add a line there
+  for each new university; and TeX's normal search comes first, so if you
+  also *install* academicthesis in a texmf tree, the installed copy wins.
 - **Plain pdflatex/lualatex** (no latexmk): set the variable yourself, e.g.
   from `showcases/`:
   `TEXINPUTS=../core//:../languages//:../universities//: pdflatex example-luiss-bachelor.tex`

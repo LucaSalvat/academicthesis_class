@@ -25,6 +25,11 @@ cd showcases
 latexmk example-luiss-bachelor.tex
 ```
 
-Without latexmk:
+Any editor works too (Texifier/Texpad, TeXShop, TeXstudio): every showcase
+starts with `\input{academicthesis-repo-paths}`, which adds the repo
+folders to LaTeX's search list. In Texifier, set the typesetter to TeX Live
+(pdfLaTeX), because its built-in engine is too old for this class.
+
+Without latexmk, from a terminal:
 `TEXINPUTS=../core//:../languages//:../universities//: pdflatex example-luiss-bachelor.tex`.
 See [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md#folders-are-for-humans-names-are-for-tex).
