@@ -105,15 +105,13 @@
 
 \prop_new:N \g__academicthesis_meta_prop_aux % (placeholder kept for clarity)
 
-\cs_new:Npn \academicthesis_meta_if_empty_p:n #1
+% Expandable (p, T, F, TF): \prop_item:Nn is expandable, unlike
+% \prop_get:NnNTF, which assigns and so cannot be used inside a predicate
+% or \bool_if:n test. A missing key counts as empty.
+\prg_new_conditional:Npnn \academicthesis_meta_if_empty:n #1 { p , T , F , TF }
   {
-    \prop_get:NnNTF \g__academicthesis_meta_prop { #1 } \l__academicthesis_tmp_tl
-      { \tl_if_empty_p:N \l__academicthesis_tmp_tl }
-      { \c_true_bool }
-  }
-\prg_new_protected_conditional:Npnn \academicthesis_meta_if_empty:n #1 { T , F , TF }
-  {
-    \bool_if:nTF { \academicthesis_meta_if_empty_p:n {#1} }
+    \exp_args:Ne \tl_if_empty:nTF
+      { \prop_item:Nn \g__academicthesis_meta_prop { #1 } }
       { \prg_return_true: } { \prg_return_false: }
   }
 
