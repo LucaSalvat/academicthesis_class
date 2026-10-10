@@ -1,0 +1,96 @@
+%%
+%% academicthesis-polimi.sty
+%% --------------------------------------------------------------
+%% Politecnico di Milano plugin for the academicthesis class family,
+%% modelled on the official templates of the School of Industrial and
+%% Information Engineering (Scuola 3I), October 2021 revision.
+%%
+%%   \documentclass[university=polimi, master, format=classical]{academicthesis}
+%%
+%% Files:
+%%   academicthesis-polimi.cfg            base class + formats (read before \LoadClass)
+%%   academicthesis-polimi.sty            this file: options, metadata, registration
+%%   academicthesis-polimi-classical.def  the classical layout (normal LaTeX syntax)
+%%   academicthesis-polimi-<lang>.ldf     PoliMi wording of the core strings
+%%   logopolimi3i.pdf, raggierapolimi.pdf
+%%
+%% Metadata uses the core names unchanged (title, candidate, idnumber,
+%% degree, supervisors, cosupervisors, academicyear). PoliMi's own
+%% wording ("Advisor", "Student ID", ...) only changes the printed
+%% strings, in academicthesis-polimi-<lang>.ldf.
+%%--------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\ProvidesExplPackage{academicthesis-polimi}{2026/10/10}{0.1.0}
+  {Politecnico di Milano layouts for the academicthesis class}
+
+\RequirePackage{academicthesis-kernel}
+
+% =====================================================================
+% 1. Layout controller:  \polimithesissetup{ logo-file=..., watermark=... }
+% =====================================================================
+\tl_new:N \l__polimi_logo_file_tl
+\tl_set:Nn \l__polimi_logo_file_tl { logopolimi3i }
+\newif \ifpolimi@watermark
+\polimi@watermarktrue
+
+\keys_define:nn { academicthesis-polimi / layout }
+  {
+    logo-file .tl_set:N = \l__polimi_logo_file_tl ,
+    watermark .choices:nn = { true , false }
+      { \use:c { polimi@watermark \l_keys_choice_tl } } ,
+    watermark .default:n = { true } ,
+  }
+\NewDocumentCommand \polimithesissetup { m }
+  { \keys_set:nn { academicthesis-polimi / layout } { #1 } }
+
+% Read by the layout files (normal syntax)
+\cs_new:Npn \polimi@logofile { \l__polimi_logo_file_tl }
+
+
+% =====================================================================
+% 2. Required metadata (on top of the core's title, candidate, degree,
+%    academicyear, supervisors)
+% =====================================================================
+\DeclareThesisRequirement { polimi } { \c_true_bool } { idnumber }
+  { \thesissetup{idnumber=000000} }
+
+
+% =====================================================================
+% 3. The layout of the selected format
+% =====================================================================
+% Packages first, from here: a package loaded from inside the .def file
+% would switch expl3 syntax back on when it ends (see below).
+\str_case:Vn \g__academicthesis_format_tl
+  {
+    { classical }
+      {
+        \RequirePackage { titlesec }    % chapter / section headings
+        \RequirePackage { caption }     % coloured caption labels
+        \RequirePackage { setspace }    % 1.5 line spacing
+        \RequirePackage { eso-pic }     % background "raggiera"
+        \RequirePackage { transparent } % ... at 40% opacity
+        \RequirePackage { amsthm }      % coloured theorem heads
+      }
+  }
+
+% ---------------------------------------------------------------------
+% =====================================================================
+% Layout code typesets text, so it lives in a .def file read with the
+% normal document catcodes: under \ExplSyntaxOn spaces are dropped and
+% blank lines do not end paragraphs (the problem met in the LUISS
+% package). \cctab_begin:N switches catcodes WITHOUT a group, so the
+% definitions in the file stay visible. The .def must not load
+% packages (\RequirePackage would end with expl3 syntax back on).
+\cs_new_protected:Npn \__polimi_input_layout:n #1
+  {
+    \cctab_begin:N \c_document_cctab
+      \file_input:n { academicthesis-polimi-#1.def }
+    \cctab_end:
+  }
+\exp_args:NV \__polimi_input_layout:n \g__academicthesis_format_tl
+
+\ExplSyntaxOff
+\endinput

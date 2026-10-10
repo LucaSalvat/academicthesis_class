@@ -1,0 +1,25 @@
+%%
+%% academicthesis-polimi-english.ldf
+%% PoliMi wording for the academicthesis strings (English).
+%% Read after academicthesis-english.ldf: keys that already exist there
+%% keep their core name and only change their text.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-english.ldf}[2026/10/10 v0.1.0 PoliMi English strings]
+
+% core keys, PoliMi wording
+\ProvideThesisString{CandidateLabel}{Author}
+\ProvideThesisString{CandidateLabelFemale}{Author}
+\ProvideThesisString{IDNumber}{Student ID}
+\ProvideThesisString{SupervisorLabel}{Advisor}
+\ProvideThesisString{SupervisorsLabel}{Advisors}
+\ProvideThesisString{CoSupervisorLabel}{Co-advisor}
+\ProvideThesisString{CoSupervisorsLabel}{Co-advisors}
+\ProvideThesisString{AbstractLabel}{Abstract}
+
+% PoliMi-only keys
+\ProvideThesisString{BachelorThesisIn}{Bachelor's Thesis in}
+\ProvideThesisString{MasterThesisIn}{Master's Thesis in}
+\ProvideThesisString{TheoremLabel}{Theorem}
+\ProvideThesisString{PropositionLabel}{Proposition}
+
+\endinput

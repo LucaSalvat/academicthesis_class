@@ -1,0 +1,18 @@
+%%
+%% academicthesis-polimi-italian.ldf
+%% PoliMi wording for the academicthesis strings (Italiano).
+%% Read after academicthesis-italian.ldf: keys that already exist there
+%% keep their core name and only change their text.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-italian.ldf}[2026/10/10 v0.1.0 PoliMi Italian strings]
+
+% core keys, PoliMi wording
+\ProvideThesisString{AbstractLabel}{Abstract in lingua italiana}
+
+% PoliMi-only keys
+\ProvideThesisString{BachelorThesisIn}{Tesi di Laurea Triennale in}
+\ProvideThesisString{MasterThesisIn}{Tesi di Laurea Magistrale in}
+\ProvideThesisString{TheoremLabel}{Teorema}
+\ProvideThesisString{PropositionLabel}{Proposizione}
+
+\endinput

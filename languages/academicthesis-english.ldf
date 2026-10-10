@@ -28,6 +28,7 @@
 \ProvideThesisString{AcademicYear}{Academic Year}
 
 \ProvideThesisString{AbstractLabel}{Abstract}
+\ProvideThesisString{KeywordsLabel}{Keywords}
 \ProvideThesisString{AcknowledgmentsLabel}{Acknowledgments}
 
 \ProvideThesisString{ThesisDiscussionBegin}{The present thesis was publicly discussed on}

@@ -4,7 +4,17 @@ class plus independent plugin packages per university and per language.
 
 ```latex
 \documentclass[university=luiss, bachelor, language=english]{academicthesis}
+\documentclass[university=polimi, master, format=classical]{academicthesis}
 ```
+
+| University | Degrees | Formats | Showcase |
+| --- | --- | --- | --- |
+| LUISS | bachelor, master, phd | (one) | `showcases/example-luiss-bachelor.tex` |
+| Politecnico di Milano | bachelor, master | `classical` (`article`, `summary` planned) | `showcases/example-polimi-classical.tex` |
+
+Each university picks its base class (LUISS and PoliMi classical: `book`)
+and whether the second page (commission + copyright) is printed: on for
+LUISS, off for PoliMi; override with `secondpage` / `no-secondpage`.
 
 ## Repository layout
 

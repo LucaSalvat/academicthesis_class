@@ -258,16 +258,19 @@
       { \seq_gput_right:cn { g__academicthesis_list_ #1 _seq } { ##1 } }
   }
 
-% Expandable: number of entries in a list
+% Expandable: number of entries in a list (0 for a list never set)
 \cs_new:Npn \academicthesis_list_count:n #1
   {
-    \int_eval:n { \seq_count:c { g__academicthesis_list_ #1 _seq } }
+    \seq_if_exist:cTF { g__academicthesis_list_ #1 _seq }
+      { \int_eval:n { \seq_count:c { g__academicthesis_list_ #1 _seq } } }
+      { 0 }
   }
 
 % Typeset a list with a given separator (default: line break)
 \NewDocumentCommand \academicthesislist { O{\\} m }
   {
-    \seq_use:cn { g__academicthesis_list_ #2 _seq } { #1 }
+    \seq_if_exist:cT { g__academicthesis_list_ #2 _seq }
+      { \seq_use:cn { g__academicthesis_list_ #2 _seq } { #1 } }
   }
 
 \prg_new_conditional:Npnn \academicthesis_list_if_empty:n #1 { p , T , F , TF }
@@ -275,6 +278,26 @@
     \int_compare:nNnTF { \academicthesis_list_count:n {#1} } = { 0 }
       { \prg_return_true: } { \prg_return_false: }
   }
+
+
+% ---- Document-level accessors ----------------------------------------
+% The same metadata, readable from ordinary LaTeX2e code (expl3 syntax
+% OFF). University packages should write everything that TYPESETS text
+% (title pages, heading formats, page styles) in normal syntax, where
+% spaces and blank lines behave as usual, and read metadata through
+% these commands -- see academicthesis-polimi-classical.def.
+%   \thesismeta{title}                         expandable
+%   \IfThesisMetaEmptyTF{subtitle}{<empty>}{<not empty>}
+%   \IfThesisListEmptyTF{cosupervisors}{<empty>}{<not empty>}
+%   \IfThesisDegreeTF{bachelor}{<yes>}{<no>}
+\NewExpandableDocumentCommand \thesismeta { m }
+  { \academicthesis_meta_get:n { #1 } }
+\NewDocumentCommand \IfThesisMetaEmptyTF { m +m +m }
+  { \academicthesis_meta_if_empty:nTF { #1 } { #2 } { #3 } }
+\NewDocumentCommand \IfThesisListEmptyTF { m +m +m }
+  { \academicthesis_list_if_empty:nTF { #1 } { #2 } { #3 } }
+\NewDocumentCommand \IfThesisDegreeTF { m +m +m }
+  { \str_if_eq:VnTF \g__academicthesis_degree_tl { #1 } { #2 } { #3 } }
 
 
 % =====================================================================
@@ -324,7 +347,7 @@
       \l__academicthesis_tmp_tl
       { \tl_use:N \l__academicthesis_tmp_tl }
       {
-        \msg_error:nnnn { academicthesis } { missing-frontpage }
+        \msg_error:nnee { academicthesis } { missing-frontpage }
           { \g__academicthesis_university_tl } { \g__academicthesis_degree_tl }
       }
   }
@@ -377,6 +400,86 @@
   }
 
 
+% ---- Base class, formats, second page, extra languages -------------
+% These four are declared from the university's early configuration
+% file academicthesis-<uni>.cfg, which the class reads BEFORE
+% \LoadClass (see \S6). They only ever concern the active university,
+% so they take no <university> argument.
+%
+% \DeclareThesisBaseClass{<class>}{<default class options>}
+%   The class the thesis is built on (book, article, ...) and the
+%   options it gets by default. A default is dropped when the user
+%   already chose an option of the same group (e.g. a user `11pt'
+%   wins over a default `12pt', `oneside' over `twoside').
+\tl_new:N    \g__academicthesis_baseclass_tl
+\clist_new:N \g__academicthesis_baseclass_options_clist
+\NewDocumentCommand \DeclareThesisBaseClass { m m }
+  {
+    \tl_gset:Nn    \g__academicthesis_baseclass_tl { #1 }
+    \clist_gset:Nn \g__academicthesis_baseclass_options_clist { #2 }
+  }
+
+% \DeclareThesisFormats{<available formats>}{<default format>}
+%   The values accepted by the `format=' class option. A university
+%   that declares none accepts no `format=' at all.
+\tl_new:N    \g__academicthesis_format_tl
+\clist_new:N \g__academicthesis_formats_clist
+\tl_new:N    \g__academicthesis_format_default_tl
+\NewDocumentCommand \DeclareThesisFormats { m m }
+  {
+    \clist_gset:Nn \g__academicthesis_formats_clist { #1 }
+    \tl_gset:Nn    \g__academicthesis_format_default_tl { #2 }
+    % resolve now, so the rest of the .cfg can branch on the format
+    \academicthesis_resolve_format:
+  }
+
+\msg_new:nnnn { academicthesis } { no-formats }
+  { University~'#1'~does~not~offer~formats~(format=#2~ignored). }
+  { Remove~the~'format'~class~option. }
+\msg_new:nnnn { academicthesis } { unknown-format }
+  { Unknown~format~'#2'~for~university~'#1'. }
+  { Available~formats:~#3. }
+
+\cs_new_protected:Npn \academicthesis_resolve_format:
+  {
+    \tl_if_empty:NTF \g__academicthesis_format_tl
+      { \tl_gset_eq:NN \g__academicthesis_format_tl \g__academicthesis_format_default_tl }
+      {
+        \clist_if_empty:NTF \g__academicthesis_formats_clist
+          {
+            \msg_error:nnee { academicthesis } { no-formats }
+              { \g__academicthesis_university_tl } { \g__academicthesis_format_tl }
+            \tl_gclear:N \g__academicthesis_format_tl
+          }
+          {
+            \clist_if_in:NVF \g__academicthesis_formats_clist \g__academicthesis_format_tl
+              {
+                \msg_error:nneee { academicthesis } { unknown-format }
+                  { \g__academicthesis_university_tl } { \g__academicthesis_format_tl }
+                  { \clist_use:Nn \g__academicthesis_formats_clist { ,~ } }
+                \tl_gset_eq:NN \g__academicthesis_format_tl \g__academicthesis_format_default_tl
+              }
+          }
+      }
+  }
+
+% \DeclareThesisSecondPage{true|false}
+%   Whether \frontpage is followed by the second page (examination
+%   commission + copyright). Default true. The user can always override
+%   it with the `secondpage' / `no-secondpage' class options.
+\bool_new:N \g__academicthesis_secondpage_default_bool
+\bool_gset_true:N \g__academicthesis_secondpage_default_bool
+\NewDocumentCommand \DeclareThesisSecondPage { m }
+  { \bool_gset:Nn \g__academicthesis_secondpage_default_bool { \use:c { c_ #1 _bool } } }
+
+% \DeclareThesisOtherLanguages{<languages>}
+%   Extra languages to load with babel/polyglossia besides the main one
+%   (e.g. PoliMi always needs Italian for its Italian abstract).
+\clist_new:N \g__academicthesis_otherlanguages_clist
+\NewDocumentCommand \DeclareThesisOtherLanguages { m }
+  { \clist_gput_right:Nn \g__academicthesis_otherlanguages_clist { #1 } }
+
+
 % =====================================================================
 % 6. University loader
 % =====================================================================
@@ -392,6 +495,31 @@
 % \ExplSyntaxOff/\ExplSyntaxOn around the load is unnecessary and was
 % found, empirically, to corrupt expl3's internal state-tracking and
 % hang a later \ExplSyntaxOn call -- so we deliberately do not do that.
+% Early configuration: academicthesis-<uni>.cfg is read by the class
+% BEFORE \LoadClass, so it may only use the \Declare... commands of
+% \S5 (base class, formats, second page, other languages) and plain
+% expl3 logic. It is read with expl3 syntax ON (spaces are ignored).
+% A missing file is not an error here: if the package is missing too,
+% \academicthesis_load_university:n reports the unknown university.
+\msg_new:nnnn { academicthesis } { missing-config }
+  { University~package~'#1'~has~no~academicthesis-#1.cfg. }
+  {
+    Every~university~ships~academicthesis-<uni>.cfg~declaring~at~least~
+    its~base~class,~e.g.~\exp_not:N \DeclareThesisBaseClass{book}{}.~
+    Using~'book'.
+  }
+\cs_new_protected:Npn \academicthesis_load_university_config:n #1
+  {
+    \file_if_exist:nTF { academicthesis-#1.cfg }
+      { \file_input:n { academicthesis-#1.cfg } }
+      {
+        \file_if_exist:nT { academicthesis-#1.sty }
+          { \msg_error:nnn { academicthesis } { missing-config } { #1 } }
+      }
+    \tl_if_empty:NT \g__academicthesis_baseclass_tl
+      { \tl_gset:Nn \g__academicthesis_baseclass_tl { book } }
+  }
+
 \cs_new_protected:Npn \academicthesis_load_university:n #1
   {
     % NOTE: do NOT \tl_gset:Nn \g__academicthesis_university_tl {#1} here --
@@ -414,22 +542,73 @@
 % =====================================================================
 % 7. Localisation ("string") store
 % =====================================================================
-% Language files (academicthesis-<lang>.ldf) populate this prop with
-% plain text via \ProvideThesisString{key}{text}; the class/plugins
-% retrieve strings with \thesisstring{key}, which always expands to
-% *something* (falling back to the key name) so a missing translation
-% never produces a hard error mid-document.
+% Language files populate one property list PER LANGUAGE with plain
+% text via \ProvideThesisString{key}{text}. For each language the
+% kernel reads, in order:
+%   academicthesis-<lang>.ldf          generic strings (core keys)
+%   academicthesis-<uni>-<lang>.ldf    optional university overrides
+% The university file uses the SAME keys as the generic one
+% (SupervisorLabel, IDNumber, ...) to change their wording, and may
+% add its own keys for concepts only it knows.
+%
+% \thesisstring{key} reads the language currently selected for
+% strings (the main language, unless a block such as
+% \begin{abstractthesis}[language=italian] switched it), then the
+% main language, then falls back to the key name, so a missing
+% translation never produces a hard error mid-document.
 
-\prop_new:N \g__academicthesis_strings_prop
+\tl_new:N  \g__academicthesis_main_language_tl
+\tl_new:N  \g__academicthesis_strings_loading_tl   % language being read
+\tl_new:N  \l__academicthesis_strings_lang_tl      % language being used
+\seq_new:N \g__academicthesis_loaded_languages_seq
+
+\cs_generate_variant:Nn \prop_get:NnNTF { c }
+\cs_generate_variant:Nn \prop_get:NnN   { c }
+\cs_generate_variant:Nn \prop_if_in:NnTF { c }
+\cs_generate_variant:Nn \prop_item:Nn   { c }
 
 \NewDocumentCommand \ProvideThesisString { m m }
-  { \prop_gput:Nnn \g__academicthesis_strings_prop { #1 } { #2 } }
+  {
+    \prop_gput:cnn
+      { g__academicthesis_strings_ \g__academicthesis_strings_loading_tl _prop }
+      { #1 } { #2 }
+  }
+
+% Copy the raw (unexpanded) text of a string into a token list,
+% e.g. to write it to the table of contents.
+\cs_new_protected:Npn \academicthesis_string_get:nN #1 #2
+  {
+    \prop_get:cnNF
+      { g__academicthesis_strings_ \l__academicthesis_strings_lang_tl _prop }
+      { #1 } #2
+      {
+        \prop_get:cnNF
+          { g__academicthesis_strings_ \g__academicthesis_main_language_tl _prop }
+          { #1 } #2
+          { \tl_set:Nx #2 { \tl_to_str:n { #1 } } }
+      }
+  }
+
+% Expandable lookup (no fallback to the key name); used for PDF strings.
+\cs_new:Npn \academicthesis_string:n #1
+  {
+    \prop_if_in:cnTF
+      { g__academicthesis_strings_ \l__academicthesis_strings_lang_tl _prop } { #1 }
+      { \prop_item:cn { g__academicthesis_strings_ \l__academicthesis_strings_lang_tl _prop } { #1 } }
+      { \prop_item:cn { g__academicthesis_strings_ \g__academicthesis_main_language_tl _prop } { #1 } }
+  }
+% hyperref bookmarks: a heading such as \chapter*{\thesisstring{..}}
+% becomes the string's text instead of a warning and an empty title.
+\AtBeginDocument
+  {
+    \cs_if_exist:NT \pdfstringdefDisableCommands
+      { \pdfstringdefDisableCommands { \cs_set_eq:NN \thesisstring \academicthesis_string:n } }
+  }
 
 \NewDocumentCommand \thesisstring { m }
   {
-    \prop_get:NnNTF \g__academicthesis_strings_prop { #1 } \l__academicthesis_tmp_tl
-      { \tl_use:N \l__academicthesis_tmp_tl }
-      { \tl_to_str:n { #1 } }
+    \academicthesis_string_get:nN { #1 } \l__academicthesis_tmp_tl
+    \tl_use:N \l__academicthesis_tmp_tl
   }
 
 \msg_new:nnn { academicthesis } { missing-language }
@@ -442,15 +621,60 @@
 % uses for its own *.ldf language definition files.
 % Same note as \academicthesis_load_university:n above -- \input is
 % safe to call here without toggling \ExplSyntaxOff/\ExplSyntaxOn.
+% Each language is read once; asking again is a no-op.
 \cs_new_protected:Npn \academicthesis_load_language:n #1
+  { \__academicthesis_load_language:e { #1 } }
+\cs_new_protected:Npn \__academicthesis_load_language:n #1
   {
-    \IfFileExists { academicthesis-#1.ldf }
-      { \__academicthesis_input_ldf:n { academicthesis-#1.ldf } }
+    \seq_if_in:NnF \g__academicthesis_loaded_languages_seq { #1 }
       {
-        \msg_warning:nnn { academicthesis } { missing-language } { #1 }
-        \__academicthesis_input_ldf:n { academicthesis-english.ldf }
+        \seq_gput_right:Nn \g__academicthesis_loaded_languages_seq { #1 }
+        \prop_new:c { g__academicthesis_strings_ #1 _prop }
+        \tl_gset:Nn \g__academicthesis_strings_loading_tl { #1 }
+        \IfFileExists { academicthesis-#1.ldf }
+          { \__academicthesis_input_ldf:n { academicthesis-#1.ldf } }
+          {
+            \msg_warning:nnn { academicthesis } { missing-language } { #1 }
+            \__academicthesis_input_ldf:n { academicthesis-english.ldf }
+          }
+        \__academicthesis_load_university_language:en
+          { \g__academicthesis_university_tl } { #1 }
       }
   }
+\cs_generate_variant:Nn \__academicthesis_load_language:n { e }
+\cs_new_protected:Npn \__academicthesis_load_university_language:nn #1 #2
+  {
+    \tl_if_empty:nF { #1 }
+      {
+        \IfFileExists { academicthesis-#1-#2.ldf }
+          { \__academicthesis_input_ldf:n { academicthesis-#1-#2.ldf } }
+          { }
+      }
+  }
+\cs_generate_variant:Nn \__academicthesis_load_university_language:nn { e }
+
+% Make <lang> the main language for strings (called once by the class).
+\cs_new_protected:Npn \academicthesis_set_main_language:n #1
+  {
+    \academicthesis_load_language:n { #1 }
+    \tl_gset:Ne \g__academicthesis_main_language_tl { #1 }
+    \tl_set:Ne  \l__academicthesis_strings_lang_tl  { #1 }
+  }
+
+% Switch strings (and babel/polyglossia, when that language was loaded
+% with the `other-languages' class option) to <lang> until the end of
+% the current group. Used by \begin{abstractthesis}[language=...].
+\cs_new_protected:Npn \academicthesis_select_language:n #1
+  { \__academicthesis_select_language:e { #1 } }
+\cs_new_protected:Npn \__academicthesis_select_language:n #1
+  {
+    \academicthesis_load_language:n { #1 }
+    \tl_set:Nn \l__academicthesis_strings_lang_tl { #1 }
+    \cs_if_exist:cT { captions #1 }
+      { \cs_if_exist:NT \otherlanguage { \otherlanguage { #1 } } }
+  }
+\cs_generate_variant:Nn \__academicthesis_select_language:n { e }
+
 % The .ldf strings must be read with ordinary document catcodes: read
 % under \ExplSyntaxOn every space in them is dropped ("Course of" ->
 % "Courseof"). The strings are stored globally, so a group is enough.

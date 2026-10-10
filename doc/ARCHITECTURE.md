@@ -26,13 +26,23 @@ academicthesis_class/
 ├── languages/
 │   ├── academicthesis-english.ldf  English strings
 │   └── academicthesis-italian.ldf  Italian strings
-├── universities/
-│   └── luiss/                      One folder per university plugin
-│       ├── academicthesis-luiss.sty
-│       ├── logoluissblue.pdf
-│       └── luiss.pdf
+├── universities/                   One folder per university plugin
+│   ├── luiss/
+│   │   ├── academicthesis-luiss.cfg   Base class, second page (read before \LoadClass)
+│   │   ├── academicthesis-luiss.sty
+│   │   ├── logoluissblue.pdf
+│   │   └── luiss.pdf
+│   └── polimi/
+│       ├── academicthesis-polimi.cfg  Formats + base class per format
+│       ├── academicthesis-polimi.sty  Options, requirements, loads the format
+│       ├── academicthesis-polimi-classical.def  Classical layout (normal syntax)
+│       ├── academicthesis-polimi-english.ldf    PoliMi wording of core strings
+│       ├── academicthesis-polimi-italian.ldf
+│       ├── logopolimi3i.pdf
+│       └── raggierapolimi.pdf
 ├── showcases/                      Example documents / proofs
 │   ├── example-luiss-bachelor.tex
+│   ├── example-polimi-classical.tex
 │   ├── example.bib
 │   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc
@@ -77,7 +87,8 @@ them to the search path instead of changing the code:
   (the final `:` keeps the system search path; on Windows use `;`).
 
 Adding a university = new folder `universities/<uni>/` with
-`academicthesis-<uni>.sty` and its logos. Adding a language = new
+`academicthesis-<uni>.cfg`, `academicthesis-<uni>.sty` and its logos (and a
+line in `showcases/academicthesis-repo-paths.tex`). Adding a language = new
 `languages/academicthesis-<lang>.ldf`. Nothing else changes.
 
 ---
@@ -90,6 +101,41 @@ Processed top-to-bottom in numbered sections. All code lives inside a single
 
 | Section | What it does |
 |---------|-------------|
+| 1 — Class options | `\keys_define:nn {academicthesis/class}` declares `university`, `format`, `bachelor`/`master`/`phd`, `language`, `other-languages`, `discussion`, `secondpage`/`no-secondpage`, `biblatex-options`. Unknown options are collected for the base class. |
+| 1b — Base class | Reads `academicthesis-<uni>.cfg` (see below), resolves `format` and the second-page default, merges the university's default class options with the user's, then `\LoadClass`es the base class **the university declared** (book, article, ...). The core no longer hard-codes `book`. |
+| 2 — Font & language | Loads `fontenc`/`inputenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` with the main language last and any extra languages before it. **Note:** babel must be loaded with `_`/`:` catcodes temporarily restored to "other" (see comment in source). Then loads the strings (generic + university). |
+| 3 — Layout packages | `graphicx`, `geometry`, `etoolbox`, `fancyhdr`, `xcolor`, `amsmath`, `lettrine`. Nothing else: hyperref, titlesec, setspace, ... are left to the university package (only if its layout needs them) or to the user. |
+| 4 — Bibliography | Prefers `biblatex`+`biber`; falls back to `natbib`+BibTeX if biblatex is unavailable, with a package warning. |
+| 5 — University plugin | `\exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl` loads `academicthesis-<uni>.sty`. |
+| 6–7 — Labels, front page | `\authorlabel`, `\supervisorlabel`, ...; `\frontpage` dispatches to the registered front page and, unless switched off, adds the second page. |
+| 8 — Second page | Examination commission + copyright block. |
+| 9 — Front-matter helpers | `\thesisfrontchapter`, `\dedication`, `abstractthesis` (options `keywords`, `language`, `title`), `acknowledgements`. |
+| 10 — Page styles | `Thesis`, `acknowledgments`, `plain`. |
+| 11 — Validation | Required metadata, core + plugin-registered. |
+
+Because sections 6–11 run **after** the university package is loaded, a
+plugin that wants to change them (page styles, `acknowledgements`, ...)
+does so in `\AddToHook{class/academicthesis/after}{...}` (see the PoliMi
+package).
+
+### The early university file: `academicthesis-<uni>.cfg`
+
+Read before `\LoadClass`, with expl3 syntax on, so it may only use these
+kernel commands (and expl3 logic, e.g. to branch on the format):
+
+| Command | Meaning |
+|---------|---------|
+| `\DeclareThesisBaseClass{<class>}{<default options>}` | Base class and its default options. A default is dropped when the user picked another option of the same group (`11pt` beats a default `12pt`, `oneside` beats `twoside`). |
+| `\DeclareThesisFormats{<formats>}{<default>}` | Values accepted by `format=`. Resolved immediately, so the rest of the file can read `\g__academicthesis_format_tl`. A university that declares none rejects `format=`. |
+| `\DeclareThesisSecondPage{true\|false}` | Default for the second page; the user can always override it with `secondpage` / `no-secondpage`. |
+| `\DeclareThesisOtherLanguages{<langs>}` | Extra babel/polyglossia languages (e.g. PoliMi always needs Italian). |
+
+```
+\documentclass[university=polimi, master, format=classical]{academicthesis}
+\documentclass[university=luiss, bachelor, no-secondpage]{academicthesis}
+```
+
+---------|-------------|
 | 1 — Class options | `\keys_define:nn {academicthesis/class}` declares `university`, `bachelor`/`master`/`phd`, `language`, `twoside`, `discussion`, `biblatex-options`. `\ProcessKeysOptions` populates the global state variables. |
 | 2 — Font & language | Loads `fontenc`/`inputenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` with the chosen language. **Note:** babel must be loaded with `_`/`:` catcodes temporarily restored to "other" (see comment in source). |
 | 3 — Layout packages | `geometry`, `fancyhdr`, `titlesec`, `microtype`, `setspace`, `lettrine`, `xcolor`, `graphicx`, `amsmath`. |
@@ -156,6 +202,22 @@ Plugins declare which metadata keys are mandatory for a given
 university/degree. The core checks these at `\begin{document}` and
 raises errors for missing required fields.
 
+### Document-level accessors
+
+For code written in normal LaTeX syntax (expl3 off):
+`\thesismeta{<key>}` (expandable), `\IfThesisMetaEmptyTF{<key>}{..}{..}`,
+`\IfThesisListEmptyTF{<list>}{..}{..}`, `\IfThesisDegreeTF{<degree>}{..}{..}`.
+
+### Strings, per language and per university
+
+`\ProvideThesisString{key}{text}` fills one store per language. For each
+language the kernel reads `academicthesis-<lang>.ldf`, then
+`academicthesis-<uni>-<lang>.ldf` if it exists. University files reuse the
+**core keys** to change wording (PoliMi: `SupervisorLabel` = "Advisor",
+`IDNumber` = "Student ID") and may add their own keys. `\thesisstring{key}`
+reads the language selected for strings: the main one, or the one set by
+`\begin{abstractthesis}[language=italian]`.
+
 ### Message system
 
 All user-facing messages go through expl3's `\msg_*` layer:
@@ -170,7 +232,8 @@ All user-facing messages go through expl3's `\msg_*` layer:
 
 ## Writing a university plugin
 
-Create `academicthesis-<uni>.sty`. The plugin is a standard LaTeX package
+Create `academicthesis-<uni>.cfg` (at least `\DeclareThesisBaseClass{book}{}`)
+and `academicthesis-<uni>.sty`. The plugin is a standard LaTeX package
 and may use `\ExplSyntaxOn` freely. It has access to the full kernel API
 from the moment it is loaded (the kernel is always loaded before any
 plugin).
@@ -224,6 +287,26 @@ Users then write:
 \myunithesissetup{ logo-align = center, department = Economics }
 \thesissetup{ title = {My Thesis}, candidate = {Jane Doe}, … }
 ```
+
+### Avoiding the expl3 "lost spaces" trap
+
+Under `\ExplSyntaxOn` spaces are ignored and blank lines do not end
+paragraphs. Keep expl3 for logic (keys, registration) and put everything
+that typesets text in a separate `.def` file read with normal catcodes:
+
+```latex
+\cs_new_protected:Npn \__myuni_input_layout:n #1
+  {
+    \cctab_begin:N \c_document_cctab   % no group: definitions survive
+      \file_input:n { academicthesis-myuni-#1.def }
+    \cctab_end:
+  }
+```
+
+The `.def` must **not** load packages: when a package loaded from there
+ends, LaTeX switches expl3 syntax back on (the syntax of the class that
+is loading everything), and every space after it is lost. Load the
+packages from the `.sty` before reading the `.def`.
 
 ### Accessing metadata in front pages
 

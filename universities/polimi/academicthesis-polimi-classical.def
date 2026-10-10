@@ -1,0 +1,213 @@
+%%
+%% academicthesis-polimi-classical.def
+%% --------------------------------------------------------------
+%% PoliMi "classical" thesis layout (book, 12pt, two-sided), after the
+%% official Scuola 3I template (PoliMi3i_thesis.cls + config.tex).
+%%
+%% Read by academicthesis-polimi.sty with NORMAL LaTeX syntax (expl3
+%% off), so spaces and blank lines behave as in any document. Metadata
+%% is read with the kernel's document-level accessors: \thesismeta,
+%% \IfThesisMetaEmptyTF, \IfThesisListEmptyTF, \IfThesisDegreeTF.
+%%
+%% Packages are kept to what the layout itself needs (loaded by the
+%% .sty); everything else (hyperref, cleveref, algorithms, tables, ...)
+%% is the user's choice.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-classical.def}[2026/10/10 v0.1.0 PoliMi classical layout]
+\makeatletter
+
+% The packages this layout needs are loaded by academicthesis-polimi.sty:
+% loading a package from here would switch expl3 syntax back on when
+% that package ends (LaTeX restores the syntax of the file that loaded
+% it, i.e. the class), and every space after it would be lost.
+
+% =====================================================================
+% 1. Colour, page, paragraphs
+% =====================================================================
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
+
+\geometry{a4paper, includehead, headheight=0.6cm,
+  inner=3.0cm, outer=2.0cm, top=2.5cm, bottom=2.5cm}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip plus 2pt}
+\raggedbottom
+\AtBeginDocument{\onehalfspacing}
+
+\renewcommand{\LettrineFontHook}{\color{bluepoli}}
+
+% =====================================================================
+% 2. Captions and theorems
+% =====================================================================
+\captionsetup{labelfont={bf,color=bluepoli}, font=onehalfspacing}
+
+\newtheoremstyle{polimi}
+  {\topsep}{\topsep}
+  {\normalfont\itshape}{}
+  {\color{bluepoli}\normalfont\bfseries}{.}
+  { }{}
+\theoremstyle{polimi}
+\newtheorem{theorem}{\thesisstring{TheoremLabel}}[chapter]
+\newtheorem{proposition}{\thesisstring{PropositionLabel}}[chapter]
+
+% =====================================================================
+% 3. Headings:  "1| Chapter title"  and  "1.1. Section title"
+% =====================================================================
+\titleformat{\chapter}[hang]
+  {\fontsize{50}{20}\selectfont\bfseries\filright}
+  {\textcolor{bluepoli}{\thechapter}\hspace{2mm}\textcolor{bluepoli}{| }}
+  {0pt}
+  {\huge\bfseries\color{bluepoli}}
+\titlespacing*{\chapter}{0pt}{50pt}{11.5pt}
+
+\titleformat{\section}
+  {\color{bluepoli}\normalfont\Large\bfseries}
+  {\color{bluepoli}\thesection.}{1em}{}
+\titleformat{\subsection}
+  {\color{bluepoli}\normalfont\large\bfseries}
+  {\color{bluepoli}\thesubsection.}{1em}{}
+\titleformat{\subsubsection}
+  {\color{bluepoli}\normalfont\large\bfseries}
+  {\color{bluepoli}\thesubsubsection.}{1em}{}
+\titlespacing{\section}{0pt}{3.3ex}{2ex}
+\titlespacing{\subsection}{0pt}{3.3ex}{1.65ex}
+\titlespacing{\subsubsection}{0pt}{3.3ex}{1ex}
+
+% Every chapter starts on a right-hand page; starred chapters (Abstract,
+% Introduction, Contents, ...) also go in the table of contents and in
+% the running header as "| Title".
+\NewCommandCopy\polimi@latexchapter\chapter
+\RenewDocumentCommand\chapter{s o m}{%
+  \cleardoublepage
+  \@ifundefined{phantomsection}{}{\phantomsection}%
+  \IfBooleanTF{#1}
+    {%
+      \polimi@latexchapter*{#3}%
+      \polimi@withoutmkboth{\addcontentsline{toc}{chapter}{#3}}%
+      \polimi@withoutmkboth{\markboth{\textcolor{bluepoli}{|}\ #3}{}}%
+    }
+    {\IfNoValueTF{#2}{\polimi@latexchapter{#3}}{\polimi@latexchapter[#2]{#3}}}%
+}
+% Standard starred headings carry \@mkboth{..}{..} in their title
+% (e.g. \tableofcontents); drop it from the ToC entry and the header.
+\newcommand\polimi@withoutmkboth[1]{{\let\@mkboth\@gobbletwo #1}}
+
+% Numbered chapters: "1| Title" (number only in the main matter)
+\renewcommand\chaptermark[1]{%
+  \markboth{\if@mainmatter\textcolor{bluepoli}{\thechapter}\fi
+    \textcolor{bluepoli}{|}\ #1}{}}
+
+% =====================================================================
+% 4. Watermark ("raggiera") on the cover and on blank pages
+% =====================================================================
+\newcommand\polimi@watermarkcenter{%
+  \put(-150,-200){%
+    \parbox[b][\paperheight]{\paperwidth}{%
+      \vfill
+      \centering
+      \transparent{0.4}%
+      \includegraphics[width=0.85\paperwidth]{raggierapolimi}%
+      \vfill}}}
+\newcommand\polimi@watermarktopright{%
+  \put(200,330){%
+    \parbox[b][\paperheight]{\paperwidth}{%
+      \vfill
+      \centering
+      \transparent{0.4}%
+      \includegraphics[width=0.70\paperwidth]{raggierapolimi}%
+      \vfill}}}
+
+% Blank left-hand pages left by \cleardoublepage: empty style + raggiera
+\renewcommand*\cleardoublepage{%
+  \clearpage
+  \if@twoside\ifodd\c@page\else
+    \null
+    \ifpolimi@watermark\AddToShipoutPicture*{\polimi@watermarkcenter}\fi
+    \thispagestyle{empty}%
+    \newpage
+    \if@twocolumn\hbox{}\newpage\fi
+  \fi\fi}
+
+% An explicit blank page (not counted), as in the official template
+\providecommand\blankpage{%
+  \null
+  \ifpolimi@watermark\AddToShipoutPicture*{\polimi@watermarkcenter}\fi
+  \thispagestyle{empty}%
+  \addtocounter{page}{-1}%
+  \newpage}
+
+% =====================================================================
+% 5. Front page (bachelor and master)
+% =====================================================================
+\newcommand\polimi@thesistype{%
+  \IfThesisDegreeTF{bachelor}
+    {\thesisstring{BachelorThesisIn}}
+    {\thesisstring{MasterThesisIn}}}
+
+\newcommand\polimi@frontpage{%
+  % letters for the cover and its blank back, so their page numbers
+  % never clash with the front matter's (hyperref anchors); \frontmatter
+  % switches to roman numerals afterwards
+  \pagenumbering{Alph}%
+  \begin{titlepage}
+    \singlespacing
+    \ifpolimi@watermark\AddToShipoutPicture*{\polimi@watermarktopright}\fi
+    \vfill
+    \begin{minipage}{0.95\textwidth}
+      \includegraphics[trim={1.2cm 0 0 0}, clip, width=0.7\textwidth]{\polimi@logofile}
+      \par\vspace{2.5cm}
+      {\color{bluepoli}\huge\bfseries \thesismeta{title}\par}
+      \IfThesisMetaEmptyTF{subtitle}{}
+        {\vspace{0.5cm}{\color{bluepoli}\Large \thesismeta{subtitle}\par}}
+      \vspace{1.5cm}
+      % (Latin Modern has no bold small caps: medium small caps)
+      {\color{bluepoli}\large
+        \textsc{\polimi@thesistype\\ \thesismeta{degree}}\par}
+      \vspace{1.5cm}
+      {\Large \authorlabel: \textbf{\thesismeta{candidate}}\par}
+    \end{minipage}
+    \par\vspace*{\fill}
+    \begin{minipage}{0.85\textwidth}
+      \normalsize
+      \thesisstring{IDNumber}: \thesismeta{idnumber}\\
+      \supervisorlabel: \academicthesislist[, ]{supervisors}\\
+      \IfThesisListEmptyTF{cosupervisors}{}
+        {\cosupervisorlabel: \academicthesislist[, ]{cosupervisors}\\}
+      \thesisstring{AcademicYear}: \thesismeta{academicyear}
+    \end{minipage}
+  \end{titlepage}}
+
+\DeclareThesisFrontPage{polimi}{bachelor}{\polimi@frontpage}
+\DeclareThesisFrontPage{polimi}{master}{\polimi@frontpage}
+
+% =====================================================================
+% 6. Core pieces redefined for PoliMi
+% =====================================================================
+% The core defines its page styles and front-matter helpers AFTER
+% loading the university package, so these run at the end of the class.
+\AddToHook{class/academicthesis/after}{%
+  % Header: page number outside, "1| Chapter" inside, no rules
+  \fancypagestyle{Thesis}{%
+    \fancyhf{}%
+    \fancyhead[LE,RO]{\thepage}%
+    \fancyhead[LO,RE]{\bfseries\leftmark}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  % Chapter opening pages: page number on the right
+  \fancypagestyle{plain}{%
+    \fancyhf{}%
+    \fancyhead[RO,RE]{\thepage}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  \g@addto@macro\frontmatter{\pagestyle{Thesis}}%
+  \g@addto@macro\mainmatter{\addtocontents{toc}{\protect\vspace{2em}}}%
+  % Starred \chapter already adds the ToC entry and the header mark
+  \RenewDocumentCommand\thesisfrontchapter{m}{\chapter*{#1}}%
+  % Acknowledgements: a plain starred chapter, upright
+  \RenewDocumentEnvironment{acknowledgements}{}
+    {\chapter*{\thesisstring{AcknowledgmentsLabel}}}
+    {\par}%
+}
+
+\makeatother
+\endinput

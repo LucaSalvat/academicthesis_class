@@ -20,7 +20,7 @@
 %%--------------------------------------------------------------
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{academicthesis}[2026/01/01 v0.1.0 Modular academic thesis class]
+\ProvidesClass{academicthesis}[2026/10/10 v0.2.0 Modular academic thesis class]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -41,8 +41,15 @@
 % SAME interface is reachable from \documentclass[...]{academicthesis}
 % and, if ever desired, from \PassOptionsToClass / a wrapper package.
 
+\clist_new:N \l__academicthesis_classoptions_clist
 \tl_new:N \l__academicthesis_classoptions_tl
-\tl_set:Nn \l__academicthesis_classoptions_tl { }
+
+% `secondpage' as typed by the user: empty = not given, so the
+% university default (\DeclareThesisSecondPage) applies.
+\tl_new:N \l__academicthesis_secondpage_tl
+\bool_new:N \g__academicthesis_secondpage_bool
+
+\clist_new:N \l__academicthesis_otherlanguages_clist
 
 \tl_new:N \l__academicthesis_language_tl
 \tl_set:Nn \l__academicthesis_language_tl { english }
@@ -55,6 +62,9 @@
     university .tl_set:N = \g__academicthesis_university_tl ,
     uni        .tl_set:N = \g__academicthesis_university_tl ,
 
+    % --- which of the university's formats (see \DeclareThesisFormats)
+    format     .tl_gset:N = \g__academicthesis_format_tl ,
+
     % --- language (loads academicthesis-<lang>.ldf) ---------------
     language .tl_set:N = \l__academicthesis_language_tl ,
     lang     .tl_set:N = \l__academicthesis_language_tl ,
@@ -64,6 +74,8 @@
     english  .meta:n = { language = english } ,
     italian  .meta:n = { language = italian } ,
     french   .meta:n = { language = french } ,
+    % extra languages for babel/polyglossia, e.g. other-languages=italian
+    other-languages .clist_set:N = \l__academicthesis_otherlanguages_clist ,
 
     % --- degree type ------------------------------------------------
     bachelor .code:n =
@@ -94,14 +106,20 @@
     discussion       .default:n = { true } ,
     no-discussion    .code:n = { \bool_set_false:N \l__academicthesis_discussion_bool } ,
 
+    % second page (examination commission + copyright) after \frontpage
+    secondpage       .choices:nn = { true , false }
+      { \tl_set_eq:NN \l__academicthesis_secondpage_tl \l_keys_choice_tl } ,
+    secondpage       .default:n = { true } ,
+    no-secondpage    .code:n = { \tl_set:Nn \l__academicthesis_secondpage_tl { false } } ,
+
     % --- bibliography backend ---------------------------------------
     % Forwarded verbatim to biblatex; e.g. biblatex-options={style=apa}
     biblatex-options .tl_set:N = \l__academicthesis_biblatex_options_tl ,
 
-    % --- anything else: forward to the underlying `book` class ------
+    % --- anything else: forward to the base class (book, article...) -
     unknown .code:n =
       {
-        \tl_put_right:Nx \l__academicthesis_classoptions_tl { \exp_not:n {,\l_keys_key_tl} }
+        \clist_put_right:NV \l__academicthesis_classoptions_clist \l_keys_key_str
       } ,
   }
 
@@ -112,9 +130,70 @@
 
 \ProcessKeysOptions { academicthesis / class }
 
-% Anything we did not recognise above is forwarded to `book`
-% (twoside, openright, draft, a4paper, 11pt, ... all keep working).
-\exp_args:Nx \PassOptionsToClass { \tl_use:N \l__academicthesis_classoptions_tl } { book }
+% ---------------------------------------------------------------------
+% The base class is NOT fixed here: the university decides it, possibly
+% per format (e.g. LUISS -> book; PoliMi classical -> book, article ->
+% article). academicthesis-<uni>.cfg is read now, before \LoadClass,
+% and declares the base class, its default options, the formats, the
+% second-page default and extra languages (see the kernel, \S5-6).
+\tl_if_empty:NF \g__academicthesis_university_tl
+  {
+    \exp_args:NV \academicthesis_load_university_config:n
+      \g__academicthesis_university_tl
+  }
+\tl_if_empty:NT \g__academicthesis_baseclass_tl
+  { \tl_gset:Nn \g__academicthesis_baseclass_tl { book } }
+\academicthesis_resolve_format:
+
+\str_case:VnF \l__academicthesis_secondpage_tl
+  {
+    { true }  { \bool_gset_true:N  \g__academicthesis_secondpage_bool }
+    { false } { \bool_gset_false:N \g__academicthesis_secondpage_bool }
+  }
+  {
+    \bool_gset_eq:NN \g__academicthesis_secondpage_bool
+      \g__academicthesis_secondpage_default_bool
+  }
+
+% Base-class options = university defaults + what the user typed. A
+% default is dropped when the user chose another option of its group,
+% because the standard classes process options in DECLARATION order
+% (a default `12pt' would otherwise beat a user `11pt').
+\seq_const_from_clist:Nn \c__academicthesis_option_groups_seq
+  {
+    { 10pt , 11pt , 12pt } ,
+    { oneside , twoside } ,
+    { onecolumn , twocolumn } ,
+    { openright , openany } ,
+    { a4paper , a5paper , b5paper , letterpaper , legalpaper , executivepaper } ,
+    { portrait , landscape } ,
+    { draft , final } ,
+    { titlepage , notitlepage } ,
+  }
+\clist_new:N \l__academicthesis_defaultoptions_clist
+\bool_new:N  \l__academicthesis_option_taken_bool
+\clist_map_inline:Nn \g__academicthesis_baseclass_options_clist
+  {
+    \bool_set_false:N \l__academicthesis_option_taken_bool
+    \seq_map_inline:Nn \c__academicthesis_option_groups_seq
+      {
+        \clist_if_in:nnT { ##1 } { #1 }
+          {
+            \clist_map_inline:nn { ##1 }
+              {
+                \clist_if_in:NnT \l__academicthesis_classoptions_clist { ####1 }
+                  { \bool_set_true:N \l__academicthesis_option_taken_bool }
+              }
+          }
+      }
+    \bool_if:NF \l__academicthesis_option_taken_bool
+      { \clist_put_right:Nn \l__academicthesis_defaultoptions_clist { #1 } }
+  }
+\clist_concat:NNN \l__academicthesis_classoptions_clist
+  \l__academicthesis_defaultoptions_clist \l__academicthesis_classoptions_clist
+\tl_set:Nx \l__academicthesis_classoptions_tl
+  { \clist_use:Nn \l__academicthesis_classoptions_clist { , } }
+
 % NOTE: \ExplSyntaxOn remaps the catcodes of `_', `:' and SPACE for the
 % remainder of this file. Foreign LaTeX2e package/class sources are
 % loaded directly below -- this mirrors the standard, well-tested
@@ -125,7 +204,13 @@
 % empirically, to corrupt expl3's internal catcode-tracking state and
 % hang \ExplSyntaxOn on a later call -- so we deliberately do NOT do
 % that here.
-\LoadClass{book}
+% (A helper, because \LoadClass must see a literal `[' -- see the
+% biblatex loader in \S4 for the same issue.)
+\cs_new_protected:Npn \__academicthesis_load_class:nn #1 #2
+  { \LoadClass [ #1 ] { #2 } }
+\cs_generate_variant:Nn \__academicthesis_load_class:nn { VV }
+\__academicthesis_load_class:VV
+  \l__academicthesis_classoptions_tl \g__academicthesis_baseclass_tl
 
 \academicthesis_meta_set:nn { uni-option-string } { \l__academicthesis_classoptions_tl }
 
@@ -134,6 +219,14 @@
 % 2. Engine-aware font & language setup
 % =====================================================================
 \RequirePackage{iftex}
+
+% Extra languages: from the user (other-languages=...) and from the
+% university (\DeclareThesisOtherLanguages), minus the main language.
+\clist_gconcat:NNN \g__academicthesis_otherlanguages_clist
+  \g__academicthesis_otherlanguages_clist \l__academicthesis_otherlanguages_clist
+\clist_gremove_duplicates:N \g__academicthesis_otherlanguages_clist
+\cs_generate_variant:Nn \clist_gremove_all:Nn { NV }
+\clist_gremove_all:NV \g__academicthesis_otherlanguages_clist \l__academicthesis_language_tl
 
 \ifPDFTeX
   \RequirePackage[T1]{fontenc}
@@ -161,7 +254,13 @@
   %      mis-tokenised if its name contains `_'/`:' and appears after the
   %      toggle; \BabelLangNow contains neither, so it's safe).
   %   4. Restore the two catcodes immediately after.
-  \cs_set:Npx \BabelLangNow { \l__academicthesis_language_tl }
+  % (the main language goes LAST: babel makes the last option the main one)
+  \cs_set:Npx \BabelLangNow
+    {
+      \clist_use:Nn \g__academicthesis_otherlanguages_clist { , }
+      \clist_if_empty:NF \g__academicthesis_otherlanguages_clist { , }
+      \l__academicthesis_language_tl
+    }
   \catcode 95 =12 \catcode 58 =12
   \RequirePackage[\BabelLangNow]{babel}
   \catcode 95 =11 \catcode 58 =11
@@ -171,12 +270,17 @@
   \cs_set:Npx \__academicthesis_set_mainlanguage:w { }
     { \setmainlanguage { \l__academicthesis_language_tl } }
   \__academicthesis_set_mainlanguage:w
+  \clist_if_empty:NF \g__academicthesis_otherlanguages_clist
+    {
+      \exp_args:Nx \setotherlanguages
+        { \clist_use:Nn \g__academicthesis_otherlanguages_clist { , } }
+    }
   \setmainfont{Latin Modern Roman}
   \setsansfont{Latin Modern Sans}
   \setmonofont{Latin Modern Mono}
 \fi
 
-\academicthesis_load_language:n { \l__academicthesis_language_tl }
+\exp_args:NV \academicthesis_set_main_language:n \l__academicthesis_language_tl
 
 
 % =====================================================================
@@ -328,7 +432,8 @@
 \NewDocumentCommand \frontpage { }
   {
     \__academicthesis_frontpage_dispatch:
-    \__academicthesis_secondpage:
+    \bool_if:NT \g__academicthesis_secondpage_bool
+      { \__academicthesis_secondpage: }
   }
 
 
@@ -407,9 +512,45 @@
     \vspace{\stretch{0.74}}\null
   }
 
-\NewDocumentEnvironment { abstractthesis } { }
-  { \thesisfrontchapter{\thesisstring{AbstractLabel}} \noindent\ignorespaces }
-  { \par\null\ignorespacesafterend }
+% \begin{abstractthesis}[keywords={a, b}, language=italian, title={...}]
+%   keywords  printed after the text as "<KeywordsLabel>: a, b"
+%   language  strings (heading, "Keywords") and, when babel/polyglossia
+%             loaded it (class option other-languages), hyphenation
+%   title     overrides the heading (default: string AbstractLabel)
+\tl_new:N \l__academicthesis_abstract_keywords_tl
+\tl_new:N \l__academicthesis_abstract_language_tl
+\tl_new:N \l__academicthesis_abstract_title_tl
+\keys_define:nn { academicthesis / abstract }
+  {
+    keywords .tl_set:N = \l__academicthesis_abstract_keywords_tl ,
+    language .tl_set:N = \l__academicthesis_abstract_language_tl ,
+    title    .tl_set:N = \l__academicthesis_abstract_title_tl ,
+  }
+\NewDocumentEnvironment { abstractthesis } { O{} }
+  {
+    \keys_set:nn { academicthesis / abstract } { #1 }
+    \tl_if_empty:NF \l__academicthesis_abstract_language_tl
+      {
+        \exp_args:NV \academicthesis_select_language:n
+          \l__academicthesis_abstract_language_tl
+      }
+    % the raw string text, not \thesisstring{..}: the heading is also
+    % written to the ToC, where it is read back in the main language
+    \tl_if_empty:NT \l__academicthesis_abstract_title_tl
+      { \academicthesis_string_get:nN { AbstractLabel } \l__academicthesis_abstract_title_tl }
+    \exp_args:NV \thesisfrontchapter \l__academicthesis_abstract_title_tl
+    \noindent\ignorespaces
+  }
+  {
+    \par
+    \tl_if_empty:NF \l__academicthesis_abstract_keywords_tl
+      {
+        \vspace{\baselineskip}
+        \noindent\textbf{\thesisstring{KeywordsLabel}:}~
+        \l__academicthesis_abstract_keywords_tl\par
+      }
+    \null\ignorespacesafterend
+  }
 
 \int_new:N \g__academicthesis_ack_firstpage_int
 \NewDocumentEnvironment { acknowledgements } { }
