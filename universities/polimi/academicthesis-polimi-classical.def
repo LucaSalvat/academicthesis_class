@@ -203,10 +203,10 @@
   \g@addto@macro\mainmatter{\addtocontents{toc}{\protect\vspace{2em}}}%
   % Starred \chapter already adds the ToC entry and the header mark
   \RenewDocumentCommand\thesisfrontchapter{m}{\chapter*{#1}}%
-  % Acknowledgements: a plain starred chapter, upright
-  \RenewDocumentEnvironment{acknowledgements}{}
-    {\chapter*{\thesisstring{AcknowledgmentsLabel}}}
-    {\par}%
+  % Acknowledgements: a plain starred chapter, upright (the core still
+  % handles language= and title=)
+  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
+  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
 }
 
 \makeatother

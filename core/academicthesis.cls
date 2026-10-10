@@ -503,65 +503,97 @@
     \markboth{#1}{#1}
   }
 
-\NewDocumentCommand \dedication { m }
+% ---------------------------------------------------------------------
+% Front-matter blocks: dedication, abstract, acknowledgements
+% ---------------------------------------------------------------------
+% All three take the same optional keys:
+%   language  e.g. language=italian: the block's strings (heading,
+%             "Keywords") come from that language, and so does
+%             hyphenation when babel/polyglossia loaded it (class option
+%             other-languages=italian,french). Default: the main
+%             language (the `language' class option).
+%   title     replaces the default heading
+%   keywords  (abstract) printed after the text as "<Keywords>: a, b"
+% So a thesis can have, e.g., an English and an Italian abstract:
+%   \begin{abstractthesis}[keywords={...}] ... \end{abstractthesis}
+%   \begin{abstractthesis}[language=italian, keywords={...}] ... \end{abstractthesis}
+\tl_new:N \l__academicthesis_block_keywords_tl
+\tl_new:N \l__academicthesis_block_language_tl
+\tl_new:N \l__academicthesis_block_title_tl
+\keys_define:nn { academicthesis / block }
+  {
+    keywords .tl_set:N = \l__academicthesis_block_keywords_tl ,
+    language .tl_set:N = \l__academicthesis_block_language_tl ,
+    title    .tl_set:N = \l__academicthesis_block_title_tl ,
+  }
+
+% #1 = user options, #2 = string key of the default heading.
+% Must run inside a group (every caller is an environment or a group).
+% The heading is kept as the string's raw text, not \thesisstring{..}:
+% it is also written to the ToC, which is read back in the main language.
+\cs_new_protected:Npn \__academicthesis_block_setup:nn #1 #2
+  {
+    \tl_clear:N \l__academicthesis_block_keywords_tl
+    \tl_clear:N \l__academicthesis_block_language_tl
+    \tl_clear:N \l__academicthesis_block_title_tl
+    \keys_set:nn { academicthesis / block } { #1 }
+    \tl_if_empty:NF \l__academicthesis_block_language_tl
+      {
+        \exp_args:NV \academicthesis_select_language:n
+          \l__academicthesis_block_language_tl
+      }
+    \tl_if_empty:NT \l__academicthesis_block_title_tl
+      { \academicthesis_string_get:nN { #2 } \l__academicthesis_block_title_tl }
+  }
+
+% \dedication[language=...]{text}
+\NewDocumentCommand \dedication { O{} +m }
   {
     \cleardoublepage
     \thispagestyle{empty}
-    \null\vspace{\stretch{0.26}}
-    \begin{flushright}\textit{#1}\end{flushright}
-    \vspace{\stretch{0.74}}\null
+    \group_begin:
+      \__academicthesis_block_setup:nn { #1 } { }
+      \null\vspace{\stretch{0.26}}
+      \begin{flushright}\textit{#2}\end{flushright}
+      \vspace{\stretch{0.74}}\null
+    \group_end:
   }
 
-% \begin{abstractthesis}[keywords={a, b}, language=italian, title={...}]
-%   keywords  printed after the text as "<KeywordsLabel>: a, b"
-%   language  strings (heading, "Keywords") and, when babel/polyglossia
-%             loaded it (class option other-languages), hyphenation
-%   title     overrides the heading (default: string AbstractLabel)
-\tl_new:N \l__academicthesis_abstract_keywords_tl
-\tl_new:N \l__academicthesis_abstract_language_tl
-\tl_new:N \l__academicthesis_abstract_title_tl
-\keys_define:nn { academicthesis / abstract }
-  {
-    keywords .tl_set:N = \l__academicthesis_abstract_keywords_tl ,
-    language .tl_set:N = \l__academicthesis_abstract_language_tl ,
-    title    .tl_set:N = \l__academicthesis_abstract_title_tl ,
-  }
+% \begin{abstractthesis}[language=..., keywords=..., title=...]
 \NewDocumentEnvironment { abstractthesis } { O{} }
   {
-    \keys_set:nn { academicthesis / abstract } { #1 }
-    \tl_if_empty:NF \l__academicthesis_abstract_language_tl
-      {
-        \exp_args:NV \academicthesis_select_language:n
-          \l__academicthesis_abstract_language_tl
-      }
-    % the raw string text, not \thesisstring{..}: the heading is also
-    % written to the ToC, where it is read back in the main language
-    \tl_if_empty:NT \l__academicthesis_abstract_title_tl
-      { \academicthesis_string_get:nN { AbstractLabel } \l__academicthesis_abstract_title_tl }
-    \exp_args:NV \thesisfrontchapter \l__academicthesis_abstract_title_tl
+    \__academicthesis_block_setup:nn { #1 } { AbstractLabel }
+    \exp_args:NV \thesisfrontchapter \l__academicthesis_block_title_tl
     \noindent\ignorespaces
   }
   {
     \par
-    \tl_if_empty:NF \l__academicthesis_abstract_keywords_tl
+    \tl_if_empty:NF \l__academicthesis_block_keywords_tl
       {
         \vspace{\baselineskip}
         \noindent\textbf{\thesisstring{KeywordsLabel}:}~
-        \l__academicthesis_abstract_keywords_tl\par
+        \l__academicthesis_block_keywords_tl\par
       }
     \null\ignorespacesafterend
   }
 
+% \begin{acknowledgements}[language=..., title=...]
+% The look lives in \thesisacknowledgementsbegin{<heading>} and
+% \thesisacknowledgementsend, which a university package may redefine
+% (the language/title handling above stays in the core).
+\tl_new:N \g__academicthesis_ack_title_tl   % for the running header
 \int_new:N \g__academicthesis_ack_firstpage_int
-\NewDocumentEnvironment { acknowledgements } { }
+\NewDocumentCommand \thesisacknowledgementsbegin { m }
   {
-    \chapter*{\thesisstring{AcknowledgmentsLabel}}
+    \chapter*{#1}
+    \tl_gset:Nn \g__academicthesis_ack_title_tl { #1 }
     \int_gset:Nn \g__academicthesis_ack_firstpage_int { \value{page} }
     \begingroup
     \pagestyle{acknowledgments}
     \thispagestyle{plain}
     \itshape\noindent\ignorespaces
   }
+\NewDocumentCommand \thesisacknowledgementsend { }
   {
     \par\null
     \endgroup
@@ -571,6 +603,12 @@
     \int_compare:nNnF { \value{page} } = { \g__academicthesis_ack_firstpage_int }
       { \thispagestyle{acknowledgments} }
   }
+\NewDocumentEnvironment { acknowledgements } { O{} }
+  {
+    \__academicthesis_block_setup:nn { #1 } { AcknowledgmentsLabel }
+    \exp_args:NV \thesisacknowledgementsbegin \l__academicthesis_block_title_tl
+  }
+  { \thesisacknowledgementsend }
 
 
 % =====================================================================
@@ -593,10 +631,10 @@
 \fancypagestyle{acknowledgments}{%
   \fancyhf{}%
   \if@twoside
-    \fancyhead[CE,CO]{\small\nouppercase{\thesisstring{AcknowledgmentsLabel}}}%
+    \fancyhead[CE,CO]{\small\nouppercase{\g__academicthesis_ack_title_tl}}%
     \fancyhead[LE,RO]{\thepage}%
   \else
-    \fancyhead[C]{\small\nouppercase{\thesisstring{AcknowledgmentsLabel}}}%
+    \fancyhead[C]{\small\nouppercase{\g__academicthesis_ack_title_tl}}%
     \fancyhead[R]{\thepage}%
   \fi
   \renewcommand{\headrulewidth}{0.4pt}%

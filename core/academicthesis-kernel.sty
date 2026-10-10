@@ -670,8 +670,18 @@
   {
     \academicthesis_load_language:n { #1 }
     \tl_set:Nn \l__academicthesis_strings_lang_tl { #1 }
-    \cs_if_exist:cT { captions #1 }
-      { \cs_if_exist:NT \otherlanguage { \otherlanguage { #1 } } }
+    \str_if_eq:VnF \g__academicthesis_main_language_tl { #1 }
+      {
+        \cs_if_exist:cTF { captions #1 }
+          { \cs_if_exist:NT \otherlanguage { \otherlanguage { #1 } } }
+          { \msg_warning:nnn { academicthesis } { language-not-loaded } { #1 } }
+      }
+  }
+\msg_new:nnn { academicthesis } { language-not-loaded }
+  {
+    '#1'~is~used~with~language=#1~but~was~not~loaded~by~babel/polyglossia:~
+    its~headings~are~translated~but~hyphenation~is~not.~Add~
+    other-languages=#1~to~the~class~options.
   }
 \cs_generate_variant:Nn \__academicthesis_select_language:n { e }
 

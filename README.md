@@ -16,6 +16,10 @@ Each university picks its base class (LUISS and PoliMi classical: `book`)
 and whether the second page (commission + copyright) is printed: on for
 LUISS, off for PoliMi; override with `secondpage` / `no-secondpage`.
 
+Abstract, acknowledgements and dedication take `language=`, so a thesis
+can have, say, an English and an Italian abstract (list the extra
+languages in `other-languages={italian,french}` for correct hyphenation).
+
 ## Repository layout
 
 | Folder | Contents |

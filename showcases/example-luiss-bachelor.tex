@@ -3,7 +3,8 @@
 % academicthesis class + academicthesis-luiss plugin.
 % Finds the packages in ../core, ../languages, ../universities (any editor).
 \input{academicthesis-repo-paths}
-\documentclass[university=luiss, bachelor, language=english, twoside, discussion]{academicthesis}
+% other-languages: languages used by blocks with language=... (hyphenation)
+\documentclass[university=luiss, bachelor, language=english, other-languages={italian,french}, twoside, discussion]{academicthesis}
 
 \luissthesissetup{
   logo-align  = left,
@@ -41,10 +42,19 @@
   LUISS plugin for its front matter.
 \end{abstractthesis}
 
+% Same block in another language: heading and "Keywords" follow it.
+\begin{abstractthesis}[language=italian, keywords={tesi, classe modulare}]
+  Questo breve sommario mostra un secondo abstract in lingua italiana.
+\end{abstractthesis}
+
 \dedication{To everyone who has ever fought with a LaTeX class file.}
 
 \begin{acknowledgements}
   Thanks to everyone who helped test this new architecture.
+\end{acknowledgements}
+
+\begin{acknowledgements}[language=french]
+  Merci à toutes les personnes qui ont testé cette architecture.
 \end{acknowledgements}
 
 \tableofcontents

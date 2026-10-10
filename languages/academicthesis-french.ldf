@@ -1,0 +1,44 @@
+%%
+%% academicthesis-french.ldf
+%% Localisation strings for the academicthesis class family (Français).
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-french.ldf}[2026/10/10 v0.1.0 French strings]
+
+\ProvideThesisString{CandidateLabel}{Candidat}
+\ProvideThesisString{CandidateLabelFemale}{Candidate}
+\ProvideThesisString{IDNumber}{Numéro d'étudiant}
+
+\ProvideThesisString{SupervisorLabel}{Directeur de mémoire}
+\ProvideThesisString{SupervisorsLabel}{Directeurs de mémoire}
+\ProvideThesisString{CoSupervisorLabel}{Co-directeur}
+\ProvideThesisString{CoSupervisorsLabel}{Co-directeurs}
+
+\ProvideThesisString{CourseOf}{Cursus de}
+\ProvideThesisString{ChairOf}{Chaire de}
+\ProvideThesisString{DepartmentOf}{Département de}
+\ProvideThesisString{Cycle}{Cycle}
+\ProvideThesisString{PhDIn}{Doctorat en}
+
+\ProvideThesisString{AcademicYear}{Année universitaire}
+
+\ProvideThesisString{AbstractLabel}{Résumé}
+\ProvideThesisString{KeywordsLabel}{Mots-clés}
+\ProvideThesisString{AcknowledgmentsLabel}{Remerciements}
+
+\ProvideThesisString{ThesisDiscussionBegin}{La présente thèse a été soutenue publiquement le}
+\ProvideThesisString{ThesisDiscussionFollowing}{devant un jury composé de :}
+\ProvideThesisString{NoDiscussion}{La présente thèse n'a pas été soutenue.}
+
+\ProvideThesisString{Copyrights}{%
+  Tous les droits relatifs à ce travail sont réservés à l'auteur.\linebreak
+  Aucune partie de ce mémoire ne peut être reproduite ou diffusée, en tout
+  ou en partie, sauf dans les limites prévues par la loi.%
+}
+\ProvideThesisString{AuthorCopyright}{Auteur :}
+\ProvideThesisString{ContactCopyright}{Contact :}
+\ProvideThesisString{Website}{Site web :}
+\ProvideThesisString{AcknowledgmentsCopyright}{%
+  Mémoire rédigé avec \LaTeX{} et la classe \textit{academicthesis}.%
+}
+
+\endinput
