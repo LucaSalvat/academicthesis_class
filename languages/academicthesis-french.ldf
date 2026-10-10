@@ -23,6 +23,7 @@
 
 \ProvideThesisString{AbstractLabel}{Résumé}
 \ProvideThesisString{KeywordsLabel}{Mots-clés}
+\ProvideThesisString{OriginalityLabel}{Déclaration d'originalité}
 \ProvideThesisString{AcknowledgmentsLabel}{Remerciements}
 
 \ProvideThesisString{ThesisDiscussionBegin}{La présente thèse a été soutenue publiquement le}

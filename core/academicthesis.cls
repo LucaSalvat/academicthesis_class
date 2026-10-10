@@ -504,9 +504,9 @@
   }
 
 % ---------------------------------------------------------------------
-% Front-matter blocks: dedication, abstract, acknowledgements
+% Front-matter blocks: dedication, abstract, originality, acknowledgements
 % ---------------------------------------------------------------------
-% All three take the same optional keys:
+% All of them (and originality, below) take the same optional keys:
 %   language  e.g. language=italian: the block's strings (heading,
 %             "Keywords") come from that language, and so does
 %             hyphenation when babel/polyglossia loaded it (class option
@@ -576,6 +576,17 @@
       }
     \null\ignorespacesafterend
   }
+
+% \begin{originality}[language=..., title=...]
+% Statement of originality (e.g. Oxford): a front-matter chapter with
+% the same options as the abstract, listed in the table of contents.
+\NewDocumentEnvironment { originality } { O{} }
+  {
+    \__academicthesis_block_setup:nn { #1 } { OriginalityLabel }
+    \exp_args:NV \thesisfrontchapter \l__academicthesis_block_title_tl
+    \noindent\ignorespaces
+  }
+  { \par\null\ignorespacesafterend }
 
 % \begin{acknowledgements}[language=..., title=...]
 % The look lives in \thesisacknowledgementsbegin{<heading>} and

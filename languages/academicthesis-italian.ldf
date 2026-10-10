@@ -23,6 +23,7 @@
 
 \ProvideThesisString{AbstractLabel}{Sommario}
 \ProvideThesisString{KeywordsLabel}{Parole chiave}
+\ProvideThesisString{OriginalityLabel}{Dichiarazione di originalità}
 \ProvideThesisString{AcknowledgmentsLabel}{Ringraziamenti}
 
 \ProvideThesisString{ThesisDiscussionBegin}{La presente tesi è stata discussa in data}

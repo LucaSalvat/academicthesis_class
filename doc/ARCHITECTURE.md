@@ -110,7 +110,7 @@ Processed top-to-bottom in numbered sections. All code lives inside a single
 | 5 — University plugin | `\exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl` loads `academicthesis-<uni>.sty`. |
 | 6–7 — Labels, front page | `\authorlabel`, `\supervisorlabel`, ...; `\frontpage` dispatches to the registered front page and, unless switched off, adds the second page. |
 | 8 — Second page | Examination commission + copyright block. |
-| 9 — Front-matter helpers | `\thesisfrontchapter`; the blocks `\dedication[..]{..}`, `abstractthesis`, `acknowledgements`, which all take `language=` and `title=` (abstract also `keywords=`). The acknowledgements look is in `\thesisacknowledgementsbegin{<heading>}` / `\thesisacknowledgementsend`, which a university may redefine. |
+| 9 — Front-matter helpers | `\thesisfrontchapter`; the blocks `\dedication[..]{..}`, `abstractthesis`, `originality` (statement of originality), `acknowledgements`, which all take `language=` and `title=` (abstract also `keywords=`). The acknowledgements look is in `\thesisacknowledgementsbegin{<heading>}` / `\thesisacknowledgementsend`, which a university may redefine. |
 | 10 — Page styles | `Thesis`, `acknowledgments`, `plain`. |
 | 11 — Validation | Required metadata, core + plugin-registered. |
 
@@ -216,6 +216,7 @@ For code written in normal LaTeX syntax (expl3 off):
                other-languages={italian,french}]{academicthesis}
 \begin{abstractthesis}[keywords={...}] ... \end{abstractthesis}               % main language
 \begin{abstractthesis}[language=italian, keywords={...}] ... \end{abstractthesis}
+\begin{originality}[language=italian] ... \end{originality}
 \begin{acknowledgements}[language=french] ... \end{acknowledgements}
 ```
 

@@ -29,6 +29,7 @@
 
 \ProvideThesisString{AbstractLabel}{Abstract}
 \ProvideThesisString{KeywordsLabel}{Keywords}
+\ProvideThesisString{OriginalityLabel}{Statement of Originality}
 \ProvideThesisString{AcknowledgmentsLabel}{Acknowledgments}
 
 \ProvideThesisString{ThesisDiscussionBegin}{The present thesis was publicly discussed on}
