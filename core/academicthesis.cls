@@ -229,6 +229,13 @@
   { \bool_gset_true:N  \g__academicthesis_biblatex_bool }
   { \bool_gset_false:N \g__academicthesis_biblatex_bool }
 
+% Load biblatex with an option list that is only known as a variable.
+% (\exp_args:Nno \RequirePackage [ ... ] would treat `[' as the first
+% argument and typeset the options as text before \begin{document}.)
+\cs_new_protected:Npn \__academicthesis_load_biblatex:n #1
+  { \RequirePackage [ #1 ] { biblatex } }
+\cs_generate_variant:Nn \__academicthesis_load_biblatex:n { e , V }
+
 \AtEndOfClass
   {
     \bool_if:NTF \g__academicthesis_biblatex_bool
@@ -237,14 +244,14 @@
           {
             \__academicthesis_if_bibdefaults:TF
               {
-                \exp_args:Nno \RequirePackage [ \__academicthesis_bibdefaults_get: ] { biblatex }
+                \__academicthesis_load_biblatex:e { \__academicthesis_bibdefaults_get: }
               }
               {
                 \RequirePackage[style=numeric,backend=biber]{biblatex}
               }
           }
           {
-            \exp_args:Nno \RequirePackage [ \l__academicthesis_biblatex_options_tl ] { biblatex }
+            \__academicthesis_load_biblatex:V \l__academicthesis_biblatex_options_tl
           }
       }
       {
@@ -364,8 +371,11 @@
     \makebox[0.8\textwidth][l]{%
       \parbox{0.8\textwidth}{\raggedright \__academicthesis_examination_commission: }%
     }
+    \par
     \vfill
-    \noindent\rule{\textwidth}{0.4pt}\vspace{0.03\textheight}
+    \noindent\rule{\textwidth}{0.4pt}\par
+    \vspace{0.03\textheight}
+    \noindent
     \makebox[0.8\textwidth][l]{%
       \parbox{0.8\textwidth}{%
         \setlength{\parindent}{0pt}
@@ -401,9 +411,11 @@
   { \thesisfrontchapter{\thesisstring{AbstractLabel}} \noindent\ignorespaces }
   { \par\null\ignorespacesafterend }
 
+\int_new:N \g__academicthesis_ack_firstpage_int
 \NewDocumentEnvironment { acknowledgements } { }
   {
     \chapter*{\thesisstring{AcknowledgmentsLabel}}
+    \int_gset:Nn \g__academicthesis_ack_firstpage_int { \value{page} }
     \begingroup
     \pagestyle{acknowledgments}
     \thispagestyle{plain}
@@ -413,7 +425,10 @@
     \par\null
     \endgroup
     \pagestyle{Thesis}
-    \thispagestyle{acknowledgments}
+    % Keep the acknowledgments header on their last page, but not when
+    % they fit on the chapter's opening page (that one stays `plain').
+    \int_compare:nNnF { \value{page} } = { \g__academicthesis_ack_firstpage_int }
+      { \thispagestyle{acknowledgments} }
   }
 
 

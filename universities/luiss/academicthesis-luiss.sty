@@ -160,13 +160,13 @@
 % 3. Building blocks (logo, title, name columns, ...)
 % =====================================================================
 \cs_new:Npn \__luiss_aligned:nn #1 #2
-  { \makebox[\textwidth][#2]{#1} }
+  { \makebox[\linewidth][#2]{#1} }
 
 \cs_new:Npn \__luiss_alignedpar:nn #1 #2
   {
     \makebox[\textwidth][#2]{%
       \begin{minipage}{\l__luiss_contentwidth_dim}%
-        \str_case:nn {#2} { {l}{\raggedright} {c}{\centering} {r}{\raggedleft} }%
+        \str_case_e:nn {#2} { {l}{\raggedright} {c}{\centering} {r}{\raggedleft} }%
         #1%
       \end{minipage}%
     }
@@ -229,7 +229,7 @@
         \LowerFont
         \thesisstring{CourseOf}~\academicthesis_meta_get:n{degree}\par
         \academicthesis_meta_if_empty:nF {luiss-major}
-          { \__luiss_aligned:nn { \academicthesis_meta_get:n{luiss-major} } { \l__luiss_major_align_tl } }
+          { \__luiss_aligned:nn { \academicthesis_meta_get:n{luiss-major} } { \l__luiss_major_align_tl } \par }
         \vspace*{0.02\textheight}
         \thesisstring{ChairOf}~\academicthesis_meta_get:n{chair}
       }
@@ -301,23 +301,25 @@
 % =====================================================================
 % 4. Front pages -- registered with the core via \DeclareThesisFrontPage
 % =====================================================================
+% Blank lines do not end paragraphs under \ExplSyntaxOn, so every block
+% is closed with an explicit \par.
 \NewDocumentCommand \__luiss_frontpage_undergrad: { }
   {
     \begin{titlepage}
       \thispagestyle{empty}
       \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
 
-      \__luiss_logobox:
+      \__luiss_logobox: \par
       \vspace{0.1\textheight}
 
-      \__luiss_degree_chair:
+      \__luiss_degree_chair: \par
       \vfill
-      \__luiss_titleblock:
+      \__luiss_titleblock: \par
       \vfill
-      \__luiss_namesblock:
+      \__luiss_namesblock: \par
       \vspace{0.1\textheight}
 
-      \__luiss_academicyear_footer:
+      \__luiss_academicyear_footer: \par
       \vspace*{0.05\textheight}
 
       \restoregeometry
@@ -330,17 +332,17 @@
       \thispagestyle{empty}
       \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
 
-      \__luiss_logobox:
+      \__luiss_logobox: \par
       \vspace{0.1\textheight}
 
-      \__luiss_cycle_department:
+      \__luiss_cycle_department: \par
       \vfill
-      \__luiss_titleblock:
+      \__luiss_titleblock: \par
       \vfill
-      \__luiss_namesblock:
+      \__luiss_namesblock: \par
       \vspace{0.1\textheight}
 
-      \__luiss_academicyear_footer:
+      \__luiss_academicyear_footer: \par
       \vspace*{0.05\textheight}
 
       \restoregeometry

@@ -445,11 +445,21 @@
 \cs_new_protected:Npn \academicthesis_load_language:n #1
   {
     \IfFileExists { academicthesis-#1.ldf }
-      { \input { academicthesis-#1.ldf } }
+      { \__academicthesis_input_ldf:n { academicthesis-#1.ldf } }
       {
         \msg_warning:nnn { academicthesis } { missing-language } { #1 }
-        \input { academicthesis-english.ldf }
+        \__academicthesis_input_ldf:n { academicthesis-english.ldf }
       }
+  }
+% The .ldf strings must be read with ordinary document catcodes: read
+% under \ExplSyntaxOn every space in them is dropped ("Course of" ->
+% "Courseof"). The strings are stored globally, so a group is enough.
+\cs_new_protected:Npn \__academicthesis_input_ldf:n #1
+  {
+    \group_begin:
+      \cctab_select:N \c_document_cctab
+      \input { #1 }
+    \group_end:
   }
 
 \ExplSyntaxOff
