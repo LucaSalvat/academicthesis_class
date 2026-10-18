@@ -14,6 +14,9 @@
 \ProvideThesisString{MasterThesisIn}{Tesi di Laurea Magistrale in}
 % label of the abstract on the article-format cover
 \ProvideThesisString{CoverAbstractLabel}{Abstract}
+% executive summary (format=summary): first-page line, page header
+\ProvideThesisString{ExecutiveSummaryOfThesis}{Executive Summary della Tesi}
+\ProvideThesisString{ExecutiveSummaryHeader}{Executive summary}
 \ProvideThesisString{TheoremLabel}{Teorema}
 \ProvideThesisString{PropositionLabel}{Proposizione}
 

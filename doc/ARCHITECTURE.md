@@ -38,6 +38,7 @@ academicthesis_class/
 │       ├── academicthesis-polimi.sty  Options, requirements, loads the format
 │       ├── academicthesis-polimi-classical.def  Classical layout (book)
 │       ├── academicthesis-polimi-article.def    Article layout (article)
+│       ├── academicthesis-polimi-summary.def    Executive summary (two-column article)
 │       ├── academicthesis-polimi-english.ldf    PoliMi wording of core strings
 │       ├── academicthesis-polimi-italian.ldf
 │       ├── logopolimi3i.pdf
@@ -46,6 +47,7 @@ academicthesis_class/
 │   ├── example-luiss-bachelor.tex
 │   ├── example-polimi-classical.tex
 │   ├── example-polimi-article.tex
+│   ├── example-polimi-summary.tex
 │   ├── example.bib
 │   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc

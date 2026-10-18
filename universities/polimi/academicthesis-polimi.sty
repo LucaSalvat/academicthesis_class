@@ -12,6 +12,7 @@
 %%   academicthesis-polimi.sty            this file: options, metadata, registration
 %%   academicthesis-polimi-classical.def  the classical layout (normal LaTeX syntax)
 %%   academicthesis-polimi-article.def    the article layout (normal LaTeX syntax)
+%%   academicthesis-polimi-summary.def    the executive summary layout
 %%   academicthesis-polimi-<lang>.ldf     PoliMi wording of the core strings
 %%   logopolimi3i.pdf, raggierapolimi.pdf
 %%
@@ -53,10 +54,14 @@
 
 % =====================================================================
 % 2. Required metadata (on top of the core's title, candidate, degree,
-%    academicyear, supervisors)
+%    academicyear, supervisors): the student ID, printed by the classical
+%    and article covers (the executive summary does not show it)
 % =====================================================================
-\DeclareThesisRequirement { polimi } { \c_true_bool } { idnumber }
-  { \thesissetup{idnumber=000000} }
+\str_if_eq:VnF \g__academicthesis_format_tl { summary }
+  {
+    \DeclareThesisRequirement { polimi } { \c_true_bool } { idnumber }
+      { \thesissetup{idnumber=000000} }
+  }
 
 
 % =====================================================================
@@ -86,6 +91,15 @@
         % the cover prints the abstract, so it is required metadata
         \DeclareThesisRequirement { polimi } { \c_true_bool } { abstract }
           { \thesissetup{abstract={...},~keywords={...}} }
+      }
+    { summary }
+      {
+        \RequirePackage { titlesec }    % section headings
+        \RequirePackage { caption }     % coloured caption labels
+        \RequirePackage { eso-pic }     % background "raggiera"
+        \RequirePackage { transparent } % ... at 40% opacity
+        \RequirePackage { amsthm }      % coloured theorem heads
+        \RequirePackage { tcolorbox }   % blue page header
       }
   }
 

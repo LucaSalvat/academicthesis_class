@@ -10,7 +10,7 @@ class plus independent plugin packages per university and per language.
 | University | Degrees | Formats | Showcase |
 | --- | --- | --- | --- |
 | LUISS | bachelor, master, phd | (one) | `showcases/example-luiss-bachelor.tex` |
-| Politecnico di Milano | bachelor, master | `classical` (book), `article` (article); `summary` planned | `showcases/example-polimi-classical.tex`, `showcases/example-polimi-article.tex` |
+| Politecnico di Milano | bachelor, master | `classical` (book), `article` (article), `summary` (executive summary, two-column article) | `showcases/example-polimi-classical.tex`, `-article.tex`, `-summary.tex` |
 
 Each university picks its base class (LUISS and PoliMi classical: `book`; PoliMi article: `article`)
 and whether the second page (commission + copyright) is printed: on for

@@ -1,8 +1,22 @@
 # Politecnico di Milano (PoliMi) package: design report
 
-Status: **classical format implemented** (2026-10-10), following the
+Status: **all three formats implemented**: classical (2026-10-10), article
+and summary (2026-10-18). Earlier status: classical format implemented (2026-10-10), following the
 decisions below. `article` and `summary` are declared but give a
 "not implemented yet" error.
+
+## Executive summary format (2026-10-18)
+
+`format=summary` loads `article` with `11pt, a4paper, twocolumn` and follows
+the official `Executive_Summary` template (`academicthesis-polimi-summary.def`):
+a full-width block on page 1 ("Executive Summary of the Thesis", title,
+programme, author, advisor, co-advisors, academic year, rule), then two
+columns (30pt apart); from page 2 a `bluepoli!60` box at the top with
+"Executive summary" and the author; page number centred; blue sections
+(tighter spacing than the article format), caption labels and theorem
+heads; raggiera top right of page 1. The student ID is not printed, so it
+is not required in this format. `headheight` is 2.05cm instead of the
+template's 2cm, which fancyhdr reports as too small.
 
 ## Article format (2026-10-18)
 

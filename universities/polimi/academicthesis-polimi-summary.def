@@ -1,0 +1,148 @@
+%%
+%% academicthesis-polimi-summary.def
+%% --------------------------------------------------------------
+%% PoliMi "summary" layout: the Executive Summary of the thesis
+%% (article, 11pt, A4, two columns), after the official Scuola 3I
+%% template (Executive_Summary: config.tex + title_page.tex).
+%%
+%% Read by academicthesis-polimi.sty with NORMAL LaTeX syntax (expl3
+%% off). Metadata is read with the kernel's document-level accessors.
+%% No package may be loaded from here: the .sty loads them.
+%%
+%% As in the template:
+%%   * \frontpage prints a full-width header block on page 1 ("Executive
+%%     Summary of the Thesis", title, programme, author, advisor,
+%%     co-advisors, academic year, a rule) and the two-column text
+%%     follows on the same page;
+%%   * every later page has a blue box at the top: "Executive summary"
+%%     on the left, the author on the right; page numbers centred below.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-summary.def}[2026/10/18 v0.1.0 PoliMi executive summary layout]
+\makeatletter
+
+% =====================================================================
+% 1. Colour, page, paragraphs
+% =====================================================================
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
+\colorlet{bluePoli}{bluepoli} % the name used by the official template
+
+\geometry{a4paper, top=3cm, bottom=2cm, left=2.0cm, right=2.0cm,
+  headheight=2.05cm, headsep=0cm} % 2cm in the template; fancyhdr needs 58pt
+
+\setlength{\columnsep}{30pt}
+\setlength{\parindent}{0pt}
+\raggedbottom
+
+\renewcommand{\LettrineFontHook}{\color{bluepoli}}
+
+% =====================================================================
+% 2. Captions and theorems
+% =====================================================================
+\captionsetup{labelfont={color=bluepoli}}
+
+\newtheoremstyle{polimi}
+  {\topsep}{\topsep}
+  {\normalfont\itshape}{}
+  {\color{bluepoli}\normalfont\bfseries}{.}
+  { }{}
+\theoremstyle{polimi}
+\newtheorem{theorem}{\thesisstring{TheoremLabel}}[section]
+\newtheorem{proposition}{\thesisstring{PropositionLabel}}[section]
+
+% =====================================================================
+% 3. Headings:  "1. Section title" (tighter than the article format)
+% =====================================================================
+\titleformat{\section}
+  {\color{bluepoli}\normalfont\Large\bfseries}
+  {\color{bluepoli}\thesection.}{1em}{}
+\titlespacing*{\section}{0pt}{2ex}{1ex}
+\titleformat{\subsection}
+  {\color{bluepoli}\normalfont\large\bfseries}
+  {\color{bluepoli}\thesubsection.}{1em}{}
+\titlespacing*{\subsection}{0pt}{2ex}{1ex}
+
+% =====================================================================
+% 4. Watermark ("raggiera") at the top right of page 1
+% =====================================================================
+\newcommand\polimi@watermarksummary{%
+  \put(230,358){%
+    \parbox[b][\paperheight]{\paperwidth}{%
+      \vfill
+      \centering
+      \transparent{0.4}%
+      \includegraphics[width=0.5\paperwidth]{raggierapolimi}%
+      \vfill}}}
+
+% =====================================================================
+% 5. Front page: full-width header block on page 1 (bachelor and master)
+% =====================================================================
+\newcommand\polimi@thesistype{%
+  \IfThesisDegreeTF{bachelor}
+    {\thesisstring{BachelorThesisIn}}
+    {\thesisstring{MasterThesisIn}}}
+
+% the small coloured lines of the block
+\newcommand\polimi@summaryfont{\fontsize{0.3cm}{0.5cm}\selectfont}
+
+% (Latin Modern has no bold small caps: values in medium small caps)
+\newcommand\polimi@frontpage{%
+  \twocolumn[{%
+    \ifpolimi@watermark\AddToShipoutPicture*{\polimi@watermarksummary}\fi
+    \noindent
+    \includegraphics[trim={1.2cm 0 0 0}, clip, width=0.6\textwidth]{\polimi@logofile}
+    \par\vspace{2mm}
+    {\polimi@summaryfont\color{bluepoli}%
+      \textsc{\thesisstring{ExecutiveSummaryOfThesis}}\par}
+    \vspace{1mm}
+    {\Large\bfseries\color{bluepoli}\thesismeta{title}\par}
+    \IfThesisMetaEmptyTF{subtitle}{}
+      {{\large\color{bluepoli}\thesismeta{subtitle}\par}}
+    \vspace{2mm}
+    {\polimi@summaryfont\color{bluepoli}%
+      \textsc{\polimi@thesistype\ \thesismeta{degree}}\par}
+    \vspace{2mm}
+    {\polimi@summaryfont
+      \textbf{\authorlabel:} \textsc{\thesismeta{candidate}}\par
+      \textbf{\supervisorlabel:} \textsc{\academicthesislist[, ]{supervisors}}\par
+      \IfThesisListEmptyTF{cosupervisors}{}
+        {\textbf{\cosupervisorlabel:} \textsc{\academicthesislist[, ]{cosupervisors}}\par}
+      \textbf{\thesisstring{AcademicYear}:} \textsc{\thesismeta{academicyear}}\par}
+    \vspace{11pt}
+    \noindent\rule{\textwidth}{0.4pt}\par
+    \vspace{15pt}
+  }]%
+  \thispagestyle{plain}}
+
+\DeclareThesisFrontPage{polimi}{bachelor}{\polimi@frontpage}
+\DeclareThesisFrontPage{polimi}{master}{\polimi@frontpage}
+
+% =====================================================================
+% 6. Core pieces redefined for the executive summary
+% =====================================================================
+\AddToHook{class/academicthesis/after}{%
+  % Blue box "Executive summary ... Author" on top, page number below
+  \fancypagestyle{Thesis}{%
+    \fancyhf{}%
+    \fancyhead[C]{%
+      \begin{tcolorbox}[arc=0pt, boxrule=0pt, colback=bluepoli!60,
+                        width=\textwidth, colupper=white]
+        \textbf{\thesisstring{ExecutiveSummaryHeader}}\hfill
+        \textbf{\thesismeta{candidate}}
+      \end{tcolorbox}}%
+    \fancyfoot[C]{\thepage}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  % Page 1: page number only
+  \fancypagestyle{plain}{%
+    \fancyhf{}%
+    \fancyfoot[C]{\thepage}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  \AtBeginDocument{\pagestyle{Thesis}}%
+  % Acknowledgements: a plain unnumbered section, upright
+  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\section*{#1}}%
+  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
+}
+
+\makeatother
+\endinput

@@ -1,0 +1,98 @@
+% !TEX TS-program = pdflatex
+% Example: the Executive Summary of a Politecnico di Milano master's
+% thesis ("summary" format), using the modular academicthesis class +
+% academicthesis-polimi. Mirrors the official Scuola 3I template
+% (Executive_Summary).
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=polimi, master, format=summary, language=english]{academicthesis}
+
+% The class only loads what the PoliMi layout needs; anything else is
+% your choice. These are the ones the official template example uses.
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{float}    % [H] placement
+\usepackage{colortbl} % \rowcolor{bluepoli!40}
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black]{hyperref}
+
+\thesissetup{
+  title         = {Title of the thesis},
+  candidate     = {Name Surname},
+  degree        = {Xxxxxxxxxxxx Engineering - Ingegneria Xxxxxxxxxxxx},
+  supervisor    = {Prof. Name Surname},
+  cosupervisor  = {Name Surname},
+  academicyear  = {20XX-20XX},
+}
+
+%\addbibresource{example.bib}
+
+\begin{document}
+
+\frontpage
+
+\section{Introduction}
+\label{sec:introduction}
+This document is an example of the PoliMi Executive Summary built with the
+modular \texttt{academicthesis} class.
+
+The Executive Summary is required only if the thesis has been assigned to
+a reviewer (\textit{controrelatore}) for an independent evaluation of its
+quality, scientific/technical relevance and original contribution.
+
+\section{Guidelines}
+The Executive Summary is a critical overview of your thesis with a focus
+on the main achievements that have emerged from your research. It should
+be organized in sections and paragraphs in order to better highlight the
+major points of your work. Its length should range from four to six pages,
+depending on the length of the thesis manuscript.
+
+\section{Equations, Figures, Tables}
+\subsection{Equations}
+Maxwell's equations read:
+\begin{align}
+  \nabla\cdot \bm{D} & = \rho, \\
+  \nabla \times \bm{E} + \frac{\partial \bm{B}}{\partial t} & = \bm{0}, \\
+  \nabla\cdot \bm{B} & = 0, \\
+  \nabla \times \bm{H} - \frac{\partial \bm{D}}{\partial t} & = \bm{J}.
+\end{align}
+
+\subsection{Figures}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{logopolimi3i}
+  \caption{Caption of the Figure.}
+  \label{fig:logo}
+\end{figure}
+
+\subsection{Tables}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l c c c}
+    \rowcolor{bluepoli!40}
+    & \textbf{column1} & \textbf{column2} & \textbf{column3} \\
+    \textbf{row1} & 1 & 2 & 3 \\
+    \textbf{row2} & $\alpha$ & $\beta$ & $\gamma$ \\
+  \end{tabular}
+  \caption{Caption of the Table.}
+  \label{table:example}
+\end{table}
+
+\section{Theorems and propositions}
+\begin{theorem}
+  Write here your theorem.
+\end{theorem}
+
+\begin{proposition}
+  Write here your proposition.
+\end{proposition}
+
+\section{Conclusions}
+A final section containing the main conclusions of your research.
+
+\begin{acknowledgements}
+  Here you might want to acknowledge someone.
+\end{acknowledgements}
+
+%\printbibliography
+
+\end{document}
