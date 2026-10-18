@@ -1,5 +1,9 @@
 # academicthesis-polimi
 
+> The same manual as a PDF: compile `academicthesis-polimi-doc.tex` in this
+> folder with pdfLaTeX (twice, for the table of contents), or open
+> `academicthesis-polimi-doc.pdf`.
+
 Politecnico di Milano plugin for the `academicthesis` class. It reproduces the
 three official thesis layouts of the School of Industrial and Information
 Engineering (Scuola 3I, template revision October 2021):

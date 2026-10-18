@@ -1,0 +1,457 @@
+% !TEX TS-program = pdflatex
+% academicthesis-polimi-doc.tex
+% User and maintainer manual of the academicthesis-polimi package.
+% Compile with pdfLaTeX (twice, for the table of contents):
+%   pdflatex academicthesis-polimi-doc.tex
+% It is a standalone document: it does not need the academicthesis class.
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{url}
+\usepackage[colorlinks=true, linkcolor=bluepoli, urlcolor=bluepoli]{hyperref}
+
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
+
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.5\baselineskip}
+\setlist{nosep, topsep=2pt}
+\renewcommand{\arraystretch}{1.25}
+
+\titleformat{\section}{\color{bluepoli}\normalfont\Large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\color{bluepoli}\normalfont\large\bfseries}{\thesubsection.}{0.6em}{}
+
+% Short-hands for names in running text and tables
+\newcommand{\cs}[1]{\texttt{\textbackslash#1}}      % a command
+\newcommand{\opt}[1]{\texttt{#1}}                    % an option / key / file
+\newcommand{\env}[1]{\texttt{#1}}                    % an environment
+\DeclareUrlCommand{\file}{\urlstyle{tt}}               % a file name (breaks at - and .)
+\renewcommand{\UrlBreaks}{\do\-\do\.\do\/}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{bluepoli}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  language=[LaTeX]TeX,
+  frame=single, rulecolor=\color{bluepoli!40},
+  backgroundcolor=\color{bluepoli!6},
+  columns=fullflexible, keepspaces=true,
+  xleftmargin=4pt, xrightmargin=4pt, aboveskip=6pt, belowskip=6pt,
+  literate={à}{{\`a}}1 {è}{{\`e}}1,
+}
+
+\title{\color{bluepoli}\textbf{academicthesis-polimi}\\[4pt]
+  \large Politecnico di Milano layouts for the \texttt{academicthesis} class}
+\author{User and maintainer manual}
+\date{Version 0.1.0 --- October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent \opt{academicthesis-polimi} is the Politecnico di Milano plugin of
+the modular \opt{academicthesis} class. It reproduces the three official
+thesis layouts of the School of Industrial and Information Engineering
+(Scuola 3I, template revision October 2021): the \emph{classical} thesis,
+the \emph{article} thesis and the \emph{Executive Summary}. You only choose
+\opt{university=polimi} and a format; the package picks the base class, page
+layout, colours, cover and headings.
+\end{abstract}
+
+\tableofcontents
+
+% ======================================================================
+\section{The three formats}
+
+\begin{tabularx}{\textwidth}{@{}l Y l Y@{}}
+\toprule
+\textbf{Format} & \textbf{What it is} & \textbf{Built on} & \textbf{Showcase} \\
+\midrule
+\opt{classical} (default) & The full thesis as a book: cover page, abstracts, chapters
+  & \opt{book}, 12pt, two-sided & \file{example-polimi-classical.tex} \\
+\opt{article} & The thesis as a paper: header block with abstract on page~1, sections
+  & \opt{article}, 11pt & \file{example-polimi-article.tex} \\
+\opt{summary} & The Executive Summary: two columns, blue page header
+  & \opt{article}, 11pt, two columns & \file{example-polimi-summary.tex} \\
+\bottomrule
+\end{tabularx}
+
+All formats are A4. The showcases, in the \opt{showcases/} folder of the
+repository, are complete compilable examples: copying one is the fastest way
+to start.
+
+% ======================================================================
+\section{Quick start}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=classical,
+               language=english]{academicthesis}
+
+\thesissetup{
+  title         = {Title},
+  candidate     = {Name Surname},
+  idnumber      = {000000},
+  degree        = {Xxxxxxx Engineering - Ingegneria Xxxxxxx},
+  supervisor    = {Prof. Name Surname},
+  cosupervisors = {Name Surname, Name Surname},
+  academicyear  = {2025-26},
+}
+
+\begin{document}
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}[keywords = {first, second, third}]
+  English abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian,
+                       keywords = {primo, secondo, terzo}]
+  Abstract in italiano.
+\end{abstractthesis}
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+...
+\end{document}
+\end{lstlisting}
+
+% ======================================================================
+\section{Class options}
+
+All options go in \cs{documentclass}\opt{[...]\{academicthesis\}}.
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Option} & \textbf{Values} & \textbf{Notes} \\
+\midrule
+\opt{university} & \opt{polimi} & Loads this package. \\
+degree & \opt{bachelor}, \opt{master} &
+  Prints ``Bachelor's / Master's Thesis in'' (English) or ``Tesi di Laurea
+  Triennale / Magistrale in'' (Italian). \opt{phd} is not available yet. \\
+\opt{format} & \opt{classical}, \opt{article}, \opt{summary} &
+  Default \opt{classical}. Any other value is an error that names the three
+  formats. \\
+\opt{language} & \opt{english}, \opt{italian}, \dots &
+  Main language of the thesis and of every label. \\
+\opt{other-languages} & e.g.\ \opt{\{french\}} &
+  Extra languages for blocks written in another language. English and Italian
+  are always loaded for PoliMi, so the second abstract needs nothing here. \\
+\opt{secondpage} & & PoliMi has no examination-commission / copyright page,
+  so it is \emph{off} by default; \opt{secondpage} adds the core one. \\
+\opt{11pt}, \opt{oneside}, \dots & & Standard class options still work and
+  win over the format's defaults. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Thesis data (\texorpdfstring{\cs{thesissetup}}{\\thesissetup})}
+
+PoliMi uses the \emph{core names} of the class unchanged; only the printed
+labels follow PoliMi's wording. A missing required key stops the compilation
+with a message that names it and shows an example.
+
+\begin{tabularx}{\textwidth}{@{}l Y c c c@{}}
+\toprule
+\textbf{Key} & \textbf{PoliMi meaning (printed as)} & \textbf{classical} & \textbf{article} & \textbf{summary} \\
+\midrule
+\opt{title} & Title & req. & req. & req. \\
+\opt{subtitle} & Subtitle & opt. & opt. & opt. \\
+\opt{candidate} & Author (Author / Candidato) & req. & req. & req. \\
+\opt{idnumber} & Student ID (Student ID / Matricola) & req. & req. & --- \\
+\opt{degree} & Study programme, after ``Master's Thesis in'' & req. & req. & req. \\
+\opt{supervisor(s)} & Advisor(s) (Advisor / Relatore) & req. & req. & req. \\
+\opt{cosupervisor(s)} & Co-advisor(s), comma-separated (Co-advisor / Correlatore) & opt. & opt. & opt. \\
+\opt{academicyear} & Academic year (Academic Year / Anno Accademico) & req. & req. & req. \\
+\opt{abstract} & English abstract printed on page~1 & --- & req. & --- \\
+\opt{keywords} & Keywords of that abstract, in a blue box & --- & opt. & --- \\
+\opt{gender} & \opt{male} / \opt{female} (Candidato / Candidata) & opt. & opt. & opt. \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{PoliMi options (\texorpdfstring{\cs{polimithesissetup}}{\\polimithesissetup})}
+
+\begin{lstlisting}
+\polimithesissetup{ logo-file = mylogo, watermark = false }
+\end{lstlisting}
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Key} & \textbf{Default} & \textbf{Effect} \\
+\midrule
+\opt{logo-file} & \opt{logopolimi3i} & Logo on the cover / first page (the Scuola 3I logo is shipped). \\
+\opt{watermark} & \opt{true} & The ``raggiera'' in the background (cover, first page, blank pages). \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\section{Front-matter blocks}
+
+These come from the core class and work in every format; PoliMi only
+changes their look.
+
+\begin{tabularx}{\textwidth}{@{}l l Y Y@{}}
+\toprule
+\textbf{Block} & \textbf{Options} & \textbf{classical} & \textbf{article / summary} \\
+\midrule
+\env{abstractthesis} & \opt{language}, \opt{keywords}, \opt{title} &
+  Unnumbered chapter in the contents; keywords as a bold line &
+  Unnumbered section; keywords in a blue box \\
+\env{originality} & \opt{language}, \opt{title} & Unnumbered chapter & Unnumbered section \\
+\env{acknowledgements} & \opt{language}, \opt{title} & Unnumbered chapter, upright text & Unnumbered section \\
+\cs{dedication} & \opt{language} & Own page, right-aligned italic & same \\
+\bottomrule
+\end{tabularx}
+
+\opt{language=} switches the heading and the ``Keywords'' label to that
+language (e.g.\ ``Abstract in lingua italiana'', ``Parole chiave'') and its
+hyphenation. Without it, the main language is used.
+
+% ======================================================================
+\section{The formats in detail}
+
+\subsection{\texorpdfstring{\opt{classical}}{classical}}
+
+As in \opt{Thesis\_classical\_format}:
+\begin{itemize}
+  \item \textbf{Page}: A4, 12pt, two-sided; inner margin 3\,cm, outer 2\,cm,
+    top/bottom 2.5\,cm; 1.5 line spacing; no paragraph indent, space between
+    paragraphs.
+  \item \textbf{Cover} (\cs{frontpage}): Scuola 3I logo, title in blue,
+    ``Master's Thesis in \textit{degree}'', ``Author: \textit{name}'', and at
+    the bottom Student ID, Advisor, Co-advisors, Academic Year. Raggiera at
+    the top right.
+  \item \textbf{Chapters}: big blue number and bar, ``\textbf{1$|$} Chapter
+    title''. Starred chapters (\cs{chapter*}, e.g.\ for the Introduction) are added
+    to the table of contents and to the running header.
+  \item \textbf{Running header}: page number outside, ``1$|$ Chapter title''
+    inside, no rules. Chapter opening pages show only the page number, on the
+    right.
+  \item \textbf{Sections}: blue, numbered ``1.1.'', ``1.1.1.''.
+  \item \textbf{Blank pages} left before a new chapter carry the raggiera;
+    \cs{blankpage} inserts one by hand.
+  \item \textbf{Front matter} in roman numbers (\cs{frontmatter}), main text
+    in arabic (\cs{mainmatter}).
+\end{itemize}
+
+Typical order: \cs{frontpage}, \cs{frontmatter}, English and Italian
+abstracts, \cs{tableofcontents}, \cs{mainmatter}, chapters, bibliography,
+\cs{appendix}, lists of figures and tables, acknowledgements.
+
+\subsection{\texorpdfstring{\opt{article}}{article}}
+
+As in \opt{Thesis\_article\_format}:
+\begin{itemize}
+  \item \textbf{Page}: A4, 11pt, 2\,cm margins, no indent; page number
+    centred at the bottom, no header.
+  \item \textbf{Page 1} (\cs{frontpage}): no separate cover. A header block
+    with logo, title, ``Master's Thesis in \textit{degree}'', ``\textit{author},
+    \textit{student ID}'', a rule, then a narrow column (Advisor, Co-advisors,
+    Academic Year) next to the \textbf{abstract}, and the \textbf{keywords}
+    in a blue box. The text starts right after it on the same page.
+  \item \textbf{Sections} instead of chapters: blue, ``1.'', ``1.1.''.
+\end{itemize}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=article]{academicthesis}
+\thesissetup{
+  ...,
+  abstract = {The English abstract, printed on page 1.},
+  keywords = {here, the keywords},
+}
+\begin{document}
+\frontpage
+\section{Introduction}
+...
+\appendix
+\section{Appendix A}
+\clearpage
+\begin{abstractthesis}[language=italian, keywords={qui, le parole chiave}]
+  Abstract in lingua italiana.
+\end{abstractthesis}
+\begin{acknowledgements} ... \end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+The \opt{article} class has no chapters. A \cs{chapter} still compiles (it is
+set as a section, with one warning) so that a classical document can be
+switched over, but use \cs{section} in this format.
+
+\subsection{\texorpdfstring{\opt{summary}}{summary} (Executive Summary)}
+
+As in \opt{Executive\_Summary}:
+\begin{itemize}
+  \item \textbf{Page}: A4, 11pt, two columns 30\,pt apart, 2\,cm side
+    margins, no indent.
+  \item \textbf{Page 1} (\cs{frontpage}): a full-width block across both
+    columns with logo, ``Executive Summary of the Thesis'', title, ``Master's
+    Thesis in \textit{degree}'', Author, Advisor, Co-advisor(s), Academic Year
+    and a rule; the two columns start right after it. Raggiera at the top
+    right.
+  \item \textbf{Following pages}: a blue box at the top with ``Executive
+    summary'' on the left and the author on the right; page number centred at
+    the bottom.
+  \item \textbf{Sections}: blue, with tighter spacing than the article format.
+\end{itemize}
+
+The student ID is not printed, so it is not required here. As in the
+template, the summary normally ends with a short essential bibliography.
+
+% ======================================================================
+\section{Colours, theorems and other commands}
+
+\begin{itemize}
+  \item \opt{bluepoli} (CMYK 0.4, 0.1, 0, 0.4) is defined in every format; in
+    \opt{article} and \opt{summary} it is also available as \opt{bluePoli},
+    the name used by the official templates. Use it freely, e.g.\
+    \cs{rowcolor}\opt{\{bluepoli!40\}} (needs \opt{colortbl}).
+  \item \env{theorem} and \env{proposition} environments are ready, with
+    blue bold heads and italic text, numbered by chapter (classical) or
+    section (article, summary). Further \cs{newtheorem}s use the same style.
+  \item Figure and table caption labels are blue (bold in classical).
+  \item \cs{blankpage} (classical): an empty page with the raggiera, not
+    counted.
+\end{itemize}
+
+% ======================================================================
+\section{What the package loads, and what is up to you}
+
+Only what the layout needs is loaded, to avoid clashes:
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Format} & \textbf{Packages loaded} \\
+\midrule
+classical & titlesec, caption, setspace, eso-pic, transparent, amsthm \\
+article   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
+summary   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
+\bottomrule
+\end{tabularx}
+
+The core class adds graphicx, geometry, fancyhdr, xcolor, amsmath, lettrine,
+babel and biblatex.
+
+Left to you, as in the ``add your packages'' section of the official
+templates: \opt{hyperref} / \opt{cleveref} (the layout works with or without
+them), \opt{amssymb}, \opt{bm}, \opt{float}, \opt{colortbl}, \opt{subfig},
+\opt{tikz}, \opt{algorithm}, \opt{enumitem}, and the \textbf{bibliography}:
+the package sets no style, so configure it in your preamble, e.g.\
+\opt{biblatex-options=\{style=numeric-comp\}} as a class option, then
+\cs{addbibresource}\opt{\{...\}} and \cs{printbibliography}.
+
+% ======================================================================
+\section{Languages and labels}
+
+The labels come from string files, so a thesis in Italian gets Italian labels
+and one in English gets English labels.
+
+\begin{tabularx}{\textwidth}{@{}l Y Y@{}}
+\toprule
+\textbf{String} & \textbf{English} & \textbf{Italian} \\
+\midrule
+Author & Author & Candidato / Candidata \\
+Student ID & Student ID & Matricola \\
+Advisor(s) & Advisor(s) & Relatore / Relatori \\
+Co-advisor(s) & Co-advisor(s) & Correlatore / Correlatori \\
+Thesis type & Bachelor's / Master's Thesis in & Tesi di Laurea Triennale / Magistrale in \\
+Abstract heading & Abstract & Abstract in lingua italiana \\
+Keywords & Keywords & Parole chiave \\
+Summary line & Executive Summary of the Thesis & Executive Summary della Tesi \\
+Theorem, Proposition & Theorem, Proposition & Teorema, Proposizione \\
+\bottomrule
+\end{tabularx}
+
+To change a wording, edit \opt{academicthesis-polimi-<language>.ldf} (or add
+a file for a new language with the same keys).
+
+% ======================================================================
+\section{Common errors}
+
+\begin{tabularx}{\textwidth}{@{}Y Y Y@{}}
+\toprule
+\textbf{Message} & \textbf{Cause} & \textbf{Fix} \\
+\midrule
+Unknown format `classic' for university `polimi' & Typo in \opt{format=} &
+  Use \opt{classical}, \opt{article} or \opt{summary}. \\
+Missing required thesis metadata: `abstract' & \opt{format=article} without
+  the abstract & Add \opt{abstract=\{...\}} (and \opt{keywords=\{...\}}) to
+  \cs{thesissetup}. \\
+Missing required thesis metadata: `idnumber' & No student ID (classical,
+  article) & Add \opt{idnumber=\{...\}}. \\
+No front page registered for university `polimi', degree `phd' & PhD is not
+  available yet & Use \opt{bachelor} or \opt{master}. \\
+Warning: The base class `article' has no chapters & \cs{chapter} in article
+  or summary & Use \cs{section}. \\
+Warning: `french' \dots\ was not loaded by babel & A block with
+  \opt{language=french} & Add \opt{other-languages=\{french\}}. \\
+\bottomrule
+\end{tabularx}
+
+Compile with pdfLaTeX (the default). In Texifier/Texpad, set the typesetter
+to TeX Live (pdfLaTeX), not the built-in engine.
+
+% ======================================================================
+\section{For maintainers: how the package is organised}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\opt{academicthesis-polimi.cfg} & Read by the class \emph{before} it loads its
+  base class. Declares the formats (\cs{DeclareThesisFormats}), the base class
+  and default options of each format, no second page, and English + Italian as
+  extra languages. \\
+\opt{academicthesis-polimi.sty} & \cs{polimithesissetup}, required metadata,
+  loads the packages of the chosen format, then reads that format's
+  \opt{.def}. \\
+\opt{academicthesis-polimi-classical.def} & Classical layout. \\
+\opt{academicthesis-polimi-article.def} & Article layout. \\
+\opt{academicthesis-polimi-summary.def} & Executive summary layout. \\
+\opt{academicthesis-polimi-english.ldf}, \opt{-italian.ldf} & PoliMi wording
+  of the core labels, plus PoliMi-only strings. \\
+\opt{logopolimi3i.pdf}, \opt{raggierapolimi.pdf} & Logo and background,
+  converted from the template's EPS. \\
+\opt{academicthesis-polimi-doc.tex} & This manual. \\
+\bottomrule
+\end{tabularx}
+
+Rules to keep in mind when editing:
+\begin{itemize}
+  \item The \opt{.def} files are written in \textbf{normal LaTeX syntax}
+    (they are read with document catcodes), so spaces and blank lines behave
+    as usual. The \opt{.sty} and \opt{.cfg} use LaTeX3 syntax, where spaces
+    are ignored (write \texttt{\textasciitilde}).
+  \item \textbf{Never load a package from a \opt{.def} file}: when that
+    package ends, LaTeX switches LaTeX3 syntax back on and every following
+    space is lost. Add the package to the format's list in the \opt{.sty}
+    instead.
+  \item Each \opt{.def} registers its own front page with
+    \cs{DeclareThesisFrontPage} (for \opt{bachelor} and \opt{master}) and
+    changes core pieces (page styles, acknowledgements, keywords) with
+    \cs{AddToHook} on the hook \opt{class/academicthesis/after}, because the
+    core defines them after loading this package.
+  \item Metadata is read with the core accessors \cs{thesismeta}\opt{\{key\}},
+    \cs{IfThesisMetaEmptyTF}, \cs{IfThesisListEmptyTF},
+    \cs{IfThesisDegreeTF}, and labels with \cs{thesisstring}\opt{\{Key\}}.
+\end{itemize}
+
+\textbf{Adding a format}: add it to \cs{DeclareThesisFormats} and to the
+base-class switch in the \opt{.cfg}, list its packages in the \opt{.sty}, and
+write \opt{academicthesis-polimi-<format>.def}.
+\textbf{Adding PhD}: register a \opt{phd} front page with
+\cs{DeclareThesisFrontPage} in each \opt{.def} that supports it.
+
+\end{document}
