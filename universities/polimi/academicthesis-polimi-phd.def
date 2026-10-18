@@ -1,0 +1,156 @@
+%%
+%% academicthesis-polimi-phd.def
+%% --------------------------------------------------------------
+%% PoliMi "phd" layout: the doctoral dissertation (book, 10pt,
+%% two-sided, 17x24cm or A4), after the PoliMi PhD template
+%% (thesis.tex + phdthesis.sty + phdtitle.sty, J. Stevens and L. Fossati).
+%%
+%% Read by academicthesis-polimi.sty with NORMAL LaTeX syntax (expl3
+%% off). Metadata is read with the kernel's document-level accessors.
+%% No package may be loaded from here: the .sty loads them (times,
+%% caption, amsthm, fncychap[Sonny], titlesec[calcwidth], tocloft[titles]).
+%%
+%% Left out of the template, on purpose: psboxit (not in TeX Live; it
+%% only served commented-out page-number boxes), fancybox (unused),
+%% glossaries and its style (the user's choice; its \glossarystyle call
+%% no longer exists), bnf, crop, mdwtab and the other document packages.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-phd.def}[2026/10/19 v0.1.0 PoliMi PhD layout]
+\makeatletter
+
+% =====================================================================
+% 1. Page size: 17x24cm (default, as in the template) or A4
+% =====================================================================
+%   \polimithesissetup{paper=a4}   or   paper=17x24
+\@namedef{polimi@paper@17x24}{%
+  \geometry{paperwidth=17cm, paperheight=24cm, margin=2cm, top=2.3cm,
+    bindingoffset=0.4cm, twoside}}
+\@namedef{polimi@paper@a4}{%
+  \geometry{a4paper, margin=3cm, top=3.8cm, bindingoffset=0.4cm, twoside}}
+\@nameuse{polimi@paper@17x24}
+
+% =====================================================================
+% 2. Captions and definitions
+% =====================================================================
+\captionsetup{format=plain, indention=.5cm, singlelinecheck=false,
+  labelfont=bf, textfont=it}
+
+\newtheorem{defn}{\thesisstring{DefinitionLabel}}[chapter]
+
+% =====================================================================
+% 3. Headings
+% =====================================================================
+% Chapters: fncychap "Sonny" (big Zapf Chancery number, title between
+% rules on the right)
+\ChNumVar{\fontsize{76}{80}\usefont{OT1}{pzc}{m}{n}\selectfont}
+\ChTitleVar{\raggedleft\LARGE\sffamily\bfseries}
+
+% Sections: sans-serif bold with a rule underneath
+\titleformat{\section}[hang]{\sffamily\bfseries}
+  {\Large\thesection}{12pt}{\large}[{\titlerule[0.5pt]}]
+
+% Drop caps (\lettrine) in grey, three lines high
+\renewcommand{\LettrineFontHook}{\color[gray]{0.3}}
+\setcounter{DefaultLines}{3}
+\renewcommand{\DefaultLoversize}{0.25}
+\renewcommand{\DefaultLhang}{0.25}
+
+% Table of contents: chapters in condensed Helvetica
+\renewcommand{\cftchapfont}{\usefont{OT1}{phv}{bc}{n}\selectfont}
+\renewcommand{\@pnumwidth}{1.75em}
+\renewcommand{\@tocrmarg}{2.75em}
+
+% Blank left-hand pages left by \cleardoublepage: completely blank
+\renewcommand*\cleardoublepage{%
+  \clearpage
+  \if@twoside\ifodd\c@page\else
+    \hbox{}%
+    \vspace*{\fill}%
+    \thispagestyle{empty}%
+    \newpage
+    \if@twocolumn\hbox{}\newpage\fi
+  \fi\fi}
+
+% =====================================================================
+% 4. Cover (PhD only)
+% =====================================================================
+% "<label>:" over one or more bold names, singular or plural label
+\newcommand\polimi@phdrole[3]{% #1 list, #2 singular key, #3 plural key
+  \begin{flushleft}
+    \normalsize
+    \ifnum\thesislistcount{#1}>1 \thesisstring{#3}\else\thesisstring{#2}\fi:\\
+    \large\textbf{\academicthesislist[, ]{#1}}
+  \end{flushleft}}
+
+\newcommand\polimi@frontpage{%
+  % letters for the cover and its blank back, so their page numbers
+  % never clash with the front matter's (hyperref anchors)
+  \pagenumbering{Alph}%
+  \begin{titlepage}
+    \begin{center}
+      \bfseries
+      \vspace*{-2.5cm}
+      \includegraphics[width=26mm]{\polimi@logofile}\par
+      \vspace{0.5cm}
+      {\large\scshape Politecnico di Milano\\
+        \thesismeta{department}\\
+        \thesismeta{phdtitle}\par}
+      \normalsize
+      \vspace*{0.5cm}
+      \hrule
+      \vspace*{4cm}
+      {\LARGE\scshape \thesismeta{title}\par}
+      \IfThesisMetaEmptyTF{subtitle}{}
+        {\vspace{0.3cm}{\large\mdseries \thesismeta{subtitle}\par}}
+    \end{center}
+    \vspace*{3cm}
+    \begin{flushright}
+      \normalsize \thesisstring{DoctoralDissertationOf}:\\
+      \large\textbf{\thesismeta{candidate}}
+    \end{flushright}
+    \vspace*{1cm}
+    \polimi@phdrole{supervisors}{PhDSupervisorLabel}{PhDSupervisorsLabel}
+    \IfThesisListEmptyTF{tutors}{}
+      {\polimi@phdrole{tutors}{TutorLabel}{TutorsLabel}}
+    \IfThesisMetaEmptyTF{coordinator}{}
+      {\begin{flushleft}
+         \normalsize \thesisstring{CoordinatorLabel}:\\
+         \large\textbf{\thesismeta{coordinator}}
+       \end{flushleft}}
+    \vfill
+    \begin{center}
+      \normalsize
+      \thesismeta{academicyear} -- \thesisstring{Cycle}~\thesismeta{cycle}
+    \end{center}
+  \end{titlepage}}
+
+\DeclareThesisFrontPage{polimi}{phd}{\polimi@frontpage}
+
+% =====================================================================
+% 5. Core pieces redefined for the PhD
+% =====================================================================
+\AddToHook{class/academicthesis/after}{%
+  % Running headers in sans-serif bold: chapter on even pages, section
+  % on odd pages; page number centred at the bottom
+  \fancypagestyle{Thesis}{%
+    \fancyhf{}%
+    \fancyhead[RO]{\sffamily\bfseries\nouppercase{\rightmark}}%
+    \fancyhead[LE]{\sffamily\bfseries\nouppercase{\leftmark}}%
+    \fancyfoot[C]{\thepage}%
+    \renewcommand{\headrulewidth}{0.4pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  % Chapter opening pages: page number only
+  \fancypagestyle{plain}{%
+    \fancyhf{}%
+    \fancyfoot[C]{\thepage}%
+    \renewcommand{\headrulewidth}{0pt}%
+    \renewcommand{\footrulewidth}{0pt}}%
+  % Front matter: running headers, capital Roman page numbers
+  \g@addto@macro\frontmatter{\pagestyle{Thesis}\pagenumbering{Roman}}%
+  % Acknowledgements: a plain starred chapter, upright
+  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
+  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
+}
+
+\makeatother
+\endinput

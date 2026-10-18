@@ -17,6 +17,14 @@
 % executive summary (format=summary): first-page line, page header
 \ProvideThesisString{ExecutiveSummaryOfThesis}{Executive Summary della Tesi}
 \ProvideThesisString{ExecutiveSummaryHeader}{Executive summary}
+% PhD dissertation (format=phd): cover labels, definitions
+\ProvideThesisString{DoctoralDissertationOf}{Tesi di Dottorato di}
+\ProvideThesisString{PhDSupervisorLabel}{Relatore}
+\ProvideThesisString{PhDSupervisorsLabel}{Relatori}
+\ProvideThesisString{TutorLabel}{Tutor}
+\ProvideThesisString{TutorsLabel}{Tutor}
+\ProvideThesisString{CoordinatorLabel}{Il Coordinatore del Dottorato}
+\ProvideThesisString{DefinitionLabel}{Definizione}
 \ProvideThesisString{TheoremLabel}{Teorema}
 \ProvideThesisString{PropositionLabel}{Proposizione}
 

@@ -13,8 +13,9 @@
 %%   academicthesis-polimi-classical.def  the classical layout (normal LaTeX syntax)
 %%   academicthesis-polimi-article.def    the article layout (normal LaTeX syntax)
 %%   academicthesis-polimi-summary.def    the executive summary layout
+%%   academicthesis-polimi-phd.def        the PhD dissertation layout
 %%   academicthesis-polimi-<lang>.ldf     PoliMi wording of the core strings
-%%   logopolimi3i.pdf, raggierapolimi.pdf
+%%   logopolimi3i.pdf, raggierapolimi.pdf, logopolimiseal.png
 %%
 %% Metadata uses the core names unchanged (title, candidate, idnumber,
 %% degree, supervisors, cosupervisors, academicyear). PoliMi's own
@@ -34,7 +35,9 @@
 % 1. Layout controller:  \polimithesissetup{ logo-file=..., watermark=... }
 % =====================================================================
 \tl_new:N \l__polimi_logo_file_tl
-\tl_set:Nn \l__polimi_logo_file_tl { logopolimi3i }
+\str_if_eq:VnTF \g__academicthesis_format_tl { phd }
+  { \tl_set:Nn \l__polimi_logo_file_tl { logopolimiseal } } % round seal
+  { \tl_set:Nn \l__polimi_logo_file_tl { logopolimi3i } }   % Scuola 3I
 \newif \ifpolimi@watermark
 \polimi@watermarktrue
 
@@ -44,6 +47,9 @@
     watermark .choices:nn = { true , false }
       { \use:c { polimi@watermark \l_keys_choice_tl } } ,
     watermark .default:n = { true } ,
+    % page size of the PhD format (17x24cm as in the template, or A4)
+    paper .choices:nn = { 17x24 , a4 }
+      { \cs_if_exist_use:c { polimi@paper@ \l_keys_choice_tl } } ,
   }
 \NewDocumentCommand \polimithesissetup { m }
   { \keys_set:nn { academicthesis-polimi / layout } { #1 } }
@@ -54,10 +60,24 @@
 
 % =====================================================================
 % 2. Required metadata (on top of the core's title, candidate, degree,
-%    academicyear, supervisors): the student ID, printed by the classical
-%    and article covers (the executive summary does not show it)
+%    academicyear, supervisors): the student ID for classical and article
+%    (the executive summary does not show it); department, doctoral
+%    programme and cycle for the PhD cover
 % =====================================================================
-\str_if_eq:VnF \g__academicthesis_format_tl { summary }
+\str_case:VnF \g__academicthesis_format_tl
+  {
+    { summary } { }
+    { phd }
+      {
+        % the PhD cover: department, doctoral programme, cycle
+        \DeclareThesisRequirement { polimi } { \c_true_bool } { department }
+          { \thesissetup{department={Department~of~...}} }
+        \DeclareThesisRequirement { polimi } { \c_true_bool } { phdtitle }
+          { \thesissetup{phdtitle={Doctoral~Program~in~...}} }
+        \DeclareThesisRequirement { polimi } { \c_true_bool } { cycle }
+          { \thesissetup{cycle=XXXVIII} }
+      }
+  }
   {
     \DeclareThesisRequirement { polimi } { \c_true_bool } { idnumber }
       { \thesissetup{idnumber=000000} }
@@ -100,6 +120,15 @@
         \RequirePackage { transparent } % ... at 40% opacity
         \RequirePackage { amsthm }      % coloured theorem heads
         \RequirePackage { tcolorbox }   % blue page header
+      }
+    { phd }
+      {
+        \RequirePackage { times }       % Times / Helvetica / Courier
+        \RequirePackage { caption }     % caption style
+        \RequirePackage { amsthm }      % definition environment
+        \RequirePackage [ Sonny ] { fncychap }     % chapter headings
+        \RequirePackage [ calcwidth ] { titlesec } % ruled sections
+        \RequirePackage [ titles ] { tocloft }     % contents fonts
       }
   }
 

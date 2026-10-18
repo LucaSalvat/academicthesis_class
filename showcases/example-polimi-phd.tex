@@ -1,0 +1,79 @@
+% !TEX TS-program = pdflatex
+% Example: a Politecnico di Milano doctoral dissertation ("phd" format),
+% using the modular academicthesis class + academicthesis-polimi.
+% Mirrors the PoliMi PhD template (thesis.tex + phdthesis.sty + phdtitle.sty).
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=polimi, phd, format=phd, language=english]{academicthesis}
+
+% 17x24cm pages as in the template; for A4:  \polimithesissetup{paper=a4}
+
+% The class only loads what the PoliMi layout needs; anything else is
+% your choice (the template also used glossaries, bnf, crop, listings...).
+\usepackage{amssymb}
+\usepackage[bookmarks=true, bookmarksopen=true, pdfborder={0 0 0}]{hyperref}
+
+\thesissetup{
+  title        = {Title},
+  candidate    = {Name Surname},
+  department   = {Department XXX},
+  phdtitle     = {Doctoral Programme in YXYX},
+  supervisor   = {Prof. Supervisor Name},
+  tutor        = {Prof. Tutor Name},
+  coordinator  = {Prof. Coordinator Name},
+  academicyear = {2025--2026},
+  cycle        = {XXXVIII},
+}
+
+%\addbibresource{example.bib}
+
+\begin{document}
+
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}
+  This is the abstract of the dissertation.
+\end{abstractthesis}
+
+\begin{abstractthesis}[language=italian]
+  Questo è il sommario della tesi.
+\end{abstractthesis}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+\lettrine{T}{his} is the first chapter. Chapter headings, ruled sections,
+running headers and the table of contents follow the PoliMi PhD template.
+
+\section{A section}
+Sections are set in bold sans-serif with a rule underneath.
+
+\subsection{A subsection}
+Some text.
+
+\begin{defn}
+  A definition, numbered by chapter.
+\end{defn}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=2cm]{logopolimiseal}
+  \caption{Captions have a bold label and italic text.}
+\end{figure}
+
+\clearpage
+The second page of the chapter shows the running header.
+
+\chapter{Conclusions}
+Done.
+
+\backmatter
+%\printbibliography
+
+\begin{acknowledgements}
+  Here you might want to acknowledge someone.
+\end{acknowledgements}
+
+\end{document}

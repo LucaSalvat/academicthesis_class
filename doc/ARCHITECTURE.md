@@ -39,6 +39,7 @@ academicthesis_class/
 │       ├── academicthesis-polimi-classical.def  Classical layout (book)
 │       ├── academicthesis-polimi-article.def    Article layout (article)
 │       ├── academicthesis-polimi-summary.def    Executive summary (two-column article)
+│       ├── academicthesis-polimi-phd.def        PhD dissertation (book, 17x24cm)
 │       ├── academicthesis-polimi-english.ldf    PoliMi wording of core strings
 │       ├── academicthesis-polimi-italian.ldf
 │       ├── logopolimi3i.pdf
@@ -48,6 +49,7 @@ academicthesis_class/
 │   ├── example-polimi-classical.tex
 │   ├── example-polimi-article.tex
 │   ├── example-polimi-summary.tex
+│   ├── example-polimi-phd.tex
 │   ├── example.bib
 │   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc
@@ -185,6 +187,7 @@ Provides the shared vocabulary that both the class and all plugins use.
 
 A single `\prop` (`\g__academicthesis_meta_prop`) holds all metadata.
 Standard keys: `title`, `subtitle`, `candidate`, `idnumber`, `degree`,
+`tutors` (list), `coordinator`, `abstract`, `keywords`,
 `chair`, `academicyear`, `supervisors`, `cosupervisor`, `copyyear`,
 `authoremail`, `examdate`, `examiner`.
 

@@ -178,6 +178,11 @@
     cosupervisors .code:n = { \academicthesis_list_set_csv:nn { cosupervisors } {#1} } ,
     examiner      .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
     examiners     .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
+    % PhD roles (e.g. PoliMi): tutor(s), and the coordinator / chair of
+    % the doctoral programme
+    tutor         .code:n = { \academicthesis_list_set:nn   { tutors } {#1} } ,
+    tutors        .code:n = { \academicthesis_list_set_csv:nn { tutors } {#1} } ,
+    coordinator  .code:n = { \academicthesis_meta_set:nn { coordinator }  {#1} } ,
   }
 
 \bool_new:N \g__academicthesis_female_bool
@@ -293,11 +298,14 @@
 %   \thesismeta{title}                         expandable
 %   \IfThesisMetaEmptyTF{subtitle}{<empty>}{<not empty>}
 %   \IfThesisListEmptyTF{cosupervisors}{<empty>}{<not empty>}
+%   \thesislistcount{supervisors}               expandable
 %   \IfThesisDegreeTF{bachelor}{<yes>}{<no>}
 \NewExpandableDocumentCommand \thesismeta { m }
   { \academicthesis_meta_get:n { #1 } }
 \NewDocumentCommand \IfThesisMetaEmptyTF { m +m +m }
   { \academicthesis_meta_if_empty:nTF { #1 } { #2 } { #3 } }
+\NewExpandableDocumentCommand \thesislistcount { m }
+  { \academicthesis_list_count:n { #1 } }
 \NewDocumentCommand \IfThesisListEmptyTF { m +m +m }
   { \academicthesis_list_if_empty:nTF { #1 } { #2 } { #3 } }
 \NewDocumentCommand \IfThesisDegreeTF { m +m +m }

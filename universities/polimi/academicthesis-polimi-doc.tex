@@ -65,7 +65,8 @@
 the modular \opt{academicthesis} class. It reproduces the three official
 thesis layouts of the School of Industrial and Information Engineering
 (Scuola 3I, template revision October 2021): the \emph{classical} thesis,
-the \emph{article} thesis and the \emph{Executive Summary}. You only choose
+the \emph{article} thesis and the \emph{Executive Summary}; it also
+provides the PoliMi \emph{doctoral dissertation}. You only choose
 \opt{university=polimi} and a format; the package picks the base class, page
 layout, colours, cover and headings.
 \end{abstract}
@@ -73,7 +74,7 @@ layout, colours, cover and headings.
 \tableofcontents
 
 % ======================================================================
-\section{The three formats}
+\section{The formats}
 
 \begin{tabularx}{\textwidth}{@{}l Y l Y@{}}
 \toprule
@@ -85,10 +86,12 @@ layout, colours, cover and headings.
   & \opt{article}, 11pt & \file{example-polimi-article.tex} \\
 \opt{summary} & The Executive Summary: two columns, blue page header
   & \opt{article}, 11pt, two columns & \file{example-polimi-summary.tex} \\
+\opt{phd} & The doctoral dissertation (degree \opt{phd})
+  & \opt{book}, 10pt, 17$\times$24\,cm & \file{example-polimi-phd.tex} \\
 \bottomrule
 \end{tabularx}
 
-All formats are A4. The showcases, in the \opt{showcases/} folder of the
+All formats are A4, except \opt{phd}: 17$\times$24\,cm by default, A4 as an option. The showcases, in the \opt{showcases/} folder of the
 repository, are complete compilable examples: copying one is the fastest way
 to start.
 
@@ -138,11 +141,13 @@ All options go in \cs{documentclass}\opt{[...]\{academicthesis\}}.
 \textbf{Option} & \textbf{Values} & \textbf{Notes} \\
 \midrule
 \opt{university} & \opt{polimi} & Loads this package. \\
-degree & \opt{bachelor}, \opt{master} &
-  Prints ``Bachelor's / Master's Thesis in'' (English) or ``Tesi di Laurea
-  Triennale / Magistrale in'' (Italian). \opt{phd} is not available yet. \\
-\opt{format} & \opt{classical}, \opt{article}, \opt{summary} &
-  Default \opt{classical}. Any other value is an error that names the three
+degree & \opt{bachelor}, \opt{master}, \opt{phd} &
+  Bachelor/master print ``Bachelor's / Master's Thesis in'' (English) or
+  ``Tesi di Laurea Triennale / Magistrale in'' (Italian). \opt{phd} goes
+  with \opt{format=phd}. \\
+\opt{format} & \opt{classical}, \opt{article}, \opt{summary}, \opt{phd} &
+  Default \opt{classical}, or \opt{phd} when the degree is \opt{phd};
+  \opt{phd} needs that degree. Any other value is an error that names the
   formats. \\
 \opt{language} & \opt{english}, \opt{italian}, \dots &
   Main language of the thesis and of every label. \\
@@ -181,6 +186,24 @@ with a message that names it and shows an example.
 \bottomrule
 \end{tabularx}
 
+For \opt{format=phd} the cover uses different data. Write ``Prof.'' in the
+names yourself, as in the other formats.
+
+\begin{tabularx}{\textwidth}{@{}l Y c@{}}
+\toprule
+\textbf{Key} & \textbf{PoliMi PhD meaning (printed as)} & \textbf{Required} \\
+\midrule
+\opt{title}, \opt{subtitle} & Title (subtitle optional) & title \\
+\opt{candidate} & Author, under ``Doctoral Dissertation of'' / ``Tesi di Dottorato di'' & yes \\
+\opt{department} & Department, printed as given & yes \\
+\opt{phdtitle} & Doctoral programme, printed as given & yes \\
+\opt{supervisor(s)} & Supervisor(s) (Supervisor / Relatore) & yes \\
+\opt{tutor(s)} & Tutor(s) & if set \\
+\opt{coordinator} & Chair of the doctoral programme (The Chair of the Doctoral Program / Il Coordinatore del Dottorato) & if set \\
+\opt{academicyear}, \opt{cycle} & Bottom line, e.g.\ ``2025--2026 -- Cycle XXXVIII'' (Cycle / Ciclo) & yes \\
+\bottomrule
+\end{tabularx}
+
 % ======================================================================
 \section{PoliMi options (\texorpdfstring{\cs{polimithesissetup}}{\\polimithesissetup})}
 
@@ -192,8 +215,9 @@ with a message that names it and shows an example.
 \toprule
 \textbf{Key} & \textbf{Default} & \textbf{Effect} \\
 \midrule
-\opt{logo-file} & \opt{logopolimi3i} & Logo on the cover / first page (the Scuola 3I logo is shipped). \\
-\opt{watermark} & \opt{true} & The ``raggiera'' in the background (cover, first page, blank pages). \\
+\opt{logo-file} & \opt{logopolimi3i} & Logo on the cover / first page: the Scuola 3I logo, or the round seal \opt{logopolimiseal} for \opt{phd} (both shipped). \\
+\opt{watermark} & \opt{true} & The ``raggiera'' in the background (cover, first page, blank pages). Not used by \opt{phd}. \\
+\opt{paper} & \opt{17x24} & \opt{phd} only: \opt{17x24} (as in the template) or \opt{a4}. \\
 \bottomrule
 \end{tabularx}
 
@@ -310,6 +334,48 @@ As in \opt{Executive\_Summary}:
 The student ID is not printed, so it is not required here. As in the
 template, the summary normally ends with a short essential bibliography.
 
+\subsection{\texorpdfstring{\opt{phd}}{phd} (doctoral dissertation)}
+
+As in the PoliMi PhD template (\opt{phdthesis.sty}, \opt{phdtitle.sty}):
+\begin{itemize}
+  \item \textbf{Page}: 10pt, two-sided, chapters on right-hand pages;
+    17$\times$24\,cm with 2\,cm margins (top 2.3\,cm, 0.4\,cm binding
+    offset), or A4 with \cs{polimithesissetup}\opt{\{paper=a4\}}. Times for
+    text, Helvetica for headings.
+  \item \textbf{Cover} (\cs{frontpage}): PoliMi seal, ``Politecnico di
+    Milano'', department and doctoral programme in small caps, a rule, the
+    title, ``Doctoral Dissertation of: \textit{author}'' on the right, then
+    Supervisor, Tutor and Chair of the Doctoral Program on the left, and
+    ``\textit{academic year} -- Cycle \textit{cycle}'' at the bottom.
+  \item \textbf{Chapters}: fncychap ``Sonny'' style (``CHAPTER'' and a big
+    number, the title between two rules on the right).
+  \item \textbf{Sections}: bold sans-serif with a rule underneath.
+  \item \textbf{Running headers}: chapter on even pages, section on odd
+    pages, bold sans-serif, with a rule; page numbers centred at the bottom.
+    Blank pages are completely empty.
+  \item \textbf{Front matter} in capital Roman numbers (\cs{frontmatter}).
+  \item Captions with a bold label and italic text; a \env{defn}
+    (Definition) environment numbered by chapter; grey three-line drop caps
+    with \cs{lettrine}.
+\end{itemize}
+
+\begin{lstlisting}
+\documentclass[university=polimi, phd, format=phd]{academicthesis}
+\thesissetup{
+  title = {Title}, candidate = {Name Surname},
+  department = {Department XXX}, phdtitle = {Doctoral Programme in YXYX},
+  supervisor = {Prof. Name}, tutor = {Prof. Name}, coordinator = {Prof. Name},
+  academicyear = {2025--2026}, cycle = {XXXVIII},
+}
+\end{lstlisting}
+
+Not taken over from the template, on purpose: \opt{psboxit} (not in TeX
+Live; it only served commented-out page-number boxes), \opt{fancybox}
+(unused), and the template's \opt{glossaries} setup (its
+\cs{glossarystyle} command no longer exists). Load \opt{glossaries},
+\opt{bnf}, \opt{crop} (printer marks), \opt{listings} and so on yourself
+if you need them.
+
 % ======================================================================
 \section{Colours, theorems and other commands}
 
@@ -338,6 +404,7 @@ Only what the layout needs is loaded, to avoid clashes:
 classical & titlesec, caption, setspace, eso-pic, transparent, amsthm \\
 article   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
 summary   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
+phd       & times, caption, amsthm, fncychap, titlesec, tocloft \\
 \bottomrule
 \end{tabularx}
 
@@ -371,6 +438,8 @@ Abstract heading & Abstract & Abstract in lingua italiana \\
 Keywords & Keywords & Parole chiave \\
 Summary line & Executive Summary of the Thesis & Executive Summary della Tesi \\
 Theorem, Proposition & Theorem, Proposition & Teorema, Proposizione \\
+PhD cover & Doctoral Dissertation of, Supervisor, Tutor, The Chair of the Doctoral Program & Tesi di Dottorato di, Relatore, Tutor, Il Coordinatore del Dottorato \\
+Definition & Definition & Definizione \\
 \bottomrule
 \end{tabularx}
 
@@ -391,8 +460,13 @@ Missing required thesis metadata: `abstract' & \opt{format=article} without
   \cs{thesissetup}. \\
 Missing required thesis metadata: `idnumber' & No student ID (classical,
   article) & Add \opt{idnumber=\{...\}}. \\
-No front page registered for university `polimi', degree `phd' & PhD is not
-  available yet & Use \opt{bachelor} or \opt{master}. \\
+format=phd is the PoliMi doctoral dissertation & \opt{format=phd} with
+  \opt{bachelor}/\opt{master} & Use the \opt{phd} degree option. \\
+No front page registered for university `polimi', degree `phd' & \opt{phd}
+  degree with another format & Use \opt{format=phd} (or leave \opt{format}
+  out). \\
+Missing required thesis metadata: `department' (or `phdtitle', `cycle') &
+  PhD cover data missing & Add it to \cs{thesissetup}. \\
 Warning: The base class `article' has no chapters & \cs{chapter} in article
   or summary & Use \cs{section}. \\
 Warning: `french' \dots\ was not loaded by babel & A block with
@@ -420,10 +494,12 @@ to TeX Live (pdfLaTeX), not the built-in engine.
 \opt{academicthesis-polimi-classical.def} & Classical layout. \\
 \opt{academicthesis-polimi-article.def} & Article layout. \\
 \opt{academicthesis-polimi-summary.def} & Executive summary layout. \\
+\opt{academicthesis-polimi-phd.def} & PhD dissertation layout. \\
 \opt{academicthesis-polimi-english.ldf}, \opt{-italian.ldf} & PoliMi wording
   of the core labels, plus PoliMi-only strings. \\
 \opt{logopolimi3i.pdf}, \opt{raggierapolimi.pdf} & Logo and background,
   converted from the template's EPS. \\
+\opt{logopolimiseal.png} & Round PoliMi seal for the PhD cover. \\
 \opt{academicthesis-polimi-doc.tex} & This manual. \\
 \bottomrule
 \end{tabularx}
@@ -451,7 +527,5 @@ Rules to keep in mind when editing:
 \textbf{Adding a format}: add it to \cs{DeclareThesisFormats} and to the
 base-class switch in the \opt{.cfg}, list its packages in the \opt{.sty}, and
 write \opt{academicthesis-polimi-<format>.def}.
-\textbf{Adding PhD}: register a \opt{phd} front page with
-\cs{DeclareThesisFrontPage} in each \opt{.def} that supports it.
 
 \end{document}

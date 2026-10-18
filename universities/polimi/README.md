@@ -6,13 +6,15 @@
 
 Politecnico di Milano plugin for the `academicthesis` class. It reproduces the
 three official thesis layouts of the School of Industrial and Information
-Engineering (Scuola 3I, template revision October 2021):
+Engineering (Scuola 3I, template revision October 2021), plus the PoliMi
+doctoral dissertation:
 
 | Format | What it is | Built on | Showcase |
 | --- | --- | --- | --- |
 | `classical` (default) | The full thesis as a book: cover page, abstracts, chapters | `book`, 12pt, two-sided, A4 | `showcases/example-polimi-classical.tex` |
 | `article` | The thesis as a paper: header block with abstract on page 1, sections | `article`, 11pt, A4 | `showcases/example-polimi-article.tex` |
 | `summary` | The Executive Summary: two columns, blue page header | `article`, 11pt, A4, two columns | `showcases/example-polimi-summary.tex` |
+| `phd` | The doctoral dissertation (degree `phd`) | `book`, 10pt, two-sided, 17×24cm (or A4) | `showcases/example-polimi-phd.tex` |
 
 You only choose `university=polimi` and a format; the package picks the right
 base class, page layout, colours, cover and headings.
@@ -64,8 +66,8 @@ All options go in `\documentclass[...]{academicthesis}`.
 | Option | Values | Notes |
 | --- | --- | --- |
 | `university` | `polimi` | Loads this package. |
-| degree | `bachelor`, `master` | Prints "Bachelor's / Master's Thesis in" (English) or "Tesi di Laurea Triennale / Magistrale in" (Italian). `phd` is not available yet. |
-| `format` | `classical` (default), `article`, `summary` | Any other value is an error that names the three formats. |
+| degree | `bachelor`, `master`, `phd` | Bachelor/master print "Bachelor's / Master's Thesis in" (English) or "Tesi di Laurea Triennale / Magistrale in" (Italian). `phd` goes with `format=phd`. |
+| `format` | `classical` (default), `article`, `summary`, `phd` | `phd` is the default when the degree is `phd`, and needs that degree. Any other value is an error that names the formats. |
 | `language` | `english`, `italian`, ... | Main language of the thesis and of every label. |
 | `other-languages` | e.g. `{french}` | Extra languages for blocks written in another language. English and Italian are always loaded for PoliMi, so the second abstract needs nothing here. |
 | `secondpage` / `no-secondpage` | | PoliMi has no examination-commission / copyright page, so it is **off** by default; `secondpage` adds the core one. |
@@ -92,6 +94,21 @@ labels follow PoliMi's wording.
 | `keywords` | Keywords of that abstract | Keywords / Parole chiave | | in the blue box | |
 | `gender` | `male` / `female` | Candidato / Candidata (Italian) | | | |
 
+For `format=phd` the cover uses different data:
+
+| Key | PoliMi PhD meaning | Printed as (English / Italian) | Required |
+| --- | --- | --- | :-: |
+| `title`, `subtitle` | Title (subtitle optional) | | title |
+| `candidate` | Author | under "Doctoral Dissertation of" / "Tesi di Dottorato di" | yes |
+| `department` | Department, as printed (e.g. `Department of Electronics, Information and Bioengineering`) | | yes |
+| `phdtitle` | Doctoral programme, as printed (e.g. `Doctoral Program in Information Technology`) | | yes |
+| `supervisor(s)` | Supervisor(s) | Supervisor(s) / Relatore, Relatori | yes |
+| `tutor(s)` | Tutor(s) | Tutor(s) / Tutor | if set |
+| `coordinator` | Chair of the doctoral programme | The Chair of the Doctoral Program / Il Coordinatore del Dottorato | if set |
+| `academicyear`, `cycle` | Bottom line, e.g. "2025--2026 -- Cycle XXXVIII" | Cycle / Ciclo | yes |
+
+Write "Prof." in the names yourself, as in the other formats.
+
 A missing required key stops the compilation with a message that names it
 and shows an example.
 
@@ -105,8 +122,9 @@ and shows an example.
 
 | Key | Default | Effect |
 | --- | --- | --- |
-| `logo-file` | `logopolimi3i` (Scuola 3I logo, shipped) | Logo on the cover / first page. |
-| `watermark` | `true` | The "raggiera" in the background (cover, first page, blank pages). |
+| `logo-file` | `logopolimi3i` (Scuola 3I logo); `logopolimiseal` (round seal) for `phd` | Logo on the cover / first page. |
+| `watermark` | `true` | The "raggiera" in the background (cover, first page, blank pages). Not used by `phd`. |
+| `paper` | `17x24` | `phd` only: `17x24` (17×24cm, as in the template) or `a4`. |
 
 ---
 
@@ -210,6 +228,45 @@ What you get, as in `Executive_Summary`:
 The student ID is not printed, so it is not required here. As in the
 template, the summary normally ends with a short essential bibliography.
 
+### 6.4 `phd` (doctoral dissertation)
+
+What you get, as in the PoliMi PhD template (`phdthesis.sty`, `phdtitle.sty`):
+
+- **Page**: 10pt, two-sided, chapters on right-hand pages; 17×24cm with 2cm
+  margins (top 2.3cm, 0.4cm binding offset), or A4 with
+  `\polimithesissetup{paper=a4}`. Times for text, Helvetica for headings.
+- **Cover** (`\frontpage`): PoliMi seal, "Politecnico di Milano", department
+  and doctoral programme in small caps, a rule, the title, "Doctoral
+  Dissertation of: <author>" on the right, then Supervisor, Tutor and Chair
+  of the Doctoral Program on the left, and "<academic year> -- Cycle <cycle>"
+  at the bottom.
+- **Chapters**: fncychap "Sonny" style ("CHAPTER" and a big number, the
+  title between two rules on the right).
+- **Sections**: bold sans-serif with a rule underneath.
+- **Running headers**: chapter on even pages, section on odd pages, bold
+  sans-serif, with a rule; page numbers centred at the bottom. Blank pages
+  are completely empty.
+- **Front matter** in capital Roman numbers (`\frontmatter`).
+- Captions with a bold label and italic text; a `defn` (Definition)
+  environment numbered by chapter; grey three-line drop caps with
+  `\lettrine`.
+
+```latex
+\documentclass[university=polimi, phd, format=phd]{academicthesis}
+\thesissetup{
+  title = {Title}, candidate = {Name Surname},
+  department = {Department XXX}, phdtitle = {Doctoral Programme in YXYX},
+  supervisor = {Prof. Name}, tutor = {Prof. Name}, coordinator = {Prof. Name},
+  academicyear = {2025--2026}, cycle = {XXXVIII},
+}
+```
+
+Not taken over from the template, on purpose: `psboxit` (not in TeX Live;
+it only served commented-out page-number boxes), `fancybox` (unused), and
+the template's `glossaries` setup (its `\glossarystyle` command no longer
+exists). Load `glossaries`, `bnf`, `crop` (printer marks), `listings` and so on
+yourself if you need them.
+
 ---
 
 ## 7. Colours, theorems and other commands
@@ -235,6 +292,7 @@ Only what the layout needs is loaded, to avoid clashes:
 | classical | titlesec, caption, setspace, eso-pic, transparent, amsthm |
 | article | titlesec, caption, eso-pic, transparent, amsthm, tcolorbox |
 | summary | titlesec, caption, eso-pic, transparent, amsthm, tcolorbox |
+| phd | times, caption, amsthm, fncychap, titlesec, tocloft |
 
 (The core class adds graphicx, geometry, fancyhdr, xcolor, amsmath,
 lettrine, babel, and biblatex.)
@@ -264,6 +322,8 @@ labels and one in English gets English labels:
 | Keywords | Keywords | Parole chiave |
 | Summary line | Executive Summary of the Thesis | Executive Summary della Tesi |
 | Theorem, Proposition | Theorem, Proposition | Teorema, Proposizione |
+| PhD cover | Doctoral Dissertation of, Supervisor, Tutor, The Chair of the Doctoral Program | Tesi di Dottorato di, Relatore, Tutor, Il Coordinatore del Dottorato |
+| Definition | Definition | Definizione |
 
 To change a wording, edit `academicthesis-polimi-<language>.ldf` (or add a
 file for a new language with the same keys).
@@ -277,7 +337,9 @@ file for a new language with the same keys).
 | `Unknown format 'classic' for university 'polimi'` | Typo in `format=` | Use `classical`, `article` or `summary`. |
 | `Missing required thesis metadata: 'abstract'` | `format=article` without the abstract | Add `abstract={...}` (and `keywords={...}`) to `\thesissetup`. |
 | `Missing required thesis metadata: 'idnumber'` | No student ID (classical, article) | Add `idnumber={...}`. |
-| `No front page registered for university 'polimi', degree 'phd'` | PhD is not available yet | Use `bachelor` or `master`. |
+| `format=phd is the PoliMi doctoral dissertation: use the 'phd' degree` | `format=phd` with `bachelor`/`master` | Use the `phd` degree option. |
+| `No front page registered for university 'polimi', degree 'phd'` | `phd` degree with another format | Use `format=phd` (or leave `format` out). |
+| `Missing required thesis metadata: 'department'` (or `phdtitle`, `cycle`) | PhD cover data missing | Add it to `\thesissetup`. |
 | Warning: `The base class 'article' has no chapters` | `\chapter` in article or summary | Use `\section`. |
 | Warning: `'french' ... was not loaded by babel` | A block with `language=french` | Add `other-languages={french}`. |
 
@@ -295,8 +357,10 @@ to TeX Live (pdfLaTeX), not the built-in engine.
 | `academicthesis-polimi-classical.def` | Classical layout. |
 | `academicthesis-polimi-article.def` | Article layout. |
 | `academicthesis-polimi-summary.def` | Executive summary layout. |
+| `academicthesis-polimi-phd.def` | PhD dissertation layout. |
 | `academicthesis-polimi-english.ldf`, `-italian.ldf` | PoliMi wording of the core labels, plus PoliMi-only strings. |
 | `logopolimi3i.pdf`, `raggierapolimi.pdf` | Logo and background, converted from the template's EPS. |
+| `logopolimiseal.png` | Round PoliMi seal for the PhD cover. |
 
 Rules to keep in mind when editing:
 
@@ -317,5 +381,4 @@ Rules to keep in mind when editing:
 
 Adding a format: add it to `\DeclareThesisFormats` and to the base-class
 switch in the `.cfg`, list its packages in the `.sty`, and write
-`academicthesis-polimi-<format>.def`. Adding PhD: register
-`\DeclareThesisFrontPage{polimi}{phd}{...}` in each `.def` that supports it.
+`academicthesis-polimi-<format>.def`.
