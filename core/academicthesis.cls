@@ -697,6 +697,38 @@
     \NewDocumentCommand \mainmatter { } { \clearpage \pagenumbering{arabic} }
     \NewDocumentCommand \backmatter { } { }
   }
+% ... and \chapter: a document written for book (e.g. after switching a
+% university's format to one built on article) keeps compiling, with each
+% chapter set as a section and one warning saying so. Defined at the end
+% of \begin{document}, so packages that test \chapter at load time
+% (biblatex, titlesec, hyperref) still see an article.
+\msg_new:nnn { academicthesis } { no-chapters }
+  {
+    The~base~class~'#1'~has~no~chapters:~\exp_not:N\chapter~is~set~as~
+    \exp_not:N\section~(use~\exp_not:N\section~in~this~format).
+  }
+\bool_new:N \g__academicthesis_chapter_warned_bool
+\bool_if:NF \g__academicthesis_chapters_bool
+  {
+    \AddToHook { begindocument / end }
+      {
+        \cs_if_exist:NF \chapter
+          {
+            \NewDocumentCommand \chapter { s o m }
+              {
+                \bool_if:NF \g__academicthesis_chapter_warned_bool
+                  {
+                    \msg_warning:nnV { academicthesis } { no-chapters }
+                      \g__academicthesis_baseclass_tl
+                    \bool_gset_true:N \g__academicthesis_chapter_warned_bool
+                  }
+                \IfBooleanTF {#1}
+                  { \section*{#3} }
+                  { \IfNoValueTF {#2} { \section{#3} } { \section[#2]{#3} } }
+              }
+          }
+      }
+  }
 \g@addto@macro\frontmatter{\pagestyle{plain}}
 \g@addto@macro\mainmatter{\pagestyle{Thesis}}
 \apptocmd{\tableofcontents}{\cleardoublepage\markboth{}{}\markright{}}{}{}
