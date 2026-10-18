@@ -11,6 +11,7 @@
 %%   academicthesis-polimi.cfg            base class + formats (read before \LoadClass)
 %%   academicthesis-polimi.sty            this file: options, metadata, registration
 %%   academicthesis-polimi-classical.def  the classical layout (normal LaTeX syntax)
+%%   academicthesis-polimi-article.def    the article layout (normal LaTeX syntax)
 %%   academicthesis-polimi-<lang>.ldf     PoliMi wording of the core strings
 %%   logopolimi3i.pdf, raggierapolimi.pdf
 %%
@@ -73,6 +74,18 @@
         \RequirePackage { eso-pic }     % background "raggiera"
         \RequirePackage { transparent } % ... at 40% opacity
         \RequirePackage { amsthm }      % coloured theorem heads
+      }
+    { article }
+      {
+        \RequirePackage { titlesec }    % section headings
+        \RequirePackage { caption }     % coloured caption labels
+        \RequirePackage { eso-pic }     % background "raggiera"
+        \RequirePackage { transparent } % ... at 40% opacity
+        \RequirePackage { amsthm }      % coloured theorem heads
+        \RequirePackage { tcolorbox }   % keywords box
+        % the cover prints the abstract, so it is required metadata
+        \DeclareThesisRequirement { polimi } { \c_true_bool } { abstract }
+          { \thesissetup{abstract={...},~keywords={...}} }
       }
   }
 

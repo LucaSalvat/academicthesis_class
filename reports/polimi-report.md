@@ -4,6 +4,30 @@ Status: **classical format implemented** (2026-10-10), following the
 decisions below. `article` and `summary` are declared but give a
 "not implemented yet" error.
 
+## Article format (2026-10-18)
+
+Implemented on the real `article` class (11pt, A4), chosen in
+`academicthesis-polimi.cfg` when `format=article`. The core was made
+class-aware instead of emulating article on book: front-matter headings
+use `\section*` when there is no `\chapter`, `\frontmatter`/`\mainmatter`/
+`\backmatter` get light versions under article, and keywords go through
+the `\thesiskeywords` hook. LUISS and PoliMi classical showcases were
+compared pixel by pixel before and after: identical.
+
+Layout (`academicthesis-polimi-article.def`, after the official
+`Thesis_article_format`): 2cm margins, no indentation, page number centred
+in the footer, blue section/subsection titles, caption labels and theorem
+heads (numbered by section), raggiera top right of page 1 at 40%.
+`\frontpage` prints a header block on page 1 (logo, title, programme,
+"author, ID", advisor/co-advisors/academic year beside the abstract, and
+the keywords in a `bluepoli!60` box); the text follows on the same page.
+The English abstract is metadata (`\thesissetup{abstract=..., keywords=...}`,
+required for this format); the Italian abstract is
+`\begin{abstractthesis}[language=italian, keywords=...]`, rendered as a
+section with the same keywords box. Not reproduced: the template's
+`enumitem` list settings and table/algorithm helpers (user's choice, as
+for classical).
+
 ## Decisions taken (supersede the proposals further down)
 
 - **Second page**: core option `secondpage` / `no-secondpage`; each

@@ -36,7 +36,8 @@ academicthesis_class/
 │   └── polimi/
 │       ├── academicthesis-polimi.cfg  Formats + base class per format
 │       ├── academicthesis-polimi.sty  Options, requirements, loads the format
-│       ├── academicthesis-polimi-classical.def  Classical layout (normal syntax)
+│       ├── academicthesis-polimi-classical.def  Classical layout (book)
+│       ├── academicthesis-polimi-article.def    Article layout (article)
 │       ├── academicthesis-polimi-english.ldf    PoliMi wording of core strings
 │       ├── academicthesis-polimi-italian.ldf
 │       ├── logopolimi3i.pdf
@@ -44,6 +45,7 @@ academicthesis_class/
 ├── showcases/                      Example documents / proofs
 │   ├── example-luiss-bachelor.tex
 │   ├── example-polimi-classical.tex
+│   ├── example-polimi-article.tex
 │   ├── example.bib
 │   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc
@@ -118,6 +120,23 @@ Because sections 6–11 run **after** the university package is loaded, a
 plugin that wants to change them (page styles, `acknowledgements`, ...)
 does so in `\AddToHook{class/academicthesis/after}{...}` (see the PoliMi
 package).
+
+### Any base class
+
+The core works on whatever base class the university declares. Only three
+things depend on it, and they adapt automatically:
+
+- `\thesisfrontchapter` / `\thesisfrontheading` (abstract, originality,
+  acknowledgements): `\chapter*` + a `chapter` ToC entry when `\chapter`
+  exists, otherwise `\section*` + a `section` entry.
+- `\frontmatter`, `\mainmatter`, `\backmatter`: kept from book/report; under
+  article the core defines light versions (roman / arabic page numbers), so
+  a document written for book still compiles.
+- `\thesiskeywords{<label>}{<keywords>}` prints the keywords after an
+  abstract; universities may restyle it (PoliMi article: a blue box).
+
+Metadata keys `abstract` and `keywords` exist for front pages that print the
+abstract themselves (PoliMi article).
 
 ### The early university file: `academicthesis-<uni>.cfg`
 

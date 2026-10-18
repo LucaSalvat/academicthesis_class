@@ -1,0 +1,120 @@
+% !TEX TS-program = pdflatex
+% Example: a Politecnico di Milano master's thesis in the "article"
+% format, using the modular academicthesis class + academicthesis-polimi.
+% Mirrors the official Scuola 3I template (Thesis_article_format).
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=polimi, master, format=article, language=english]{academicthesis}
+
+% The class only loads what the PoliMi layout needs; anything else is
+% your choice. These are the ones the official template example uses.
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{float}    % [H] placement
+\usepackage{colortbl} % \rowcolor{bluepoli!40}
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black]{hyperref}
+
+\thesissetup{
+  title         = {Title},
+  candidate     = {Name Surname},
+  idnumber      = {Student ID},
+  degree        = {Xxxxxxxxxxxx Engineering - Ingegneria Xxxxxxxxxxxx},
+  supervisor    = {Prof. Name Surname},
+  cosupervisors = {Name Surname, Name Surname},
+  academicyear  = {20XX-20XX},
+  % In the article format the English abstract and its keywords are
+  % printed on the first page, so they are given here.
+  abstract      = {Here goes the Abstract in English of your thesis (in
+    article format) followed by a list of keywords. The Abstract is a
+    concise summary of the content of the thesis (single page of text) and
+    a guide to the most important contributions included in your thesis.
+    It should be a self-contained text and should be clear to someone who
+    hasn't (yet) read the whole manuscript.},
+  keywords      = {here, the keywords, of your thesis},
+}
+
+%\addbibresource{example.bib}
+
+\begin{document}
+
+\frontpage
+
+\section{Introduction}
+This document is an example of the PoliMi article format built with the
+modular \texttt{academicthesis} class. The first page carries the title,
+the study programme, the author and student ID, the advisor, the
+co-advisors, the academic year, the abstract and the keywords, all set
+with \verb|\thesissetup|.
+
+It is convenient to break the article format of your thesis into
+sections and subsections. If necessary, subsubsections, paragraphs and
+subparagraphs can be used.
+
+\section{Equations}
+Maxwell's equations read:
+\begin{align}
+  \nabla\cdot \bm{D} & = \rho, \label{eq:maxwell1} \\
+  \nabla \times \bm{E} + \frac{\partial \bm{B}}{\partial t} & = \bm{0}, \\
+  \nabla\cdot \bm{B} & = 0, \\
+  \nabla \times \bm{H} - \frac{\partial \bm{D}}{\partial t} & = \bm{J}.
+\end{align}
+
+\section{Figures and tables}
+\subsection{Figures}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{logopolimi3i}
+  \caption{Caption of the Figure.}
+  \label{fig:logo}
+\end{figure}
+
+\subsection{Tables}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3em} c c c|}
+    \hline
+    \rowcolor{bluepoli!40}
+    & \textbf{column 1} & \textbf{column 2} & \textbf{column 3} \\
+    \hline \hline
+    \textbf{row 1} & 1 & 2 & 3 \\
+    \textbf{row 2} & $\alpha$ & $\beta$ & $\gamma$ \\
+    \hline
+  \end{tabular}
+  \caption{Caption of the Table.}
+  \label{table:example}
+\end{table}
+
+\section{Theorems and propositions}
+\begin{theorem}
+  Write here your theorem.
+\end{theorem}
+\textit{Proof.} If useful you can report here the proof.
+
+\begin{proposition}
+  Write here your proposition.
+\end{proposition}
+
+\section{Conclusions}
+A final section containing the main conclusions of your research and
+possible future developments of your work.
+
+%\printbibliography
+
+\appendix
+\section{Appendix A}
+If you need to include an appendix to support the research in your
+thesis, you can place it at the end of the manuscript.
+
+\clearpage
+
+\begin{abstractthesis}[language=italian,
+                       keywords={qui, le parole chiave, della tesi, in italiano}]
+  Qui va l'Abstract in lingua italiana della tesi seguito dalla lista di
+  parole chiave.
+\end{abstractthesis}
+
+\begin{acknowledgements}
+  Here you might want to acknowledge someone.
+\end{acknowledgements}
+
+\end{document}

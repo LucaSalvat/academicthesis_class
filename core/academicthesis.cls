@@ -494,12 +494,35 @@
 % =====================================================================
 % 9. Front-matter helpers (university-agnostic)
 % =====================================================================
+% The base class is the university's choice (book, report, article...),
+% so front-matter headings follow what it offers: a starred chapter when
+% \chapter exists, otherwise a starred section in the running text.
+\bool_new:N \g__academicthesis_chapters_bool
+\cs_if_exist:NTF \chapter
+  { \bool_gset_true:N  \g__academicthesis_chapters_bool }
+  { \bool_gset_false:N \g__academicthesis_chapters_bool }
+
+% Unnumbered top-level heading: \chapter* or \section*
+\NewDocumentCommand \thesisfrontheading { m }
+  {
+    \bool_if:NTF \g__academicthesis_chapters_bool
+      { \chapter*{#1} }
+      { \section*{#1} }
+  }
+
 \NewDocumentCommand \thesisfrontchapter { m }
   {
-    \cleardoublepage
-    \thispagestyle{plain}
-    \chapter*{#1}
-    \addcontentsline{toc}{chapter}{#1}
+    \bool_if:NTF \g__academicthesis_chapters_bool
+      {
+        \cleardoublepage
+        \thispagestyle{plain}
+        \chapter*{#1}
+        \addcontentsline{toc}{chapter}{#1}
+      }
+      {
+        \section*{#1}
+        \addcontentsline{toc}{section}{#1}
+      }
     \markboth{#1}{#1}
   }
 
@@ -559,6 +582,14 @@
     \group_end:
   }
 
+% \thesiskeywords{<label>}{<keywords>}: how keywords are printed after an
+% abstract; a university package may redefine it (e.g. a coloured box).
+\NewDocumentCommand \thesiskeywords { m m }
+  {
+    \vspace{\baselineskip}
+    \noindent\textbf{#1:}~#2\par
+  }
+
 % \begin{abstractthesis}[language=..., keywords=..., title=...]
 \NewDocumentEnvironment { abstractthesis } { O{} }
   {
@@ -570,9 +601,8 @@
     \par
     \tl_if_empty:NF \l__academicthesis_block_keywords_tl
       {
-        \vspace{\baselineskip}
-        \noindent\textbf{\thesisstring{KeywordsLabel}:}~
-        \l__academicthesis_block_keywords_tl\par
+        \exp_args:NnV \thesiskeywords { \thesisstring{KeywordsLabel} }
+          \l__academicthesis_block_keywords_tl
       }
     \null\ignorespacesafterend
   }
@@ -596,7 +626,7 @@
 \int_new:N \g__academicthesis_ack_firstpage_int
 \NewDocumentCommand \thesisacknowledgementsbegin { m }
   {
-    \chapter*{#1}
+    \thesisfrontheading{#1}
     \tl_gset:Nn \g__academicthesis_ack_title_tl { #1 }
     \int_gset:Nn \g__academicthesis_ack_firstpage_int { \value{page} }
     \begingroup
@@ -659,6 +689,14 @@
   \fancyhead[LE,RO]{\thepage}%
 }
 
+% Classes without \frontmatter/\mainmatter/\backmatter (article): light
+% versions, so the same document source compiles on any base class.
+\cs_if_exist:NF \frontmatter
+  {
+    \NewDocumentCommand \frontmatter { } { \pagenumbering{roman} }
+    \NewDocumentCommand \mainmatter { } { \clearpage \pagenumbering{arabic} }
+    \NewDocumentCommand \backmatter { } { }
+  }
 \g@addto@macro\frontmatter{\pagestyle{plain}}
 \g@addto@macro\mainmatter{\pagestyle{Thesis}}
 \apptocmd{\tableofcontents}{\cleardoublepage\markboth{}{}\markright{}}{}{}

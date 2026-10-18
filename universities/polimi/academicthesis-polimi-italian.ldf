@@ -12,6 +12,8 @@
 % PoliMi-only keys
 \ProvideThesisString{BachelorThesisIn}{Tesi di Laurea Triennale in}
 \ProvideThesisString{MasterThesisIn}{Tesi di Laurea Magistrale in}
+% label of the abstract on the article-format cover
+\ProvideThesisString{CoverAbstractLabel}{Abstract}
 \ProvideThesisString{TheoremLabel}{Teorema}
 \ProvideThesisString{PropositionLabel}{Proposizione}
 

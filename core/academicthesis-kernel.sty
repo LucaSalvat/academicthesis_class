@@ -158,6 +158,10 @@
     website      .code:n = { \academicthesis_meta_set:nn { website }      {#1} } ,
     cycle        .code:n = { \academicthesis_meta_set:nn { cycle }        {#1} } ,
     phdtitle     .code:n = { \academicthesis_meta_set:nn { phdtitle }     {#1} } ,
+    % for front pages that print the abstract themselves (e.g. PoliMi
+    % article format); the abstractthesis environment is unaffected
+    abstract     .code:n = { \academicthesis_meta_set:nn { abstract }     {#1} } ,
+    keywords     .code:n = { \academicthesis_meta_set:nn { keywords }     {#1} } ,
 
     %  Booleans / enumerations -----------------------------------
     gender       .choice: ,
