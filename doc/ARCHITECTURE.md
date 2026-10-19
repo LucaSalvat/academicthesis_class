@@ -38,7 +38,8 @@ academicthesis_class/
 │   ├── bocconi/
 │   │   ├── academicthesis-bocconi.cfg   Base class, simil_frontpages option
 │   │   ├── academicthesis-bocconi.sty   Requirements, loads the opening pages
-│   │   └── academicthesis-bocconi-frontpages.def  Opening pages (bachelor + master)
+│   │   ├── academicthesis-bocconi-frontpages.def  Opening pages + simil front page (bachelor + master)
+│   │   └── academicthesis-bocconi-<lang>.ldf      Bilingual front-page labels
 │   └── polimi/
 │       ├── academicthesis-polimi.cfg  Formats + base class per format
 │       ├── academicthesis-polimi.sty  Options, requirements, loads the format
@@ -54,6 +55,7 @@ academicthesis_class/
 │   ├── example-luiss-bachelor.tex
 │   ├── example-luiss-phd.tex
 │   ├── example-bocconi-bachelor.tex
+│   ├── example-bocconi-simil.tex
 │   ├── example-polimi-classical.tex
 │   ├── example-polimi-article.tex
 │   ├── example-polimi-summary.tex
@@ -197,7 +199,7 @@ Provides the shared vocabulary that both the class and all plugins use.
 
 A single `\prop` (`\g__academicthesis_meta_prop`) holds all metadata.
 Standard keys: `title`, `subtitle`, `candidate`, `idnumber`, `degree`,
-`tutors` (list), `coordinator`, `abstract`, `keywords`,
+`tutors` (list), `coordinator`, `abstract`, `keywords`, `dedication`, `major`,
 `chair`, `academicyear`, `supervisors`, `cosupervisor`, `copyyear`,
 `authoremail`, `examdate`, `examiner`.
 

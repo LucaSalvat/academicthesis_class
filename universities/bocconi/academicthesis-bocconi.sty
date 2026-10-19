@@ -11,6 +11,8 @@
 %%   academicthesis-bocconi.sty             this file: requirements, loads the pages
 %%   academicthesis-bocconi-frontpages.def  the opening pages, bachelor and
 %%                                          master (normal LaTeX syntax)
+%%   academicthesis-bocconi-<lang>.ldf      the bilingual labels of the front page
+%%   bocconiwordmark.*, logobocconi.*       logos (optional: text stand-ins)
 %%
 %% After the opening pages the thesis looks like the LUISS one: same base
 %% class, page styles and front-matter blocks, all from the core.
@@ -31,19 +33,43 @@
 \bool_if:NT \g__bocconi_simil_bool { \bocconi@similtrue }
 
 % =====================================================================
-% 2. Required metadata: only with a simil front page, as for LUISS
-%    (the core's own checks are switched off in the .cfg otherwise)
+% 2. Logos of the simil front page:  \bocconithesissetup{...}
+% =====================================================================
+%   wordmark-file  the vertical "Bocconi" on the left (default bocconiwordmark)
+%   logo-file      "Universita Bocconi Milano" at the bottom (default logobocconi)
+% When a file is missing the page draws a text stand-in.
+\tl_new:N \l__bocconi_wordmark_file_tl
+\tl_set:Nn \l__bocconi_wordmark_file_tl { bocconiwordmark }
+\tl_new:N \l__bocconi_logo_file_tl
+\tl_set:Nn \l__bocconi_logo_file_tl { logobocconi }
+\keys_define:nn { academicthesis-bocconi / layout }
+  {
+    wordmark-file .tl_set:N = \l__bocconi_wordmark_file_tl ,
+    logo-file     .tl_set:N = \l__bocconi_logo_file_tl ,
+  }
+\NewDocumentCommand \bocconithesissetup { m }
+  { \keys_set:nn { academicthesis-bocconi / layout } { #1 } }
+\cs_new:Npn \bocconi@wordmarkfile { \l__bocconi_wordmark_file_tl }
+\cs_new:Npn \bocconi@logofile     { \l__bocconi_logo_file_tl }
+
+% =====================================================================
+% 3. Required metadata, only with a simil front page: exactly what the
+%    page prints. The core checks title, candidate, degree, supervisors
+%    and academic year (switched off in the .cfg without the page); the
+%    student ID is added here. The major is optional.
 % =====================================================================
 \bool_if:NT \g__bocconi_simil_bool
   {
-    \DeclareThesisRequirement { bocconi } \g__academicthesis_bachelor_bool { chair }
-      { \thesissetup{chair=The~Chair} }
-    \DeclareThesisRequirement { bocconi } \g__academicthesis_master_bool { chair }
-      { \thesissetup{chair=The~Chair} }
+    \DeclareThesisRequirement { bocconi } { \c_true_bool } { idnumber }
+      { \thesissetup{idnumber=1234567} }
   }
 
+% Packages of the simil front page (loaded here, never from the .def)
+\bool_if:NT \g__bocconi_simil_bool
+  { \RequirePackage { eso-pic } }
+
 % =====================================================================
-% 3. The opening pages (one file for bachelor and master)
+% 4. The opening pages (one file for bachelor and master)
 % =====================================================================
 % Typesetting code lives in a .def read with normal catcodes (spaces and
 % blank lines behave as usual); it must not load packages.

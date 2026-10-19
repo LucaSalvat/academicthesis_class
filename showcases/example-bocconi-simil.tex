@@ -1,0 +1,35 @@
+% !TEX TS-program = pdflatex
+% Example: a Bocconi bachelor's thesis WITH its printed front page
+% (simil_frontpages=true), using the modular academicthesis class +
+% academicthesis-bocconi plugin. Required: the fields the page prints.
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=bocconi, bachelor, simil_frontpages=true, language=english, twoside]{academicthesis}
+
+\thesissetup{
+  degree       = {International Economics and Finance},
+  major        = {Major in Finance},          % optional
+  title        = {The Rise of Continuation Funds in Private Equity Secondary Market},
+  supervisor   = {Prof. LORENZO POZZA},
+  candidate    = {LUCA ARDIZZON},
+  idnumber     = {3196691},
+  academicyear = {2024-2025},
+  dedication   = {To my family.},             % optional, page 3
+}
+
+\begin{document}
+
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}
+  A short abstract of the thesis.
+\end{abstractthesis}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+Hello, Bocconi!
+
+\end{document}
