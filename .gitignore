@@ -332,3 +332,6 @@ TSWLatexianTemp*
 
 ## Showcase build outputs (rebuild with latexmk)
 showcases/*.pdf
+
+## macOS
+.DS_Store
