@@ -1,0 +1,102 @@
+% academicthesis-docstyle.tex
+% Shared preamble of the academicthesis documentation (introduction and
+% user guide). \input it right after \documentclass. Standalone: the
+% documentation does not need the academicthesis class itself.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage[a4paper, margin=2.6cm, headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, fit}
+\usepackage{url}
+\usepackage[colorlinks=true, linkcolor=docaccent, urlcolor=docaccent,
+            citecolor=docaccent]{hyperref}
+
+% ---- Colours ---------------------------------------------------------
+\definecolor{docaccent}{RGB}{31,73,125}   % neutral blue for headings
+\definecolor{luissblue}{RGB}{21,57,108}   % BlueLuiss, as in the package
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4} % bluepoli, as in the package
+\definecolor{docgrey}{gray}{0.45}
+
+% ---- Page and paragraphs --------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55\baselineskip}
+\setlength{\emergencystretch}{3em}
+\setlist{nosep, topsep=3pt, leftmargin=1.5em}
+\renewcommand{\arraystretch}{1.25}
+
+\titleformat{\section}{\color{docaccent}\normalfont\Large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\color{docaccent}\normalfont\large\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex}{1ex}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{docgrey}\doctitleshort}
+\fancyhead[R]{\small\color{docgrey}\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\sectionmark}[1]{\markboth{\thesection\quad #1}{}}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[C]{\small\thepage}}
+\providecommand{\doctitleshort}{academicthesis}
+
+% ---- Names in running text and tables -------------------------------
+\newcommand{\cs}[1]{\texttt{\textbackslash#1}}   % a command
+\newcommand{\opt}[1]{\texttt{#1}}                 % an option / key / value
+\newcommand{\env}[1]{\texttt{#1}}                 % an environment
+\newcommand{\pkg}[1]{\textsf{#1}}                 % a package or class
+\DeclareUrlCommand{\file}{\urlstyle{tt}}          % a file name (breaks at - . /)
+\renewcommand{\UrlBreaks}{\do\-\do\.\do\/}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\req}{\textbf{required}}
+\newcommand{\optional}{optional}
+\newcommand{\na}{\textcolor{docgrey}{---}}
+
+% ---- Code listings ----------------------------------------------------
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{docaccent}\bfseries,
+  commentstyle=\color{docgrey}\itshape,
+  language=[LaTeX]TeX,
+  morekeywords={thesissetup, frontpage, luissthesissetup, polimithesissetup,
+    major, dedication, frontmatter, mainmatter, backmatter, addbibresource,
+    printbibliography, blankpage},
+  frame=single, rulecolor=\color{docaccent!35},
+  backgroundcolor=\color{docaccent!4},
+  columns=fullflexible, keepspaces=true, upquote=true,
+  xleftmargin=4pt, xrightmargin=4pt, aboveskip=8pt, belowskip=8pt,
+  literate={à}{{\`a}}1 {è}{{\`e}}1 {é}{{\'e}}1 {ò}{{\`o}}1,
+}
+\lstdefinestyle{shell}{language={}, keywordstyle={}, commentstyle={}}
+
+% ---- Boxes -----------------------------------------------------------
+% \begin{notebox}{Title} ... \end{notebox}
+\newtcolorbox{notebox}[2][docaccent]{enhanced, breakable,
+  colback=#1!5, colframe=#1!70, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries\small, coltitle=white, title={#2}}
+
+% A framed page preview: \preview[<width>]{<file>}{<caption>}
+\newcommand{\preview}[3][0.42\textwidth]{%
+  \begin{minipage}[t]{#1}\centering
+    {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.5pt}%
+     \fcolorbox{docgrey!50}{white}{\includegraphics[width=\dimexpr\linewidth-1pt\relax]{#2}}}\par
+    \vspace{4pt}{\small #3}
+  \end{minipage}}
+
+\graphicspath{{figures/}}
