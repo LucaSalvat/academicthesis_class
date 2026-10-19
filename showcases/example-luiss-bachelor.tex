@@ -4,22 +4,41 @@
 % Finds the packages in ../core, ../languages, ../universities (any editor).
 \input{academicthesis-repo-paths}
 % other-languages: languages used by blocks with language=... (hyphenation)
-\documentclass[university=luiss, bachelor, language=english, other-languages={italian,french}, twoside, discussion]{academicthesis}
+%\documentclass[university=luiss, bachelor, language=english, other-languages={italian,french}, twoside, discussion]{academicthesis}
 
-\luissthesissetup{
-  logo-align  = left,
-  title-align = left,
-  course-align = left,
-  major       = Major~in~Finance,
-}
+\documentclass[university=luiss, bachelor, language=italian, twoside, discussion]{academicthesis}
+
+%\luissthesissetup{
+%  logo-align  = left,
+%  title-align = left,
+%  course-align = left,
+%  major       = Major~in~Finance,
+%}
+
+%\thesissetup{
+%  title        = {On the Modularity of \LaTeX{} Thesis Classes},
+%  subtitle     = {A Case Study in Plugin Architecture},
+%  candidate    = {Luca Salvatore},
+%  idnumber     = {123456},
+%  degree       = {Economics and Management},
+%  chair        = {Corporate Finance},
+%  academicyear = {2025/2026},
+%  supervisors  = {Prof. Jane Doe},
+%  cosupervisor = {Dr. John Smith},
+%  copyyear     = {2026},
+%  authoremail  = {luca@example.com},
+%  examdate     = {12 June 2026},
+%  examiner     = {Prof. A, Prof. B, Prof. C},
+%}
+
 
 \thesissetup{
   title        = {On the Modularity of \LaTeX{} Thesis Classes},
   subtitle     = {A Case Study in Plugin Architecture},
-  candidate    = {Luca Salvatore},
+  candidate    = {Eleonora Macaluso},
   idnumber     = {123456},
-  degree       = {Economics and Management},
-  chair        = {Corporate Finance},
+  degree       = {Giurisprudenza},
+  chair        = {Procedura Civile},
   academicyear = {2025/2026},
   supervisors  = {Prof. Jane Doe},
   cosupervisor = {Dr. John Smith},
@@ -31,6 +50,8 @@
 
 %\addbibresource{example.bib}
 
+
+\usepackage{lipsum}
 \begin{document}
 
 \frontpage
@@ -40,22 +61,24 @@
   This is a short abstract demonstrating that the modular
   \texttt{academicthesis} class correctly dispatches to the
   LUISS plugin for its front matter.
+  
+  \lipsum[1-2]
 \end{abstractthesis}
 
 % Same block in another language: heading and "Keywords" follow it.
-\begin{abstractthesis}[language=italian, keywords={tesi, classe modulare}]
-  Questo breve sommario mostra un secondo abstract in lingua italiana.
-\end{abstractthesis}
+%\begin{abstractthesis}[language=italian, keywords={tesi, classe modulare}]
+%  Questo breve sommario mostra un secondo abstract in lingua italiana.
+%\end{abstractthesis}
 
-\begin{originality}
-  I declare that this thesis is my own work and that all sources are
-  acknowledged.
-\end{originality}
+%\begin{originality}
+%  I declare that this thesis is my own work and that all sources are
+%  acknowledged.
+%\end{originality}
 
-\begin{originality}[language=italian]
-  Dichiaro che questa tesi è frutto del mio lavoro e che tutte le fonti
-  sono citate.
-\end{originality}
+%\begin{originality}[language=italian]
+%  Dichiaro che questa tesi è frutto del mio lavoro e che tutte le fonti
+%  sono citate.
+%\end{originality}
 
 \dedication{To everyone who has ever fought with a LaTeX class file.}
 
@@ -73,6 +96,9 @@
 \chapter{Introduction}
 Hello, modular thesis world! Citing something: %\cite{example2024}.
 
+\section{Sezione 1}
+
+\section{Sezione 2}
 \chapter{Conclusion}
 It compiles.
 
