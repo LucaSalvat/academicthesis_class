@@ -64,6 +64,7 @@ academicthesis_class/
 │   ├── academicthesis-repo-paths.tex  Search path for any editor
 │   └── latexmkrc                   Loads ../latexmkrc
 ├── latexmkrc                       Adds the source folders to TEXINPUTS
+├── userguides/                     One user + developer guide per university (LaTeX, PDF)
 └── doc/
     └── ARCHITECTURE.md             (this file)
 ```

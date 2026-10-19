@@ -1,50 +1,225 @@
-# academicthesis_class
-Modular LaTeX class for academic theses: one university-agnostic core
-class plus independent plugin packages per university and per language.
+# academicthesis
+
+A modular LaTeX class for university theses. You pick your university,
+your degree and, where there is a choice, the format; you write the data
+of your thesis once; the class prints the cover page and the layout that
+your university expects.
 
 ```latex
-\documentclass[university=luiss, bachelor, language=english]{academicthesis}
+\documentclass[university=luiss, master, language=english]{academicthesis}
+```
+
+The project is a **collection of packages**: one core shared by everyone,
+and one small package per university. You only need the core and the
+package of your own university.
+
+**Contents**
+
+- [Universities](#universities)
+  - [LUISS Guido Carli](#luiss-guido-carli)
+  - [Politecnico di Milano](#politecnico-di-milano)
+  - [Università Bocconi](#università-bocconi)
+- [Quick start](#quick-start)
+- [Repository layout](#repository-layout)
+- [Compiling](#compiling)
+- [Features shared by every university](#features-shared-by-every-university)
+- [Adding a university](#adding-a-university)
+- [License](#license)
+
+---
+
+## Universities
+
+Each university has its own **user guide** (PDF, with the LaTeX source
+next to it). Part I explains how to write a thesis with the package;
+Part II explains the code, for those who want to change it.
+
+| University | Degrees | Formats | User guide |
+| --- | --- | --- | --- |
+| [LUISS Guido Carli](#luiss-guido-carli) | bachelor, master, PhD | one | [PDF](userguides/academicthesis-luiss-guide.pdf) |
+| [Politecnico di Milano](#politecnico-di-milano) | bachelor, master, PhD | classical, article, summary, phd | [PDF](userguides/academicthesis-polimi-guide.pdf) |
+| [Università Bocconi](#università-bocconi) | bachelor, master | one, with or without a printed front page | [PDF](userguides/academicthesis-bocconi-guide.pdf) |
+
+### LUISS Guido Carli
+
+```latex
+\documentclass[university=luiss, master, language=english]{academicthesis}
+```
+
+- **Package folder:** [`universities/luiss/`](universities/luiss/)
+- **User guide:** [academicthesis-luiss-guide.pdf](userguides/academicthesis-luiss-guide.pdf)
+  ([LaTeX source](userguides/academicthesis-luiss-guide.tex))
+- **Examples:** [`example-luiss-bachelor.tex`](showcases/example-luiss-bachelor.tex),
+  [`example-luiss-phd.tex`](showcases/example-luiss-phd.tex)
+- **What you get:** the LUISS cover for bachelor's, master's and PhD
+  theses, and a second page with the examination committee and copyright
+  notice (switch it off with `no-secondpage`).
+
+### Politecnico di Milano
+
+```latex
 \documentclass[university=polimi, master, format=classical]{academicthesis}
 ```
 
-| University | Degrees | Formats | Showcase |
-| --- | --- | --- | --- |
-| LUISS | bachelor, master, phd | (one) | `showcases/example-luiss-bachelor.tex`, `showcases/example-luiss-phd.tex` |
-| [Politecnico di Milano](universities/polimi/README.md) | bachelor, master, phd | `classical` (book), `article` (article), `summary` (executive summary, two-column article), `phd` (doctoral dissertation, book) | `showcases/example-polimi-classical.tex`, `-article.tex`, `-summary.tex`, `-phd.tex` |
-| Bocconi | bachelor, master | (one); class option `simil_frontpages=true/false` | `showcases/example-bocconi-bachelor.tex`, `showcases/example-bocconi-simil.tex` |
+- **Package folder:** [`universities/polimi/`](universities/polimi/)
+- **User guide:** [academicthesis-polimi-guide.pdf](userguides/academicthesis-polimi-guide.pdf)
+  ([LaTeX source](userguides/academicthesis-polimi-guide.tex))
+- **Examples:** [`classical`](showcases/example-polimi-classical.tex),
+  [`article`](showcases/example-polimi-article.tex),
+  [`summary`](showcases/example-polimi-summary.tex),
+  [`phd`](showcases/example-polimi-phd.tex)
+- **Formats:**
 
-Each university picks its base class (LUISS and PoliMi classical: `book`; PoliMi article: `article`)
-and whether the second page (commission + copyright) is printed: on for
-LUISS, off for PoliMi; override with `secondpage` / `no-secondpage`.
+  | `format=` | What it is |
+  | --- | --- |
+  | `classical` (default) | The full thesis as a book |
+  | `article` | The thesis as a paper, with the abstract on page 1 |
+  | `summary` | The Executive Summary, in two columns |
+  | `phd` | The doctoral dissertation (default for the `phd` degree) |
 
-Abstract, statement of originality (`originality`), acknowledgements and dedication take `language=`, so a thesis
-can have, say, an English and an Italian abstract (list the extra
-languages in `other-languages={italian,french}` for correct hyphenation).
+> **Credit.** The PoliMi layouts are not original work of this project.
+> They reproduce the official LaTeX templates provided by Politecnico di
+> Milano: the thesis templates of the School of Industrial and Information
+> Engineering (Scuola 3I, October 2021 revision: classical format, article
+> format, Executive Summary) and the PoliMi doctoral dissertation template
+> by J. Stevens and L. Fossati. Their design, logos and graphic elements
+> belong to Politecnico di Milano and to the templates' authors.
+
+### Università Bocconi
+
+```latex
+\documentclass[university=bocconi, master, simil_frontpages=true]{academicthesis}
+```
+
+- **Package folder:** [`universities/bocconi/`](universities/bocconi/)
+- **User guide:** [academicthesis-bocconi-guide.pdf](userguides/academicthesis-bocconi-guide.pdf)
+  ([LaTeX source](userguides/academicthesis-bocconi-guide.tex))
+- **Examples:** [`example-bocconi-bachelor.tex`](showcases/example-bocconi-bachelor.tex),
+  [`example-bocconi-simil.tex`](showcases/example-bocconi-simil.tex)
+- **What you get:** the opening pages of a Bocconi thesis. By default, two
+  blank pages for the official front page that the university adds, then
+  the dedication page. With `simil_frontpages=true`, a printed copy of the
+  front page instead. The Bocconi logos are not included: put the official
+  files next to your thesis, or the page prints text placeholders.
+
+---
+
+## Quick start
+
+1. Copy the example of your university from [`showcases/`](showcases/).
+2. Fill in your data in `\thesissetup{...}`:
+
+   ```latex
+   \thesissetup{
+     title        = {Title of the Thesis},
+     candidate    = {Name Surname},
+     degree       = {Economics and Management},
+     supervisor   = {Prof. Name Surname},
+     academicyear = {2025/2026},
+   }
+   ```
+
+3. Compile it from the `showcases/` folder:
+
+   ```sh
+   cd showcases
+   latexmk -pdf my-thesis.tex
+   ```
+
+If a field your university needs is missing, compilation stops with a
+message that names it. The user guide of your university lists every
+field.
+
+---
 
 ## Repository layout
 
 | Folder | Contents |
 | --- | --- |
-| `core/` | `academicthesis.cls` and `academicthesis-kernel.sty` |
-| `universities/<uni>/` | `academicthesis-<uni>.sty` plus that university's logos |
-| `languages/` | `academicthesis-<lang>.ldf` string files |
-| `showcases/` | Example documents that compile straight from the repo |
-| `doc/` | One user and developer guide per university, in LaTeX and PDF ([LUISS](doc/academicthesis-luiss-guide.pdf), [PoliMi](doc/academicthesis-polimi-guide.pdf), [Bocconi](doc/academicthesis-bocconi-guide.pdf)), and the [architecture notes](doc/ARCHITECTURE.md) |
+| [`core/`](core/) | The core class, `academicthesis.cls`, and its shared API, `academicthesis-kernel.sty` |
+| [`universities/`](universities/) | One folder per university: its package, labels and logos |
+| [`languages/`](languages/) | The printed words, one file per language (English, Italian, French) |
+| [`userguides/`](userguides/) | One user and developer guide per university, in LaTeX and PDF |
+| [`showcases/`](showcases/) | Example theses that compile straight from the repository |
+| [`doc/`](doc/) | [Architecture notes](doc/ARCHITECTURE.md) for developers |
+| [`reports/`](reports/) | Design notes |
 
-Packages load each other **by name**, never by folder, so they can be
-installed separately. To build from the repo, the root `latexmkrc` adds
-the folders to TeX's search path:
+---
 
-```sh
-cd showcases
-latexmk example-luiss-bachelor.tex
-```
+## Compiling
 
-Any editor works too (Texifier/Texpad, TeXShop, TeXstudio): every showcase
-starts with `\input{academicthesis-repo-paths}`, which adds the repo
-folders to LaTeX's search list. In Texifier, set the typesetter to TeX Live
-(pdfLaTeX), because its built-in engine is too old for this class.
+The packages find each other **by file name**, never by folder, so they can
+be installed separately. Inside the repository, three ways work:
 
-Without latexmk, from a terminal:
-`TEXINPUTS=../core//:../languages//:../universities//: pdflatex example-luiss-bachelor.tex`.
-See [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md#folders-are-for-humans-names-are-for-tex).
+- **latexmk** (recommended): the root `latexmkrc` adds the source folders
+  to TeX's search path.
+
+  ```sh
+  cd showcases
+  latexmk -pdf example-luiss-bachelor.tex
+  ```
+
+- **Any editor** (Texifier/Texpad, TeXShop, TeXstudio, VS Code, Overleaf):
+  every showcase starts with `\input{academicthesis-repo-paths}`, which
+  adds the repository folders to LaTeX's search list. In Texifier, set the
+  typesetter to *TeX Live (pdfLaTeX)*: its built-in engine is too old.
+- **Plain pdflatex**, from `showcases/`:
+
+  ```sh
+  TEXINPUTS=../core//:../languages//:../universities//: pdflatex example-luiss-bachelor.tex
+  ```
+
+To use the class outside the repository, copy `core/`, `languages/` and
+your university's folder next to your thesis, or into your personal TeX
+tree (for example `~/Library/texmf/tex/latex/academicthesis/` on macOS).
+
+**Requirements:** TeX Live or MacTeX 2023 or later (or an up-to-date
+MiKTeX), pdfLaTeX, and biblatex with biber for the bibliography.
+
+---
+
+## Features shared by every university
+
+- **One place for the data:** `\thesissetup{...}`, with the same key names
+  at every university.
+- **Clear errors** when a required field is missing.
+- **Several languages in one thesis:** the abstract, statement of
+  originality, acknowledgements and dedication each take `language=`, so
+  an English thesis can carry an Italian abstract with the right heading
+  and hyphenation.
+- **Labels that adapt:** "Supervisor" or "Supervisors" by count, and in
+  Italian "Candidato" or "Candidata".
+- **A bibliography that always compiles:** biblatex and biber, with a
+  natbib fallback behind the same commands.
+- **Nothing imposed beyond the layout:** hyperref, TikZ and the
+  bibliography style stay your choice.
+
+---
+
+## Adding a university
+
+Create `universities/<uni>/` with `academicthesis-<uni>.cfg` and
+`academicthesis-<uni>.sty`, add the folder to
+`showcases/academicthesis-repo-paths.tex`, and add a showcase. Nothing in
+the core or in the other universities changes. Part II of any user guide,
+and [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md), explain how.
+
+---
+
+## License
+
+Copyright 2025–2026 Luca Salvatore.
+
+This work may be distributed and/or modified under the conditions of the
+LaTeX Project Public License, either version 1.3c of this license or (at
+your option) any later version. The license is in [LICENSE](LICENSE) and at
+<https://www.latex-project.org/lppl.txt>.
+
+This work has the LPPL maintenance status `maintained`. The Current
+Maintainer of this work is Luca Salvatore.
+
+University names, logos and graphic elements belong to their respective
+universities. The Politecnico di Milano layouts are based on the official
+Politecnico di Milano templates (see [above](#politecnico-di-milano)).
+academicthesis is not published by any of the universities it supports;
+always check your university's current rules before submitting a thesis.
