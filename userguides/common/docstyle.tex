@@ -132,21 +132,22 @@
 \newcommand{\guidetitlepage}[2]{%
   \hypersetup{pageanchor=false}%
   \begin{titlepage}
-    \vspace*{2.2cm}
-    {\color{docaccent}\rule{\linewidth}{1.2pt}}\par\vspace{14pt}
-    {\fontsize{30}{36}\selectfont\bfseries\color{docaccent} academicthesis\par}
-    \vspace{10pt}
-    {\LARGE #1\par}
+    \centering
+    \vspace*{0.6cm}
+    \includegraphics[width=0.62\linewidth, trim=150 125 142 114, clip]{academicthesis-logo}\par
+    \vspace{18pt}
+    {\color{docaccent}\rule{0.8\linewidth}{1pt}}\par\vspace{12pt}
+    {\LARGE\color{docaccent} #1\par}
     \vspace{6pt}
     {\Large User and developer guide\par}
-    \vspace{14pt}
-    {\color{docaccent}\rule{\linewidth}{1.2pt}}\par
-    \vspace{1.6cm}
-    \begin{center}#2\end{center}
+    \vspace{12pt}
+    {\color{docaccent}\rule{0.8\linewidth}{1pt}}\par
+    \vspace{1.2cm}
+    #2\par
     \vfill
     {\large Luca Salvatore\par}
     {\color{docgrey} academicthesis v0.2.0 \quad\textbullet\quad October 2026\par}
   \end{titlepage}%
   \hypersetup{pageanchor=true}}
 
-\graphicspath{{figures/}}
+\graphicspath{{figures/}{../assets/logo/}}

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo/academicthesis-logo.png" alt="academicthesis: universal thesis templates for LaTeX" width="460">
+</p>
+
 # academicthesis
 
 A modular LaTeX class for university theses. You pick your university,
