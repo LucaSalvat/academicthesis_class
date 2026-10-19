@@ -9,9 +9,9 @@
 %% The two communicate exclusively through the registries exposed by
 %% academicthesis-kernel.sty:
 %%
-%%   \DeclareThesisFrontPage  {luiss}{bachelor}{cs}
-%%   \DeclareThesisFrontPage  {luiss}{master}{cs}
-%%   \DeclareThesisFrontPage  {luiss}{phd}{cs}
+%%   \DeclareThesisFrontPage  {luiss}{bachelor}{cs}   (in -bachelor-master.def)
+%%   \DeclareThesisFrontPage  {luiss}{master}{cs}     (in -bachelor-master.def)
+%%   \DeclareThesisFrontPage  {luiss}{phd}{cs}        (in -phd.def)
 %%   \DeclareThesisRequirement{luiss}{<degree-bool>}{<key>}{<example>}
 %%   \DeclareThesisBibDefaults{luiss}{<biblatex options>}
 %%
@@ -220,35 +220,39 @@
       { \l__luiss_title_align_tl }
   }
 
-% ---- Degree & chair block (bachelor / master) ------------------------
-\NewDocumentCommand \__luiss_degree_chair: { }
+% ---- Programme block: "course + chair" or "PhD + cycle" ---------------
+% One block, two uses -- only the text differs:
+%   bachelor / master:  Course of <degree>  [major]  ...  Chair of <chair>
+%   PhD:                PhD in <phdtitle>            ...  Cycle <cycle>
+%   #1 first line, #2 optional middle line (code, may be empty),
+%   #3 second line (after a small gap)
+\cs_new_protected:Npn \__luiss_programme_block:nnn #1 #2 #3
   {
     \noindent
     \__luiss_alignedpar:nn
       {
         \LowerFont
-        \thesisstring{CourseOf}~\academicthesis_meta_get:n{degree}\par
-        \academicthesis_meta_if_empty:nF {luiss-major}
-          { \__luiss_aligned:nn { \academicthesis_meta_get:n{luiss-major} } { \l__luiss_major_align_tl } \par }
+        #1 \par
+        #2
         \vspace*{0.02\textheight}
-        \thesisstring{ChairOf}~\academicthesis_meta_get:n{chair}
+        #3
       }
       { \l__luiss_course_align_tl }
   }
 
-% ---- Cycle & department block (PhD) -----------------------------------
-\NewDocumentCommand \__luiss_cycle_department: { }
+% The major, when given, as the middle line (bachelor / master)
+\cs_new_protected:Npn \__luiss_major_line:
+  {
+    \academicthesis_meta_if_empty:nF {luiss-major}
+      { \__luiss_aligned:nn { \academicthesis_meta_get:n{luiss-major} } { \l__luiss_major_align_tl } \par }
+  }
+
+% ---- Department line under the logo (PhD) -----------------------------
+\cs_new_protected:Npn \__luiss_department_line:
   {
     \noindent
     \__luiss_alignedpar:nn
-      {
-        \LowerFont
-        \thesisstring{DepartmentOf}~\academicthesis_meta_get:n{department}
-        \linebreak\linebreak
-        \thesisstring{PhDIn}~\academicthesis_meta_get:n{phdtitle}
-        \linebreak\vspace*{0.02\textheight}\noindent
-        \thesisstring{Cycle}~\academicthesis_meta_get:n{cycle}
-      }
+      { \LowerFont \thesisstring{DepartmentOf}~\academicthesis_meta_get:n{department} }
       { \l__luiss_phdblock_align_tl }
   }
 
@@ -299,59 +303,34 @@
 
 
 % =====================================================================
-% 4. Front pages -- registered with the core via \DeclareThesisFrontPage
+% 4. Front pages: one file per degree, in normal LaTeX syntax
 % =====================================================================
-% Blank lines do not end paragraphs under \ExplSyntaxOn, so every block
-% is closed with an explicit \par.
-\NewDocumentCommand \__luiss_frontpage_undergrad: { }
+% The blocks above stay in expl3; the pages that ASSEMBLE them live in
+% separate files read with document catcodes (spaces and blank lines
+% behave as usual), one per front page, so each is easy to find and
+% debug:
+%   academicthesis-luiss-bachelor-master.def   bachelor and master
+%   academicthesis-luiss-phd.def               PhD
+% They call the blocks through these document-level names:
+\cs_new_eq:NN \luiss@logobox        \__luiss_logobox:
+\cs_new_eq:NN \luiss@titleblock     \__luiss_titleblock:
+\cs_new_eq:NN \luiss@namesblock     \__luiss_namesblock:
+\cs_new_eq:NN \luiss@academicyear   \__luiss_academicyear_footer:
+\cs_new_eq:NN \luiss@programmeblock \__luiss_programme_block:nnn
+\cs_new_eq:NN \luiss@majorline      \__luiss_major_line:
+\cs_new_eq:NN \luiss@departmentline \__luiss_department_line:
+
+% (\cctab_begin:N switches catcodes without a group, so the definitions
+% in the files stay visible; the files must not load packages.)
+\cs_new_protected:Npn \__luiss_input_layout:n #1
   {
-    \begin{titlepage}
-      \thispagestyle{empty}
-      \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
-
-      \__luiss_logobox: \par
-      \vspace{0.1\textheight}
-
-      \__luiss_degree_chair: \par
-      \vfill
-      \__luiss_titleblock: \par
-      \vfill
-      \__luiss_namesblock: \par
-      \vspace{0.1\textheight}
-
-      \__luiss_academicyear_footer: \par
-      \vspace*{0.05\textheight}
-
-      \restoregeometry
-    \end{titlepage}
+    \cctab_begin:N \c_document_cctab
+      \file_input:n { academicthesis-luiss-#1.def }
+    \cctab_end:
   }
-
-\NewDocumentCommand \__luiss_frontpage_phd: { }
-  {
-    \begin{titlepage}
-      \thispagestyle{empty}
-      \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}
-
-      \__luiss_logobox: \par
-      \vspace{0.1\textheight}
-
-      \__luiss_cycle_department: \par
-      \vfill
-      \__luiss_titleblock: \par
-      \vfill
-      \__luiss_namesblock: \par
-      \vspace{0.1\textheight}
-
-      \__luiss_academicyear_footer: \par
-      \vspace*{0.05\textheight}
-
-      \restoregeometry
-    \end{titlepage}
-  }
-
-\DeclareThesisFrontPage { luiss } { bachelor } { \__luiss_frontpage_undergrad: }
-\DeclareThesisFrontPage { luiss } { master }   { \__luiss_frontpage_undergrad: }
-\DeclareThesisFrontPage { luiss } { phd }      { \__luiss_frontpage_phd: }
+\bool_if:NTF \g__academicthesis_phd_bool
+  { \__luiss_input_layout:n { phd } }
+  { \__luiss_input_layout:n { bachelor-master } }
 
 
 % =====================================================================

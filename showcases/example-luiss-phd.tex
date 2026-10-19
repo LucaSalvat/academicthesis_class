@@ -1,0 +1,40 @@
+% !TEX TS-program = pdflatex
+% Example: a LUISS PhD thesis using the modular academicthesis class +
+% academicthesis-luiss plugin (front page in academicthesis-luiss-phd.def).
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=luiss, phd, language=english, twoside]{academicthesis}
+
+\thesissetup{
+  title        = {On the Modularity of \LaTeX{} Thesis Classes},
+  subtitle     = {A Case Study in Plugin Architecture},
+  candidate    = {Name Surname},
+  idnumber     = {123456},
+  department   = {Economics and Finance}, % printed under the logo
+  phdtitle     = {Economics},             % "PhD in ..."  (course line)
+  cycle        = {XXXVI},                 % "Cycle ..."   (chair line)
+  academicyear = {2025/2026},
+  supervisors  = {Prof. Jane Doe},
+  cosupervisor = {Dr. John Smith},
+  copyyear     = {2026},
+}
+
+\begin{document}
+
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}
+  A short abstract of the dissertation.
+\end{abstractthesis}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+Hello, PhD world!
+
+\chapter{Conclusion}
+It compiles.
+
+\end{document}

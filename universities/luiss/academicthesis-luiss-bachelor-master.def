@@ -1,0 +1,47 @@
+%%
+%% academicthesis-luiss-bachelor-master.def
+%% --------------------------------------------------------------
+%% LUISS front page for bachelor and master theses.
+%%
+%% Read by academicthesis-luiss.sty with NORMAL LaTeX syntax (expl3 off).
+%% The blocks come from the .sty (\luiss@logobox, \luiss@programmeblock,
+%% ...); metadata is read with the kernel's \thesismeta. This file must
+%% not load packages.
+%%
+%%   LUISS logo
+%%   Course of <degree>
+%%   <major>                      (if given)
+%%   Chair of <chair>
+%%   title / subtitle
+%%   supervisor(s), co-supervisor(s), candidate
+%%   academic year
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-luiss-bachelor-master.def}[2026/10/19 v0.2.0 LUISS bachelor/master front page]
+\makeatletter
+
+\newcommand\luiss@frontpage@bachelormaster{%
+  \begin{titlepage}%
+    \thispagestyle{empty}%
+    \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}%
+    \luiss@logobox\par
+    \vspace{0.1\textheight}%
+    \luiss@programmeblock
+      {\thesisstring{CourseOf} \thesismeta{degree}}%
+      {\luiss@majorline}%
+      {\thesisstring{ChairOf} \thesismeta{chair}}%
+    \par
+    \vfill
+    \luiss@titleblock\par
+    \vfill
+    \luiss@namesblock\par
+    \vspace{0.1\textheight}%
+    \luiss@academicyear\par
+    \vspace*{0.05\textheight}%
+    \restoregeometry
+  \end{titlepage}}
+
+\DeclareThesisFrontPage{luiss}{bachelor}{\luiss@frontpage@bachelormaster}
+\DeclareThesisFrontPage{luiss}{master}{\luiss@frontpage@bachelormaster}
+
+\makeatother
+\endinput

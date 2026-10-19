@@ -1,0 +1,47 @@
+%%
+%% academicthesis-luiss-phd.def
+%% --------------------------------------------------------------
+%% LUISS front page for PhD theses.
+%%
+%% Read by academicthesis-luiss.sty with NORMAL LaTeX syntax (expl3 off).
+%% Same structure as the bachelor/master page, with the PhD data in the
+%% same places, through the same blocks:
+%%
+%%   LUISS logo
+%%   Department of <department>    (under the logo)
+%%   PhD in <phdtitle>             (where bachelor/master have the course)
+%%   Cycle <cycle>                 (where bachelor/master have the chair)
+%%   title / subtitle
+%%   supervisor(s), co-supervisor(s), candidate
+%%   academic year
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-luiss-phd.def}[2026/10/19 v0.2.0 LUISS PhD front page]
+\makeatletter
+
+\newcommand\luiss@frontpage@phd{%
+  \begin{titlepage}%
+    \thispagestyle{empty}%
+    \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}%
+    \luiss@logobox\par
+    \vspace{0.02\textheight}%
+    \luiss@departmentline\par
+    \vspace{0.1\textheight}%
+    \luiss@programmeblock
+      {\thesisstring{PhDIn} \thesismeta{phdtitle}}%
+      {}%
+      {\thesisstring{Cycle} \thesismeta{cycle}}%
+    \par
+    \vfill
+    \luiss@titleblock\par
+    \vfill
+    \luiss@namesblock\par
+    \vspace{0.1\textheight}%
+    \luiss@academicyear\par
+    \vspace*{0.05\textheight}%
+    \restoregeometry
+  \end{titlepage}}
+
+\DeclareThesisFrontPage{luiss}{phd}{\luiss@frontpage@phd}
+
+\makeatother
+\endinput

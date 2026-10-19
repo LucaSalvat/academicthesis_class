@@ -9,7 +9,7 @@ class plus independent plugin packages per university and per language.
 
 | University | Degrees | Formats | Showcase |
 | --- | --- | --- | --- |
-| LUISS | bachelor, master, phd | (one) | `showcases/example-luiss-bachelor.tex` |
+| LUISS | bachelor, master, phd | (one) | `showcases/example-luiss-bachelor.tex`, `showcases/example-luiss-phd.tex` |
 | [Politecnico di Milano](universities/polimi/README.md) | bachelor, master, phd | `classical` (book), `article` (article), `summary` (executive summary, two-column article), `phd` (doctoral dissertation, book) | `showcases/example-polimi-classical.tex`, `-article.tex`, `-summary.tex`, `-phd.tex` |
 
 Each university picks its base class (LUISS and PoliMi classical: `book`; PoliMi article: `article`)

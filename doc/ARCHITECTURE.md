@@ -30,7 +30,9 @@ academicthesis_class/
 ├── universities/                   One folder per university plugin
 │   ├── luiss/
 │   │   ├── academicthesis-luiss.cfg   Base class, second page (read before \LoadClass)
-│   │   ├── academicthesis-luiss.sty
+│   │   ├── academicthesis-luiss.sty   Options, blocks, requirements
+│   │   ├── academicthesis-luiss-bachelor-master.def  Bachelor/master front page
+│   │   ├── academicthesis-luiss-phd.def              PhD front page
 │   │   ├── logoluissblue.pdf
 │   │   └── luiss.pdf
 │   └── polimi/
@@ -46,6 +48,7 @@ academicthesis_class/
 │       └── raggierapolimi.pdf
 ├── showcases/                      Example documents / proofs
 │   ├── example-luiss-bachelor.tex
+│   ├── example-luiss-phd.tex
 │   ├── example-polimi-classical.tex
 │   ├── example-polimi-article.tex
 │   ├── example-polimi-summary.tex
