@@ -1,0 +1,474 @@
+% !TEX TS-program = pdflatex
+% academicthesis-bocconi-guide.tex
+% User and developer guide of the academicthesis class for Università
+% Bocconi. Compile from this folder with pdfLaTeX, twice:
+%   pdflatex academicthesis-bocconi-guide.tex
+% Standalone: it does not need the academicthesis class itself.
+\documentclass[11pt,a4paper,oneside]{report}
+\newcommand{\doctitleshort}{academicthesis --- Bocconi guide}
+\input{common/docstyle}
+\colorlet{docaccent}{bocconiblue}
+
+\newcommand{\uniname}{Universit\`a Bocconi}
+\newcommand{\unishort}{Bocconi}
+\newcommand{\uniid}{bocconi}
+\newcommand{\uniotherlangnote}{For correct hyphenation, also list the
+  language in the \opt{other-languages} class option, e.g.\
+  \opt{other-languages=\{italian\}}; otherwise a warning reminds you.}
+\newcommand{\unibibdefault}{Bocconi sets none, so the numeric style applies}
+
+\hypersetup{pdftitle={academicthesis: Bocconi user and developer guide},
+            pdfauthor={Luca Salvatore}}
+
+\begin{document}
+
+\guidetitlepage{Universit\`a Bocconi}{%
+  \preview[0.27\textwidth]{bocconi-simil-cover}{Simil front page}\hspace{0.8cm}%
+  \preview[0.27\textwidth]{bocconi-dedication}{Dedication page}}
+
+{\setlength{\parskip}{0pt}\tableofcontents}
+
+% ######################################################################
+\guidepart{User guide}{For students writing a Bocconi bachelor's or
+master's thesis: what the class does, how to set it up, every option and
+command available, and complete examples.}
+
+% ======================================================================
+\chapter{What this package does}
+
+A Bocconi thesis opens with an official front page that the university
+adds to the bound copy, followed by a dedication page. The rest of the
+thesis is up to the student. \pkg{academicthesis} prepares those opening
+pages correctly, and gives the rest of the thesis a clean, consistent
+layout:
+
+\begin{lstlisting}
+\documentclass[university=bocconi, master]{academicthesis}
+\end{lstlisting}
+
+\section{Two ways to start a thesis}
+
+The class option \opt{simil\_frontpages} chooses between them.
+
+\begin{tabularx}{\textwidth}{@{}l Y Y@{}}
+\toprule
+& \textbf{\opt{simil\_frontpages=false}} (default) & \textbf{\opt{simil\_frontpages=true}} \\
+\midrule
+Page 1 & blank: the official front page goes here & the \emph{simil} front page, printed by the class \\
+Page 2 & blank & blank (back of the front page) \\
+Page 3 & the dedication, or blank & the dedication, or blank \\
+Page 4 & blank (back of the dedication) & blank (back of the dedication) \\
+Required fields & none & title, candidate, degree, supervisor(s), student ID, academic year \\
+\bottomrule
+\end{tabularx}
+
+``Simil'' means a printed likeness of the official front page: useful for
+a draft, a digital copy or a submission where the official page is not
+added by the university.
+
+\begin{center}
+  \preview[0.32\textwidth]{bocconi-simil-cover}{Simil front page (page 1)}\hspace{1cm}%
+  \preview[0.32\textwidth]{bocconi-dedication}{Dedication page (page 3)}
+\end{center}
+
+\section{What you get}
+
+\begin{itemize}
+  \item \textbf{The opening pages} in the right order, with blank backs,
+    numbered with letters so that they never clash with the front-matter
+    page numbers.
+  \item \textbf{The simil front page}, bilingual like the official one
+    (``Relatore / Advisor'', ``Anno Accademico / Academic Year''), with
+    the degree, major, title, advisor(s), candidate and student ID.
+  \item \textbf{Front-matter blocks}: abstract, statement of originality,
+    acknowledgements and dedication, in English, Italian or French.
+  \item \textbf{Checks} when the simil front page is printed: a missing
+    field stops compilation with a message naming it.
+\end{itemize}
+
+\section{How it is organised}
+
+The class has a core shared by every university and one package per
+university. With \opt{university=bocconi} the core loads the Bocconi
+package by itself. Part~\ref{part:dev} of this guide explains the code.
+
+% ======================================================================
+\input{common/user-install}
+
+% ======================================================================
+\chapter{Writing your thesis}
+\label{ch:writing}
+
+\section{The shape of a thesis file}
+
+\begin{lstlisting}
+\documentclass[university=bocconi, master, simil_frontpages=true,
+               language=english, twoside]{academicthesis}
+
+\thesissetup{
+  degree       = {Economics and Management of Innovation and Technology},
+  major        = {Major in Finance},          % optional
+  title        = {Title of the Thesis},
+  supervisor   = {Prof. Name Surname},
+  candidate    = {Name Surname},
+  idnumber     = {1234567},
+  academicyear = {2025-2026},
+  dedication   = {To my family.},             % optional, page 3
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage                       % pages 1-4
+
+\frontmatter
+\begin{abstractthesis}
+  The abstract.
+\end{abstractthesis}
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+...
+\printbibliography
+
+\backmatter
+\begin{acknowledgements}
+  Thanks to ...
+\end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+\section{Class options}
+
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} L{3.2cm} Y@{}}
+\toprule
+\textbf{Option} & \textbf{Values} & \textbf{Meaning} \\
+\midrule
+\opt{university} & \opt{bocconi} & Selects the Bocconi package. Required. \\
+degree & \opt{bachelor}, \opt{master} & Written on its own. Default: \opt{bachelor}. \\
+\opt{simil\_frontpages} & \opt{true}, \opt{false} & Print the simil front page (\opt{true}) or leave two blank pages for the official one (\opt{false}, the default). Written alone, it means \opt{true}. \opt{simil\_frontpage} (singular) is accepted too. \\
+\opt{language} & \opt{english}, \opt{italian}, \opt{french} & Language of the front-matter headings and hyphenation. The front page is bilingual whatever the language. Default: \opt{english}. \\
+\opt{other-languages} & e.g.\ \opt{\{italian\}} & Other languages used by single blocks (Section~\ref{sec:blocks}). \\
+\opt{biblatex-options} & e.g.\ \opt{\{style=apa\}} & Options for \pkg{biblatex} (Section~\ref{sec:bib}). \\
+anything else & \opt{twoside}, \opt{12pt}, \dots & Passed to the \pkg{book} class. \\
+\bottomrule
+\end{tabularx}
+
+Bocconi has a single layout, so the \opt{format} option is not used, and
+no examination or copyright page is printed.
+
+\section{The data of your thesis}
+\label{sec:data}
+
+All the data is given with \cs{thesissetup} in the preamble. With
+\opt{simil\_frontpages=false} nothing is required: only \opt{dedication}
+is used.
+
+\begin{longtable}{@{}L{3.1cm} L{7.6cm} c@{}}
+\toprule
+\textbf{Key} & \textbf{Printed on the simil front page as} & \textbf{With simil} \\
+\midrule
+\endhead
+\opt{degree} & After ``Corso di Laurea Triennale / Bachelor of Science in'' (master: ``Corso di Laurea Magistrale / Master of Science in'') & \req \\
+\opt{major} & Under the degree, as written & \optional \\
+\opt{title} & Title & \req \\
+\opt{subtitle} & Under the title & \optional \\
+\opt{supervisor} / \opt{supervisors} & Under ``Relatore / Advisor'' (plural: ``Relatori / Advisors'') & \req \\
+\opt{cosupervisor} / \opt{cosupervisors} & Under ``Correlatore / Co-advisor'' & \optional \\
+\opt{candidate} & Under ``Tesi di Laurea Magistrale di / Master of Science thesis by'' & \req \\
+\opt{idnumber} & ``Matricola n. / student ID no'' & \req \\
+\opt{academicyear} & ``Anno Accademico / Academic Year'' & \req \\
+\opt{dedication} & Page 3, right-aligned italic (both modes) & \optional \\
+\bottomrule
+\end{longtable}
+
+\begin{notebox}{Writing the values}
+\begin{itemize}
+  \item \opt{degree} is written without ``Bachelor of Science in'', which
+    the page adds.
+  \item \opt{supervisor} takes one name; \opt{supervisors} takes several,
+    separated by commas, and the label becomes plural.
+  \item Names are printed as written; the official page uses capitals,
+    e.g.\ \opt{\{Prof. NAME SURNAME\}}, if you want to match it.
+\end{itemize}
+\end{notebox}
+
+\section{Logos: \texorpdfstring{\cs{bocconithesissetup}}{\\bocconithesissetup}}
+
+The simil front page carries two logos: the vertical ``Bocconi'' wordmark
+on the left and the ``Universit\`a Bocconi Milano'' logo at the bottom.
+The logo files are \textbf{not shipped} with the package: put the official
+files (PDF or PNG) next to your thesis, and the page uses them. When a file
+is missing, the page draws a text stand-in in the same place, as in the
+preview above.
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Key} & \textbf{Default} & \textbf{Effect} \\
+\midrule
+\opt{wordmark-file} & \opt{bocconiwordmark} & The vertical wordmark, 6.6\,cm high. \\
+\opt{logo-file} & \opt{logobocconi} & The bottom logo, 4.3\,cm wide. \\
+\bottomrule
+\end{tabularx}
+
+\begin{lstlisting}
+\bocconithesissetup{wordmark-file = bocconi-vertical,
+                    logo-file     = bocconi-logo}
+\end{lstlisting}
+
+\section{After the opening pages}
+
+From \cs{frontmatter} on, the thesis uses the core layout of the class
+(the same as LUISS): chapter openings, running headers and the
+front-matter blocks of Chapter~\ref{ch:blocks}. A dedication can be given
+either with \opt{dedication} in \cs{thesissetup} (page~3) or with the
+\cs{dedication} command later.
+
+% ======================================================================
+\chapter{Front matter and bibliography}
+\label{ch:blocks}
+
+\input{common/user-blocks}
+
+% ======================================================================
+\chapter{Complete examples}
+
+\section{With the official front page (default)}
+
+\begin{lstlisting}
+\documentclass[university=bocconi, bachelor, language=english,
+               twoside]{academicthesis}
+
+\thesissetup{
+  dedication = {To my family.},     % page 3; leave it out for a blank page
+}
+
+\begin{document}
+\frontpage                          % blank, blank, dedication, blank
+\frontmatter
+\begin{abstractthesis}
+  The abstract.
+\end{abstractthesis}
+\tableofcontents
+\mainmatter
+\chapter{Introduction}
+...
+\backmatter
+\begin{acknowledgements}
+  Thanks to ...
+\end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+\section{With the simil front page}
+
+\begin{lstlisting}
+\documentclass[university=bocconi, master, simil_frontpages=true,
+               language=english, twoside,
+               other-languages={italian}]{academicthesis}
+
+\thesissetup{
+  degree       = {Economics and Management of Innovation and Technology},
+  major        = {Major in Finance},
+  title        = {Title of the Thesis},
+  supervisor   = {Prof. Name Surname},
+  candidate    = {Name Surname},
+  idnumber     = {1234567},
+  academicyear = {2025-2026},
+  dedication   = {To my family.},
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage
+\frontmatter
+\begin{abstractthesis}[keywords = {first, second}]
+  The abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian, keywords = {primo, secondo}]
+  L'abstract in italiano.
+\end{abstractthesis}
+\tableofcontents
+\mainmatter
+\chapter{Introduction}
+...
+\printbibliography
+\end{document}
+\end{lstlisting}
+
+Complete, compilable versions: \file{showcases/example-bocconi-bachelor.tex}
+and \file{showcases/example-bocconi-simil.tex}.
+
+% ======================================================================
+\chapter{Troubleshooting}
+
+\begin{longtable}{@{}L{5.2cm} L{4.2cm} L{4.6cm}@{}}
+\toprule
+\textbf{Message (abridged)} & \textbf{Cause} & \textbf{Fix} \\
+\midrule
+\endhead
+Missing required thesis metadata: `\textit{key}' & \opt{simil\_frontpages=true} and a field of the page is missing & Add it; the message shows an example. See Section~\ref{sec:data}. \\
+simil\_frontpages must be true or false & Another value, e.g.\ \opt{yes} & Write \opt{true} or \opt{false}. \\
+No front page registered for university `bocconi', degree `phd' & The \opt{phd} degree & Bocconi offers \opt{bachelor} and \opt{master}. \\
+University `bocconi' does not offer formats & A \opt{format} option & Remove it. \\
+Text ``Bocconi'' instead of the logo & Logo files not found & Put the official files next to the thesis, or name them with \cs{bocconithesissetup}. \\
+File `academicthesis.cls' not found & \LaTeX{} cannot see the class files & Keep the line that inputs \file{academicthesis-repo-paths}, or copy the files next to the thesis (Chapter~\ref{ch:install}). \\
+Warning: `italian' \dots{} was not loaded by babel & A block with \opt{language=italian} & Add \opt{italian} to the \opt{other-languages} option. \\
+\bottomrule
+\end{longtable}
+
+\section*{Quick reference}
+
+\begin{lstlisting}
+\documentclass[university=bocconi, bachelor|master,
+               simil_frontpages=true|false,
+               language=english|italian|french]{academicthesis}
+\bocconithesissetup{wordmark-file=..., logo-file=...}
+% simil=false: nothing required; dedication optional
+% simil=true:  degree title supervisor(s) candidate idnumber academicyear
+%              (major, subtitle, cosupervisor(s), dedication optional)
+\frontpage
+\begin{abstractthesis}[language=..., keywords=..., title=...]
+  ... \end{abstractthesis}
+\begin{acknowledgements}[language=..., title=...]
+  ... \end{acknowledgements}
+\end{lstlisting}
+
+% ######################################################################
+\guidepart{Developer guide}{For those who maintain or extend the code:
+first how the shared core works, then how the Bocconi package is built on
+it.}
+\label{part:dev}
+
+\input{common/dev-core}
+
+% ======================================================================
+\chapter{The Bocconi package}
+\label{ch:unidev}
+
+\section{Files}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\file{academicthesis-bocconi.cfg} & Base class, the \opt{simil\_frontpages} class option, no second page, core requirements only with the simil page. \\
+\file{academicthesis-bocconi.sty} & \cs{bocconithesissetup}, the student ID requirement, \pkg{eso-pic}, reading the opening pages. \\
+\file{academicthesis-bocconi-frontpages.def} & The opening pages, bachelor and master, in normal syntax. \\
+\file{academicthesis-bocconi-english.ldf}, \file{-italian.ldf} & The bilingual labels of the front page (identical in both files). \\
+\bottomrule
+\end{tabularx}
+
+\section{The early configuration}
+
+The Bocconi package is the example of a university \emph{class option}:
+
+\begin{lstlisting}
+\DeclareThesisBaseClass { book } { }
+\DeclareThesisClassOption { simil_frontpages } { false }
+\DeclareThesisClassOption { simil_frontpage }  { false }   % alias
+
+\bool_new:N \g__bocconi_simil_bool
+\clist_map_inline:nn { simil_frontpages , simil_frontpage }
+  {
+    \str_case_e:nnF { \academicthesis_class_option:n { #1 } }
+      {
+        { true }  { \bool_gset_true:N \g__bocconi_simil_bool }
+        { false } { }
+      }
+      { \msg_error:nne { academicthesis } { bocconi-simil-value } {...} }
+  }
+
+\DeclareThesisSecondPage { false }
+\bool_if:NF \g__bocconi_simil_bool
+  { \DeclareThesisCoreRequirements { false } }
+\end{lstlisting}
+
+\cs{DeclareThesisClassOption} takes the option away from the \pkg{book}
+class (which would otherwise warn about an unused option) and records its
+value. Without the simil page nothing is printed from the data, so the
+core's own checks are switched off.
+
+\section{The package}
+
+\begin{enumerate}
+  \item \cs{ifbocconi@simil} mirrors \cs{g\_\_bocconi\_simil\_bool} for the
+    layout file.
+  \item \cs{bocconithesissetup} sets \opt{wordmark-file} and
+    \opt{logo-file} (key family \opt{academicthesis-bocconi/layout});
+    \cs{bocconi@wordmarkfile} and \cs{bocconi@logofile} hand them to the
+    layout.
+  \item With the simil page, \opt{idnumber} is added to the core
+    requirements, and \pkg{eso-pic} is loaded for the logos.
+  \item \file{academicthesis-bocconi-frontpages.def} is read with the
+    document catcodes.
+\end{enumerate}
+
+\section{The opening pages}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Command} & \textbf{Role} \\
+\midrule
+\cs{bocconi@frontpage} & Registered for \opt{bachelor} and \opt{master}. Switches page numbering to letters (\cs{pagenumbering}\opt{\{Alph\}}), then prints the simil page and its blank back, or two blank pages, then the dedication page. \\
+\cs{bocconi@similfrontpage} & The simil page: a local \cs{newgeometry} (left 4.3\,cm, right 4.1\,cm, top 2.8\,cm, bottom 3\,cm), sans serif, the logos added with \cs{AddToShipoutPicture*}. \\
+\cs{bocconi@pagelogos} & Places the wordmark and the bottom logo at positions measured on the official A4 page. \\
+\cs{bocconi@graphic}\opt{\{file\}\{opts\}\{stand-in\}} & Includes \opt{file.pdf} or \opt{file.png} if it exists, otherwise typesets the stand-in. \\
+\cs{bocconi@dedicationpage} & The dedication (from \opt{dedication}) or an empty page, then a blank back. \\
+\cs{bocconi@degreecourse}, \cs{bocconi@thesisby} & The bachelor or master wording, from \cs{IfThesisDegreeTF}. \\
+\cs{bocconi@coursefont}, \cs{bocconi@titlefont}, \cs{bocconi@bodyfont} & Sizes measured on the official page (12/17, 17/20, 15/30\,pt). \\
+\cs{bocconi@gapA}, \cs{bocconi@gapB}, \cs{bocconi@gapC} & The three vertical gaps of the page. \\
+\bottomrule
+\end{tabularx}
+
+\begin{lstlisting}
+\newcommand\bocconi@frontpage{%
+  \pagenumbering{Alph}%
+  \ifbocconi@simil
+    \bocconi@similfrontpage
+    \bocconi@emptypage % its blank back
+  \else
+    \bocconi@emptypage
+    \bocconi@emptypage
+  \fi
+  \bocconi@dedicationpage}
+\DeclareThesisFrontPage{bocconi}{bachelor}{\bocconi@frontpage}
+\DeclareThesisFrontPage{bocconi}{master}{\bocconi@frontpage}
+\end{lstlisting}
+
+\section{Strings}
+
+The official page is bilingual, so both \file{.ldf} files hold the same
+Italian\,/\,English text. They redefine the core keys
+\opt{SupervisorLabel(s)}, \opt{CoSupervisorLabel(s)}, \opt{IDNumber} and
+\opt{AcademicYear}, and add \opt{BocconiBachelorCourse},
+\opt{BocconiMasterCourse}, \opt{BocconiBachelorThesisBy} and
+\opt{BocconiMasterThesisBy}.
+
+\section{Common changes}
+
+\begin{tabularx}{\textwidth}{@{}L{5cm} Y@{}}
+\toprule
+\textbf{To change\dots} & \textbf{Edit\dots} \\
+\midrule
+spacing or sizes of the simil page & \cs{bocconi@gapA}--\cs{bocconi@gapC} and the font commands in the \file{.def}. \\
+logo positions or sizes & \cs{bocconi@pagelogos}. \\
+the order of the opening pages & \cs{bocconi@frontpage}. \\
+the wording & both \file{.ldf} files. \\
+required fields & the \file{.cfg} (core checks) and the \file{.sty} (student ID). \\
+\bottomrule
+\end{tabularx}
+
+% ======================================================================
+\chapter*{Licence and credits}
+\addcontentsline{toc}{chapter}{Licence and credits}
+
+\pkg{academicthesis} is released under the \LaTeX{} Project Public Licence
+(LPPL) 1.3c or later; copyright 2025--2026 Luca Salvatore. The simil front
+page reproduces the arrangement of the official Bocconi front page; the
+Bocconi name and logos belong to Universit\`a Bocconi and are not shipped
+with the package. \pkg{academicthesis} is not published by Universit\`a
+Bocconi: before submitting a thesis, check the current rules of your
+degree programme.
+
+\end{document}

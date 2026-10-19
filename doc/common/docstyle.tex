@@ -1,0 +1,152 @@
+% common/docstyle.tex
+% Shared preamble of the academicthesis guides (one guide per university).
+% \input it right after \documentclass{report}. A guide sets its accent
+% colour afterwards with \colorlet{docaccent}{...}. The guides are
+% standalone: they do not need the academicthesis class itself.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage[a4paper, margin=2.6cm, headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{url}
+\usepackage[colorlinks=true, linkcolor=docaccent, urlcolor=docaccent,
+            citecolor=docaccent]{hyperref}
+
+% ---- Colours (docaccent is set again by each guide) -------------------
+\definecolor{docaccent}{RGB}{31,73,125}
+\definecolor{luissblue}{RGB}{21,57,108}      % BlueLuiss, as in the package
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}  % bluepoli, as in the package
+\definecolor{bocconiblue}{RGB}{0,46,93}
+\definecolor{docgrey}{gray}{0.45}
+
+% ---- Page and paragraphs ----------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55\baselineskip}
+\setlength{\emergencystretch}{3em}
+\sloppy
+\setlist{nosep, topsep=3pt, leftmargin=1.5em}
+\renewcommand{\arraystretch}{1.25}
+\usepackage{etoolbox}
+\AtBeginEnvironment{tabularx}{\small}
+\AtBeginEnvironment{longtable}{\small}
+
+% Parts: a full page with a large number and a short description
+% \guidepart{<title>}{<one-paragraph introduction>}
+\newcommand{\currentpartintro}{}
+\titleformat{\part}[display]{\centering\color{docaccent}}
+  {\Large\scshape Part \thepart}{10pt}{\Huge\bfseries}
+  [\vspace{1.2cm}\begin{minipage}{0.72\linewidth}\centering
+   \normalfont\normalsize\color{black}\currentpartintro\end{minipage}]
+\newcommand{\guidepart}[2]{\renewcommand{\currentpartintro}{#2}\part{#1}}
+
+\titleformat{\chapter}[display]{\color{docaccent}\normalfont}
+  {\large\scshape Chapter \thechapter}{4pt}{\Huge\bfseries}
+  [\vspace{2pt}{\color{docaccent}\titlerule[0.8pt]}]
+\titlespacing*{\chapter}{0pt}{0pt}{22pt}
+\titleformat{\section}{\color{docaccent}\normalfont\Large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\color{docaccent}\normalfont\large\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{2.4ex plus 1ex}{1ex}
+\setcounter{tocdepth}{1}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{docgrey}\doctitleshort}
+\fancyhead[R]{\small\color{docgrey}\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter\quad #1}{}}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[C]{\small\thepage}}
+\providecommand{\doctitleshort}{academicthesis}
+
+% ---- Names in running text and tables ---------------------------------
+\newcommand{\cs}[1]{\texttt{\textbackslash#1}}   % a command
+\newcommand{\opt}[1]{\texttt{#1}}                 % an option / key / value
+\newcommand{\env}[1]{\texttt{#1}}                 % an environment
+\newcommand{\pkg}[1]{\textsf{#1}}                 % a package or class
+\DeclareUrlCommand{\file}{\urlstyle{tt}}          % a file name (breaks at - . /)
+\renewcommand{\UrlBreaks}{\do\-\do\.\do\/\do\_}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\req}{\textbf{required}}
+\newcommand{\optional}{optional}
+\newcommand{\na}{\textcolor{docgrey}{---}}
+
+% ---- Code listings -----------------------------------------------------
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{docaccent}\bfseries,
+  commentstyle=\color{docgrey}\itshape,
+  language=[LaTeX]TeX,
+  morekeywords={thesissetup, frontpage, luissthesissetup, polimithesissetup,
+    bocconithesissetup, major, dedication, frontmatter, mainmatter,
+    backmatter, addbibresource, printbibliography, blankpage,
+    DeclareThesisBaseClass, DeclareThesisFormats, DeclareThesisSecondPage,
+    DeclareThesisOtherLanguages, DeclareThesisClassOption,
+    DeclareThesisCoreRequirements, DeclareThesisFrontPage,
+    DeclareThesisRequirement, DeclareThesisBibDefaults, ProvideThesisString,
+    thesismeta, thesisstring, IfThesisMetaEmptyTF, IfThesisListEmptyTF,
+    IfThesisDegreeTF, academicthesislist, AddToHook, ExplSyntaxOn,
+    ExplSyntaxOff, ProvidesExplPackage, ProvidesFile, RequirePackage},
+  frame=single, rulecolor=\color{docaccent!35},
+  backgroundcolor=\color{docaccent!4},
+  columns=fullflexible, keepspaces=true, upquote=true,
+  breaklines=true, breakatwhitespace=true,
+  xleftmargin=4pt, xrightmargin=4pt, aboveskip=8pt, belowskip=8pt,
+  literate={à}{{\`a}}1 {è}{{\`e}}1 {é}{{\'e}}1 {ò}{{\`o}}1,
+}
+\lstdefinestyle{shell}{language={}, keywordstyle={}, commentstyle={}}
+
+% ---- Boxes ---------------------------------------------------------------
+% \begin{notebox}[<colour>]{Title} ... \end{notebox}
+\newtcolorbox{notebox}[2][docaccent]{enhanced, breakable,
+  colback=#1!5, colframe=#1!70, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries\small, coltitle=white, title={#2}}
+
+% A framed page preview: \preview[<width>]{<file>}{<caption>}
+\newcommand{\preview}[3][0.42\textwidth]{%
+  \begin{minipage}[t]{#1}\centering
+    {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.5pt}%
+     \fcolorbox{docgrey!50}{white}{\includegraphics[width=\dimexpr\linewidth-1pt\relax]{#2}}}\par
+    \vspace{4pt}{\small #3}
+  \end{minipage}}
+
+% ---- Title page: \guidetitlepage{<subtitle>}{<figures>} ----------------
+\newcommand{\guidetitlepage}[2]{%
+  \hypersetup{pageanchor=false}%
+  \begin{titlepage}
+    \vspace*{2.2cm}
+    {\color{docaccent}\rule{\linewidth}{1.2pt}}\par\vspace{14pt}
+    {\fontsize{30}{36}\selectfont\bfseries\color{docaccent} academicthesis\par}
+    \vspace{10pt}
+    {\LARGE #1\par}
+    \vspace{6pt}
+    {\Large User and developer guide\par}
+    \vspace{14pt}
+    {\color{docaccent}\rule{\linewidth}{1.2pt}}\par
+    \vspace{1.6cm}
+    \begin{center}#2\end{center}
+    \vfill
+    {\large Luca Salvatore\par}
+    {\color{docgrey} academicthesis v0.2.0 \quad\textbullet\quad October 2026\par}
+  \end{titlepage}%
+  \hypersetup{pageanchor=true}}
+
+\graphicspath{{figures/}}

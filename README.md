@@ -29,7 +29,7 @@ languages in `other-languages={italian,french}` for correct hyphenation).
 | `universities/<uni>/` | `academicthesis-<uni>.sty` plus that university's logos |
 | `languages/` | `academicthesis-<lang>.ldf` string files |
 | `showcases/` | Example documents that compile straight from the repo |
-| `doc/` | [Architecture and developer guide](doc/ARCHITECTURE.md) |
+| `doc/` | One user and developer guide per university, in LaTeX and PDF ([LUISS](doc/academicthesis-luiss-guide.pdf), [PoliMi](doc/academicthesis-polimi-guide.pdf), [Bocconi](doc/academicthesis-bocconi-guide.pdf)), and the [architecture notes](doc/ARCHITECTURE.md) |
 
 Packages load each other **by name**, never by folder, so they can be
 installed separately. To build from the repo, the root `latexmkrc` adds

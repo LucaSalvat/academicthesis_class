@@ -1,0 +1,60 @@
+% common/user-blocks.tex
+% Shared sections of the user part: front-matter blocks and bibliography.
+% Uses \unishort, \uniotherlangnote and \unibibdefault, set by the guide.
+\section{Abstract, originality, acknowledgements, dedication}
+\label{sec:blocks}
+
+The core class provides four front-matter blocks. They are written the
+same way at every university; the \unishort{} package only sets their look.
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Block} & \textbf{Options} & \textbf{Default heading (English)} \\
+\midrule
+\cs{begin}\opt{\{abstractthesis\}} & \opt{language}, \opt{keywords}, \opt{title} & Abstract \\
+\cs{begin}\opt{\{originality\}} & \opt{language}, \opt{title} & Statement of Originality \\
+\cs{begin}\opt{\{acknowledgements\}} & \opt{language}, \opt{title} & Acknowledgments \\
+\cs{dedication}\opt{[...]\{text\}} & \opt{language} & none: the text alone on its page \\
+\bottomrule
+\end{tabularx}
+
+\begin{itemize}
+  \item \opt{language=} writes the block in another language: its heading,
+    the ``Keywords'' label and the hyphenation follow that language.
+    Without it, the block uses the main language of the thesis.
+    \uniotherlangnote
+  \item \opt{keywords=} prints a list of keywords after the abstract.
+  \item \opt{title=} replaces the default heading.
+\end{itemize}
+
+Abstracts, statements of originality and acknowledgements are listed in
+the table of contents. An English abstract followed by an Italian one:
+
+\begin{lstlisting}
+\begin{abstractthesis}[keywords = {corporate finance, valuation}]
+  The English abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian,
+                       keywords = {finanza aziendale, valutazione}]
+  L'abstract in italiano.
+\end{abstractthesis}
+\dedication{To my family.}
+\end{lstlisting}
+
+\section{Bibliography}
+\label{sec:bib}
+
+The class loads \pkg{biblatex} with \pkg{biber} for you; do not load
+\pkg{biblatex} again in your preamble. Its style is, in order of priority:
+the options you give with the class option \opt{biblatex-options}; the
+university's default (\unibibdefault); otherwise a numeric style.
+
+\begin{lstlisting}
+\documentclass[..., biblatex-options={style=apa}]{academicthesis}
+\addbibresource{references.bib}   % in the preamble
+...
+\printbibliography                % where the bibliography goes
+\end{lstlisting}
+
+If \pkg{biblatex} is not installed, the class warns and uses \pkg{natbib}
+with Bib\TeX{} behind the same two commands, so the thesis still compiles.

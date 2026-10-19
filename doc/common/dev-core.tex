@@ -1,0 +1,299 @@
+% common/dev-core.tex
+% Shared chapter of the developer part: how the core works.
+% Uses \unishort and \uniid, set by the guide.
+\chapter{How the core works}
+\label{ch:core}
+
+This chapter describes the part of the code that every university shares.
+The next chapter builds on it to explain the \unishort{} package. The
+reader is assumed to know \LaTeXe{} package writing; \LaTeX3 (\pkg{expl3})
+names are explained where they matter.
+
+\section{Design principles}
+
+\begin{description}[leftmargin=0pt, labelindent=0pt, itemsep=4pt]
+  \item[The core knows no university.] \file{academicthesis.cls} never
+    mentions LUISS, Politecnico di Milano or Bocconi. A university package
+    plugs into a small number of \emph{registries} (front pages, required
+    fields, bibliography defaults) and \emph{declarations} (base class,
+    formats, second page, extra languages, extra class options) that the
+    core consults at the right moment.
+  \item[A university knows only the core.] A university package uses the
+    kernel's public commands and never another university's code, so each
+    one can be versioned, shipped and installed on its own.
+  \item[Files are found by name, never by folder.] Every \cs{LoadClass},
+    \cs{RequirePackage}, \cs{input} and \cs{includegraphics} names a file,
+    not a path. Once installed in a \TeX{} tree, kpathsea finds each file
+    whatever package shipped it; in the repository, the search path is
+    extended instead of changing the code (Section~\ref{sec:searchpath}).
+  \item[One data store, one vocabulary.] All thesis data lives in a single
+    property list with the same key names at every university. Universities
+    change \emph{wording} through string files, not key names.
+  \item[Logic in \LaTeX3, typesetting in \LaTeXe.] Option handling,
+    registries and validation are written in \pkg{expl3}; everything that
+    puts text on the page is written in ordinary \LaTeX{} syntax, where
+    spaces and blank lines behave as usual (Section~\ref{sec:catcodes}).
+\end{description}
+
+\section{Files}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\file{core/academicthesis.cls} & The class: options, base class, fonts and languages, bibliography, loading the university, labels, \cs{frontpage}, second page, front-matter blocks, page styles, validation. \\
+\file{core/academicthesis-kernel.sty} & The shared API: messages, metadata store, \cs{thesissetup}, lists, registries, early-configuration commands, university loader, string store. Loaded first, by the class. \\
+\file{languages/academicthesis-<lang>.ldf} & Generic strings for one language (\cs{ProvideThesisString} calls only). \\
+\file{universities/<uni>/academicthesis-<uni>.cfg} & Early configuration, read \emph{before} the base class is loaded. \\
+\file{universities/<uni>/academicthesis-<uni>.sty} & The university package proper. \\
+\file{universities/<uni>/academicthesis-<uni>-*.def} & Layout code in normal \LaTeX{} syntax, read by the \file{.sty}. \\
+\file{universities/<uni>/academicthesis-<uni>-<lang>.ldf} & Optional: the university's wording of core strings, and its own strings. \\
+\file{showcases/academicthesis-repo-paths.tex} & Lets the examples find the repository folders (not part of any package). \\
+\bottomrule
+\end{tabularx}
+
+\section{What happens when a thesis is compiled}
+\label{sec:sequence}
+
+\begin{center}
+\begin{tikzpicture}[node distance=5mm,
+    stepbox/.style={draw=docaccent!70, fill=docaccent!6, rounded corners=2pt,
+      text width=10.6cm, align=left, font=\small, inner sep=5pt},
+    unibox/.style={stepbox, draw=docgrey!80, fill=docgrey!8},
+    arr/.style={-{Stealth[length=4pt]}, draw=docgrey, thick}]
+  \node[stepbox] (s1) {\textbf{1.} Load the kernel; read the class options with \pkg{l3keys}. Unknown options are kept aside with their values.};
+  \node[unibox, below=of s1] (s2) {\textbf{2.} Read \file{academicthesis-<uni>.cfg}: base class, formats, second page, extra languages, extra class options. Resolve \opt{format} and the second page.};
+  \node[stepbox, below=of s2] (s3) {\textbf{3.} Merge the university's default class options with the user's, drop the claimed options, and \cs{LoadClass} the base class.};
+  \node[stepbox, below=of s3] (s4) {\textbf{4.} Fonts and languages (\pkg{babel} or \pkg{polyglossia}); read the strings: generic \file{.ldf}, then the university's.};
+  \node[stepbox, below=of s4] (s5) {\textbf{5.} Layout packages: \pkg{graphicx}, \pkg{geometry}, \pkg{etoolbox}, \pkg{fancyhdr}, \pkg{xcolor}, \pkg{amsmath}, \pkg{lettrine}.};
+  \node[unibox, below=of s5] (s6) {\textbf{6.} Load \file{academicthesis-<uni>.sty}: it registers its front pages and requirements and reads its \file{.def} files.};
+  \node[stepbox, below=of s6] (s7) {\textbf{7.} Define labels, \cs{frontpage}, the second page, the front-matter blocks and page styles. At the end of the class: the hook \opt{class/academicthesis/after} (university overrides) and \pkg{biblatex}.};
+  \node[stepbox, below=of s7] (s8) {\textbf{8.} At \cs{begin}\opt{\{document\}}: check the required fields, core and university.};
+  \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6,s6/s7,s7/s8} \draw[arr] (\a) -- (\b);
+\end{tikzpicture}
+\end{center}
+
+Grey steps are where the university's own files run. Two consequences
+matter when writing a university package:
+
+\begin{itemize}
+  \item The \file{.cfg} runs before \cs{LoadClass}: it may only use the
+    early-configuration commands (Section~\ref{sec:cfg}) and \pkg{expl3}
+    logic, not packages or document commands.
+  \item The \file{.sty} runs \emph{before} the core defines its labels,
+    blocks and page styles (step~7). To change one of those, a university
+    wraps its redefinition in the hook that \LaTeX{} runs once the class
+    has finished:
+\begin{lstlisting}
+\AddToHook{class/academicthesis/after}{%
+  \RenewDocumentCommand\thesiskeywords{mm}{...}}
+\end{lstlisting}
+\end{itemize}
+
+\section{The early configuration file}
+\label{sec:cfg}
+
+\file{academicthesis-<uni>.cfg} is read with \pkg{expl3} syntax on (spaces
+are ignored; write \verb|~| for a space). Its commands concern only the
+active university, so they take no university argument.
+
+\begin{longtable}{@{}L{5.8cm} L{8.6cm}@{}}
+\toprule
+\textbf{Command} & \textbf{Meaning} \\
+\midrule
+\endhead
+\cs{DeclareThesisBaseClass}\newline\opt{\{<class>\}\{<options>\}} & Base class (\pkg{book}, \pkg{article}, \dots) and its default options. A default is dropped when the user chose another option of the same group: \opt{11pt} beats a default \opt{12pt}, \opt{oneside} beats \opt{twoside}. Default: \pkg{book} with no options. \\
+\cs{DeclareThesisFormats}\newline\opt{\{<list>\}\{<default>\}} & The values accepted by \opt{format=}. Resolved at once, so the rest of the file can branch on \cs{g\_\_academicthesis\_format\_tl}. A university that declares none rejects \opt{format=}. \\
+\cs{DeclareThesisSecondPage}\newline\opt{\{true|false\}} & Default for the second page (examination commission and copyright). The user can override it with \opt{secondpage} / \opt{no-secondpage}. Default: \opt{true}. \\
+\cs{DeclareThesisOtherLanguages}\newline\opt{\{<list>\}} & Languages always loaded with \pkg{babel}, besides the main one. \\
+\cs{DeclareThesisClassOption}\newline\opt{\{<name>\}\{<default>\}} & Claims a \cs{documentclass} option for the university; it is no longer passed to the base class. \opt{name} alone means \opt{true}. Read it with \cs{academicthesis\_class\_option:n}\opt{\{<name>\}} or, in normal syntax, \cs{thesisclassoption}\opt{\{<name>\}}. \\
+\cs{DeclareThesisCoreRequirements}\newline\opt{\{true|false\}} & Whether the core checks its own required fields (title, candidate, academic year, degree, supervisors). The university's requirements are checked either way. Default: \opt{true}. \\
+\bottomrule
+\end{longtable}
+
+\section{Thesis data}
+
+\subsection{The store}
+
+All data given with \cs{thesissetup} goes into one global property list.
+\cs{thesissetup} is a thin \pkg{l3keys} front-end: each key writes one
+entry.
+
+\begin{tabularx}{\textwidth}{@{}L{6.2cm} Y@{}}
+\toprule
+\textbf{\pkg{expl3} (in \file{.sty}/\file{.cfg})} & \textbf{Effect} \\
+\midrule
+\cs{academicthesis\_meta\_set:nn}\newline\opt{\{key\}\{value\}} & Store a value. \\
+\cs{academicthesis\_meta\_get:n}\newline\opt{\{key\}} & The value (expandable; empty when missing). \\
+\cs{academicthesis\_meta\_if\_empty:nTF} & Test for an empty or missing value (also \opt{p}, \opt{T}, \opt{F}). \\
+\cs{academicthesis\_list\_set:nn}, \cs{\_set\_csv:nn}, \cs{\_add:nn} & Set a list to one item, to comma-separated items, or append one. \\
+\cs{academicthesis\_list\_count:n}, \cs{academicthesis\_list\_if\_empty:nTF} & Number of items; emptiness test. \\
+\bottomrule
+\end{tabularx}
+
+\begin{tabularx}{\textwidth}{@{}L{6.2cm} Y@{}}
+\toprule
+\textbf{Normal syntax (in \file{.def})} & \textbf{Effect} \\
+\midrule
+\cs{thesismeta}\newline\opt{\{key\}} & The value (expandable). \\
+\cs{IfThesisMetaEmptyTF}\newline\opt{\{key\}\{empty\}\{not empty\}} & Branch on a value. \\
+\cs{academicthesislist}\newline\opt{[sep]\{list\}} & Typeset a list; default separator \verb|\\|. \\
+\cs{thesislistcount}\newline\opt{\{list\}}, \cs{IfThesisListEmptyTF} & Count items; branch on emptiness. \\
+\cs{IfThesisDegreeTF}\newline\opt{\{bachelor|master|phd\}\{yes\}\{no\}} & Branch on the degree. \\
+\cs{thesisclassoption}\newline\opt{\{name\}} & Value of a claimed class option. \\
+\bottomrule
+\end{tabularx}
+
+The standard keys are \opt{title}, \opt{subtitle}, \opt{candidate},
+\opt{idnumber}, \opt{degree}, \opt{chair}, \opt{department}, \opt{major},
+\opt{phdtitle}, \opt{cycle}, \opt{academicyear}, \opt{copyyear},
+\opt{examdate}, \opt{authoremail}, \opt{website}, \opt{dedication},
+\opt{abstract}, \opt{keywords}, \opt{coordinator} and \opt{gender}, plus the
+lists \opt{supervisors}, \opt{cosupervisors}, \opt{examiners} and
+\opt{tutors} (each with a singular key that sets one item without
+splitting at commas). A university may store keys of its own with
+\cs{academicthesis\_meta\_set:nn}; the core never reads them.
+
+\subsection{Validation}
+
+At \cs{begin}\opt{\{document\}} the core checks its own fields (unless
+switched off in the \file{.cfg}) and then every entry registered with
+
+\begin{lstlisting}
+\DeclareThesisRequirement{<uni>}{<boolean>}{<key>}{<example>}
+\end{lstlisting}
+
+whose university is the active one and whose \pkg{expl3} boolean is true:
+\cs{c\_true\_bool} (always), \cs{g\_\_academicthesis\_bachelor\_bool},
+\cs{\_master\_bool} or \cs{\_phd\_bool}. A missing field raises the error
+\emph{Missing required thesis metadata: `<key>'}, whose help text shows
+\opt{<example>}.
+
+\section{Registries}
+
+\begin{tabularx}{\textwidth}{@{}L{6.2cm} Y@{}}
+\toprule
+\textbf{Command} & \textbf{Meaning} \\
+\midrule
+\cs{DeclareThesisFrontPage}\newline\opt{\{<uni>\}\{<degree>\}\{<cs>\}} & \cs{frontpage} looks up \opt{<uni>.<degree>} and runs \opt{<cs>}; if nothing is registered, it raises \emph{No front page registered}. The command typesets its own page(s). \\
+\cs{DeclareThesisRequirement}\newline\opt{\{<uni>\}\{<bool>\}\{<key>\}\{<ex>\}} & A required field (above). \\
+\cs{DeclareThesisBibDefaults}\newline\opt{\{<uni>\}\{<options>\}} & \pkg{biblatex} options used when the user gives no \opt{biblatex-options}. \\
+\bottomrule
+\end{tabularx}
+
+\section{Strings and languages}
+
+Every printed word comes from a string store, one per language, filled by
+\cs{ProvideThesisString}\opt{\{<key>\}\{<text>\}}. For each language the
+kernel reads \file{academicthesis-<lang>.ldf} and then, if it exists,
+\file{academicthesis-<uni>-<lang>.ldf}. A university file reuses the core
+keys to change the wording (for instance \opt{SupervisorLabel}) and may add
+keys of its own.
+
+\cs{thesisstring}\opt{\{<key>\}} prints a string in the language currently
+selected for strings: the main language, or the one a block switched to
+with \opt{language=}. It falls back to the main language, then to the key
+name, so a missing translation never stops compilation.
+
+The labels \cs{authorlabel}, \cs{supervisorlabel} and \cs{cosupervisorlabel}
+choose the singular or plural string from the length of the list, and the
+female form of the candidate label from \opt{gender}.
+
+\section{Front matter, second page, page styles}
+
+\begin{itemize}
+  \item \cs{frontpage} dispatches to the registered front page, then
+    prints the second page if it is on.
+  \item \env{abstractthesis}, \env{originality}, \env{acknowledgements}
+    and \cs{dedication} all go through one option parser (\opt{language},
+    \opt{title}, \opt{keywords}). Headings use \cs{thesisfrontchapter},
+    which writes \cs{chapter*} or \cs{section*} depending on whether the
+    base class has chapters, and adds the table-of-contents entry.
+  \item Universities can restyle without touching the parser:
+    \cs{thesiskeywords}\opt{\{<label>\}\{<keywords>\}} prints the keywords;
+    \cs{thesisacknowledgementsbegin}\opt{\{<heading>\}} and
+    \cs{thesisacknowledgementsend} frame the acknowledgements.
+  \item The core defines the page styles \opt{Thesis}, \opt{acknowledgments}
+    and \opt{plain}; \cs{frontmatter} switches to \opt{plain} and
+    \cs{mainmatter} to \opt{Thesis}. Under a base class without chapters,
+    the core supplies light versions of \cs{frontmatter}, \cs{mainmatter}
+    and \cs{backmatter}.
+\end{itemize}
+
+\section{Two rules for writing layout code}
+\label{sec:catcodes}
+
+\paragraph{Typeset in normal syntax.} Under \cs{ExplSyntaxOn} spaces are
+ignored and blank lines do not end paragraphs, which silently breaks any
+text. University packages therefore keep their \pkg{expl3} code in the
+\file{.sty} and put pages in \file{.def} files read with the document
+catcodes:
+
+\begin{lstlisting}
+\cs_new_protected:Npn \__myuni_input_layout:n #1
+  {
+    \cctab_begin:N \c_document_cctab   % no group: definitions survive
+      \file_input:n { academicthesis-myuni-#1.def }
+    \cctab_end:
+  }
+\end{lstlisting}
+
+\paragraph{Never load a package from a \texttt{.def} file.} When a package
+loaded from there ends, \LaTeX{} restores the syntax of the class that is
+loading everything, \pkg{expl3}, and every space that follows is lost. The
+\file{.sty} loads the packages before reading the \file{.def}.
+
+\section{Search path in the repository}
+\label{sec:searchpath}
+
+Inside the repository the files sit in sub-folders, which \TeX{} does not
+search. Two mechanisms make them visible without any path in the code:
+
+\begin{itemize}
+  \item \textbf{latexmk}: the root \file{latexmkrc} adds \file{core//},
+    \file{languages//} and \file{universities//} to \opt{TEXINPUTS} (the
+    trailing \opt{//} also searches sub-folders).
+  \item \textbf{Any editor}: \file{showcases/academicthesis-repo-paths.tex},
+    input before \cs{documentclass}, extends \LaTeX's \cs{input@path} with
+    the folders. \cs{input@path} does not search sub-folders, so it lists
+    each university folder; a new university needs a line there.
+\end{itemize}
+
+\section{Messages}
+
+All messages use the \pkg{expl3} message module \opt{academicthesis}, so
+they read \emph{Class academicthesis Error} and carry a help text.
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Name} & \textbf{When} \\
+\midrule
+\opt{missing-metadata} & A required field is empty. \\
+\opt{missing-frontpage} & No front page registered for the university and degree. \\
+\opt{unknown-university} & No \file{academicthesis-<uni>.sty} found. \\
+\opt{missing-config} & The \file{.sty} exists but the \file{.cfg} does not. \\
+\opt{unknown-format}, \opt{no-formats} & A \opt{format} the university does not declare, or any \opt{format} at a university with none. \\
+\opt{missing-language} & No \file{.ldf} for the chosen language (falls back to English). \\
+\opt{bibliography-fallback} & \pkg{biblatex} unavailable (warning). \\
+\bottomrule
+\end{tabularx}
+
+A university defines its own messages in the same module with
+\cs{msg\_new:nnnn}\opt{\{academicthesis\}\{<uni>-<name>\}\{...\}\{...\}}.
+
+\section{Adding a university, in short}
+
+\begin{enumerate}
+  \item Create \file{universities/<uni>/} with
+    \file{academicthesis-<uni>.cfg} (at least \cs{DeclareThesisBaseClass}).
+  \item Write \file{academicthesis-<uni>.sty}: \cs{RequirePackage}
+    \opt{\{academicthesis-kernel\}}, setup keys, packages, requirements,
+    then read the \file{.def} files.
+  \item In each \file{.def}, define the front page and register it with
+    \cs{DeclareThesisFrontPage} for each degree offered.
+  \item Add \file{academicthesis-<uni>-<lang>.ldf} files for its wording.
+  \item Add its folder to \file{showcases/academicthesis-repo-paths.tex}
+    and a showcase.
+\end{enumerate}
+
+Nothing in \file{core/}, \file{languages/} or another university changes.

@@ -1,0 +1,73 @@
+% common/user-install.tex
+% Shared chapter of the user part: installing and compiling.
+% Uses \uniname, \unishort, \uniid, set by the guide.
+\chapter{Installing and compiling}
+\label{ch:install}
+
+\section{Requirements}
+
+\begin{itemize}
+  \item A recent \TeX{} distribution: \TeX{}~Live or Mac\TeX{} 2023 or
+    later, or an up-to-date MiK\TeX. The class is written in \LaTeX3 and
+    needs a modern \LaTeX{} kernel.
+  \item \textbf{pdf\LaTeX} is the reference engine, used by all the
+    examples in this guide. Xe\LaTeX{} and Lua\LaTeX{} are also accepted
+    (the class then loads \pkg{fontspec}).
+  \item For the bibliography, \pkg{biblatex} and \pkg{biber}, both part of
+    every full \TeX{} distribution. Without them the class falls back to
+    \pkg{natbib} and Bib\TeX{} (Section~\ref{sec:bib}).
+\end{itemize}
+
+\section{The files you need}
+
+\pkg{academicthesis} is a collection of small packages that load one
+another \emph{by name}. For a \unishort{} thesis you need only these:
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Files} & \textbf{Role} \\
+\midrule
+\file{core/academicthesis.cls}, \file{core/academicthesis-kernel.sty} & The core class, shared by every university. \\
+\file{languages/academicthesis-<language>.ldf} & The words printed on the pages, one file per language (English, Italian, French). \\
+\texttt{universities/\uniid/*} & The \unishort{} package: its layout, labels and logos. \\
+\bottomrule
+\end{tabularx}
+
+The other folders of \file{universities/} belong to other universities and
+can be left out.
+
+\section{Three ways to set it up}
+
+\begin{enumerate}
+  \item \textbf{Inside the repository.} Copy the \unishort{} showcase in
+    \file{showcases/} and keep its first line,
+    \begin{lstlisting}
+\input{academicthesis-repo-paths}
+    \end{lstlisting}
+    which tells \LaTeX{} where the package folders are. Then compile with
+    any editor, or from a terminal with \texttt{latexmk}.
+  \item \textbf{Next to your thesis.} Copy the files listed above into the
+    folder of your thesis (without sub-folders) and delete the
+    \verb|\input{academicthesis-repo-paths}| line. This is also how to
+    use the class on Overleaf: upload the files to the project.
+  \item \textbf{Installed in your personal \TeX{} tree}, for example
+    \file{~/Library/texmf/tex/latex/academicthesis/} on macOS or
+    \file{~/texmf/tex/latex/academicthesis/} on Linux. Every document on the
+    computer can then use the class, with no extra line.
+\end{enumerate}
+
+\begin{notebox}{Editors}
+Texifier/Texpad, TeXShop, TeXstudio, VS Code (LaTeX Workshop) and Overleaf
+all work. In Texifier/Texpad, set the typesetter to \emph{TeX Live
+(pdfLaTeX)}: its built-in engine is too old for this class.
+\end{notebox}
+
+\section{Compiling}
+
+Run pdf\LaTeX{} twice (for the table of contents and cross-references),
+with \pkg{biber} between the two runs when the thesis has a bibliography.
+\texttt{latexmk} does all of this by itself:
+
+\begin{lstlisting}[style=shell]
+latexmk -pdf my-thesis.tex
+\end{lstlisting}

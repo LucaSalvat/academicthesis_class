@@ -1,0 +1,552 @@
+% !TEX TS-program = pdflatex
+% academicthesis-luiss-guide.tex
+% User and developer guide of the academicthesis class for LUISS Guido
+% Carli. Compile from this folder with pdfLaTeX, twice:
+%   pdflatex academicthesis-luiss-guide.tex
+% Standalone: it does not need the academicthesis class itself.
+\documentclass[11pt,a4paper,oneside]{report}
+\newcommand{\doctitleshort}{academicthesis --- LUISS guide}
+\input{common/docstyle}
+\colorlet{docaccent}{luissblue}
+
+\newcommand{\uniname}{LUISS Guido Carli}
+\newcommand{\unishort}{LUISS}
+\newcommand{\uniid}{luiss}
+\newcommand{\uniotherlangnote}{For correct hyphenation, also list the
+  language in the \opt{other-languages} class option, e.g.\
+  \opt{other-languages=\{italian\}}; otherwise a warning reminds you.}
+\newcommand{\unibibdefault}{for LUISS, author--year: \opt{style=authoryear}}
+
+\hypersetup{pdftitle={academicthesis: LUISS user and developer guide},
+            pdfauthor={Luca Salvatore}}
+
+\begin{document}
+
+\guidetitlepage{LUISS Guido Carli}{%
+  \preview[0.27\textwidth]{luiss-master-cover}{Bachelor's and master's}\hspace{0.8cm}%
+  \preview[0.27\textwidth]{luiss-phd-cover}{PhD}}
+
+{\setlength{\parskip}{0pt}\tableofcontents}
+
+% ######################################################################
+\guidepart{User guide}{For students writing a LUISS thesis: what the class does, how to
+set it up, every option and command available, and complete examples.}
+
+% ======================================================================
+\chapter{What this package does}
+
+Every LUISS thesis opens with the same cover: the university logo, the
+degree programme and chair, the title, the names of the supervisor and the
+candidate, the academic year. Reproducing it by hand means adjusting
+spacing, fonts and alignment, and doing it again when something changes.
+
+\pkg{academicthesis} is a \LaTeX{} class that does this for you. You state
+the university and the degree, give the data of the thesis once, and the
+class prints the LUISS cover page, the second page with the examination
+details and copyright notice, and a consistent layout for the rest of the
+thesis:
+
+\begin{lstlisting}
+\documentclass[university=luiss, master, language=english]{academicthesis}
+\end{lstlisting}
+
+\section{What you get}
+
+\begin{center}
+  \preview[0.29\textwidth]{luiss-master-cover}{Bachelor's / master's cover}\hfill
+  \preview[0.29\textwidth]{luiss-secondpage}{Second page}\hfill
+  \preview[0.29\textwidth]{luiss-phd-cover}{PhD cover}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{The cover page} for a bachelor's, master's or PhD thesis,
+    with the LUISS logo and the title in LUISS blue.
+  \item \textbf{The second page}: examination commission (or a statement
+    that the thesis has not been defended) and a copyright notice.
+  \item \textbf{Front-matter blocks}: abstract, statement of originality,
+    acknowledgements and dedication, each in any of the supported
+    languages.
+  \item \textbf{Labels in your language}: English, Italian or French,
+    with singular and plural forms chosen for you (``Supervisor'' or
+    ``Supervisors'') and, in Italian, ``Candidato'' or ``Candidata''.
+  \item \textbf{Checks}: if a field the cover needs is missing, compilation
+    stops with a message naming it, instead of printing a gap.
+  \item \textbf{A bibliography} in author--year style, ready to use.
+\end{itemize}
+
+\section{How it is organised}
+
+The class has a core shared by every university and one package per
+university. For a LUISS thesis the core loads the LUISS package by itself;
+you never load it explicitly. Part~\ref{part:dev} of this guide explains
+the code for those who want to change it.
+
+% ======================================================================
+\input{common/user-install}
+
+% ======================================================================
+\chapter{Writing your thesis}
+\label{ch:writing}
+
+\section{The shape of a thesis file}
+
+\begin{lstlisting}
+\documentclass[university=luiss, master, language=english]{academicthesis}
+
+\usepackage{hyperref}            % your own packages, if any
+
+\thesissetup{                    % the data printed on the cover
+  title        = {Title of the Thesis},
+  candidate    = {Name Surname},
+  idnumber     = {000000},
+  degree       = {Economics and Management},
+  chair        = {Corporate Finance},
+  supervisor   = {Prof. Name Surname},
+  academicyear = {2025/2026},
+  copyyear     = {2026},
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage                       % cover page + second page
+
+\frontmatter                     % roman page numbers
+\begin{abstractthesis}[keywords = {first, second}]
+  The abstract.
+\end{abstractthesis}
+\tableofcontents
+
+\mainmatter                      % arabic page numbers
+\chapter{Introduction}
+...
+\printbibliography
+
+\backmatter
+\begin{acknowledgements}
+  Thanks to ...
+\end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+After \cs{frontpage}, everything is ordinary \LaTeX: chapters, sections,
+figures, tables, equations.
+
+\section{Class options}
+
+All options go between the square brackets of \cs{documentclass}.
+
+\begin{tabularx}{\textwidth}{@{}L{3.3cm} L{3.4cm} Y@{}}
+\toprule
+\textbf{Option} & \textbf{Values} & \textbf{Meaning} \\
+\midrule
+\opt{university} & \opt{luiss} & Selects the LUISS package. Required. \\
+degree & \opt{bachelor}, \opt{master}, \opt{phd} & Written on its own. Chooses the cover. Default: \opt{bachelor}. \\
+\opt{language} & \opt{english}, \opt{italian}, \opt{french} & Language of every printed label, and hyphenation. Default: \opt{english}. Short forms: \opt{lang=en}, \opt{lang=it}, \opt{lang=fr}, or just \opt{italian}. \\
+\opt{other-languages} & e.g.\ \opt{\{italian,french\}} & Other languages used by single blocks (Section~\ref{sec:blocks}). \\
+\opt{no-secondpage} & & Omits the second page (it is printed by default). \\
+\opt{discussion} & & The thesis has been defended: the second page shows the date and committee, and \opt{examdate} becomes required. Default: off. \\
+\opt{biblatex-options} & e.g.\ \opt{\{style=apa\}} & Options for \pkg{biblatex} (Section~\ref{sec:bib}). \\
+anything else & \opt{twoside}, \opt{12pt}, \opt{a4paper}, \dots & Passed to the \pkg{book} class, on which a LUISS thesis is built. \\
+\bottomrule
+\end{tabularx}
+
+LUISS has a single layout, so the \opt{format} option is not used.
+
+\section{The data of your thesis}
+\label{sec:data}
+
+All the data is given with \cs{thesissetup} in the preamble, as
+\opt{key = \{value\}} pairs. Write academic titles (``Prof.'', ``Dr.'')
+yourself.
+
+\begin{longtable}{@{}L{3.0cm} L{5.1cm} c c@{}}
+\toprule
+\textbf{Key} & \textbf{Printed as} & \textbf{Bachelor/master} & \textbf{PhD} \\
+\midrule
+\endhead
+\opt{title} & Title, in LUISS blue & \req & \req \\
+\opt{subtitle} & Under the title & \optional & \optional \\
+\opt{candidate} & ``Candidate'' column & \req & \req \\
+\opt{idnumber} & Under the candidate's name & \optional & \optional \\
+\opt{gender} & \opt{male}/\opt{female}: ``Candidato'' / ``Candidata'' in Italian & \optional & \optional \\
+\opt{degree} & ``Course of \dots'' & \req & \na \\
+\opt{chair} & ``Chair of \dots'' & \req & \na \\
+\opt{department} & ``Department of \dots'' under the logo & \na & \req \\
+\opt{phdtitle} & ``PhD in \dots'' & \na & \req \\
+\opt{cycle} & ``Cycle \dots'' & \na & \req \\
+\opt{supervisor} / \opt{supervisors} & ``Supervisor(s)'' column & \req & \req \\
+\opt{cosupervisor} / \opt{cosupervisors} & ``Co-Supervisor(s)'' column & \optional & \optional \\
+\opt{academicyear} & ``Academic Year'' & \req & \req \\
+\opt{copyyear} & Second page: ``\textcopyright{} year name'' & recommended & recommended \\
+\opt{authoremail}, \opt{website} & Second page: contact lines & \optional & \optional \\
+\opt{examdate} & Second page: date of the defence & with \opt{discussion} & with \opt{discussion} \\
+\opt{examiners} & Second page: the committee & with \opt{discussion} & with \opt{discussion} \\
+\bottomrule
+\end{longtable}
+
+\begin{notebox}{Writing the values}
+\begin{itemize}
+  \item \opt{degree}, \opt{chair}, \opt{department}, \opt{phdtitle} and
+    \opt{cycle} are written \emph{without} the words the cover adds:
+    \opt{degree = \{Economics and Management\}} prints ``Course of
+    Economics and Management''.
+  \item \opt{supervisor} takes one name and keeps any comma in it;
+    \opt{supervisors} takes several, separated by commas. The label becomes
+    ``Supervisors'' by itself. The same holds for \opt{cosupervisor(s)}
+    and \opt{examiner(s)}.
+  \item \cs{thesissetup} can be used several times; a later value replaces
+    an earlier one.
+\end{itemize}
+\end{notebox}
+
+\section{The major}
+
+A bachelor's or master's thesis may name a major, printed as written
+between the course and the chair. It has its own command; either line
+works:
+
+\begin{lstlisting}
+\major{Major in Corporate Finance}
+\luissthesissetup{major = {Major in Corporate Finance}}
+\end{lstlisting}
+
+\section{Adjusting the cover: \texorpdfstring{\cs{luissthesissetup}}{\\luissthesissetup}}
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Key} & \textbf{Default} & \textbf{Effect} \\
+\midrule
+\opt{logo-file} & \opt{logoluissblue} & Logo image, file name without extension. The plain \opt{luiss} logo is also shipped. \\
+\opt{logo-width} & \opt{0.55\textbackslash textwidth} & Width of the logo. \\
+\opt{logo-align} & \opt{left} & \opt{left}, \opt{center} or \opt{right}. \\
+\opt{title-align} & \opt{left} & Title and subtitle. \\
+\opt{course-align} & \opt{left} & Course and chair (PhD: programme and cycle). \\
+\opt{major-align} & \opt{left} & The major. \\
+\opt{department-align} & \opt{left} & PhD: the department line. \\
+\opt{major} & & The major (above). \\
+\bottomrule
+\end{tabularx}
+
+All alignment keys except \opt{logo-align} also accept \opt{l}, \opt{c},
+\opt{r}. For example, a centred cover:
+
+\begin{lstlisting}
+\luissthesissetup{logo-align = center, title-align = center,
+                  course-align = center, major-align = center}
+\end{lstlisting}
+
+\section{The second page}
+
+\cs{frontpage} prints the second page after the cover, unless the class
+option \opt{no-secondpage} is given.
+
+\begin{itemize}
+  \item \textbf{Top}: without \opt{discussion}, ``The present thesis has
+    not been defended.''; with \opt{discussion}, the defence date
+    (\opt{examdate}) and the committee (\opt{examiners}).
+  \item \textbf{Bottom}: the title, ``\textcopyright{} \opt{copyyear}
+    \opt{candidate}'', a reservation of rights, the author, and the e-mail
+    and website when given.
+\end{itemize}
+
+Give \opt{copyyear}, or the notice will have no year.
+
+% ======================================================================
+\chapter{Front matter and bibliography}
+
+\input{common/user-blocks}
+
+% ======================================================================
+\chapter{Complete examples}
+
+\section{Bachelor's or master's thesis}
+
+\begin{lstlisting}
+\documentclass[university=luiss, master, language=english, twoside,
+               discussion, other-languages={italian}]{academicthesis}
+
+\major{Major in Corporate Finance}
+
+\thesissetup{
+  title        = {Title of the Thesis},
+  subtitle     = {An Optional Subtitle},
+  candidate    = {Name Surname},
+  idnumber     = {000000},
+  degree       = {Economics and Management},
+  chair        = {Corporate Finance},
+  supervisor   = {Prof. Name Surname},
+  cosupervisor = {Prof. Name Surname},
+  academicyear = {2025/2026},
+  copyyear     = {2026},
+  authoremail  = {name.surname@example.com},
+  examdate     = {12 July 2026},              % because of `discussion'
+  examiners    = {Prof. A, Prof. B, Prof. C},
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}[keywords = {first, second}]
+  The abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian, keywords = {primo, secondo}]
+  Il sommario in italiano.
+\end{abstractthesis}
+\dedication{To my family.}
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+...
+\printbibliography
+
+\backmatter
+\begin{acknowledgements}
+  Thanks to ...
+\end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+For a bachelor's thesis write \opt{bachelor}. Without \opt{discussion},
+leave out \opt{examdate} and \opt{examiners}.
+
+\section{PhD thesis}
+
+\begin{lstlisting}
+\documentclass[university=luiss, phd, language=english, twoside]{academicthesis}
+
+\thesissetup{
+  title        = {Title of the Dissertation},
+  candidate    = {Name Surname},
+  idnumber     = {000000},
+  department   = {Economics and Finance},   % "Department of ..."
+  phdtitle     = {Economics},               % "PhD in ..."
+  cycle        = {XXXVIII},                 % "Cycle ..."
+  supervisors  = {Prof. Name Surname},
+  academicyear = {2025/2026},
+  copyyear     = {2026},
+}
+
+\begin{document}
+\frontpage
+\frontmatter
+\begin{abstractthesis}
+  The abstract.
+\end{abstractthesis}
+\tableofcontents
+\mainmatter
+\chapter{Introduction}
+...
+\end{document}
+\end{lstlisting}
+
+Complete, compilable versions are in \file{showcases/example-luiss-bachelor.tex}
+and \file{showcases/example-luiss-phd.tex}.
+
+% ======================================================================
+\chapter{Troubleshooting}
+
+\begin{longtable}{@{}L{5.2cm} L{4.2cm} L{4.6cm}@{}}
+\toprule
+\textbf{Message (abridged)} & \textbf{Cause} & \textbf{Fix} \\
+\midrule
+\endhead
+Missing required thesis metadata: `\textit{key}' & A required field is not in \cs{thesissetup} & Add it; the message shows an example. See Section~\ref{sec:data}. \\
+Missing required thesis metadata: `examdate' & \opt{discussion} without the defence date & Add \opt{examdate}, or remove \opt{discussion}. \\
+Missing required thesis metadata: `chair' & Bachelor's or master's thesis without the chair & Add \opt{chair}. \\
+Missing required thesis metadata: `cycle' (or `department', `phdtitle') & PhD data missing & Add it to \cs{thesissetup}. \\
+University `luiss' does not offer formats & A \opt{format} option & Remove it. \\
+File `academicthesis.cls' not found & \LaTeX{} cannot see the class files & Keep the line that inputs \file{academicthesis-repo-paths}, or copy the files next to the thesis (Chapter~\ref{ch:install}). \\
+File `logoluissblue' not found & Logo file missing & Copy the files of \file{universities/luiss/} too. \\
+Warning: `french' \dots{} was not loaded by babel & A block with \opt{language=french} & Add \opt{french} to the \opt{other-languages} option. \\
+Warning: biblatex is not available & \pkg{biblatex} not installed & Install it, or keep the \pkg{natbib} fallback. \\
+\bottomrule
+\end{longtable}
+
+\section*{Quick reference}
+
+\begin{lstlisting}
+\documentclass[university=luiss, bachelor|master|phd,
+               language=english|italian|french, other-languages={...},
+               no-secondpage, discussion, biblatex-options={...}]{academicthesis}
+\luissthesissetup{major={...}, logo-file=..., logo-width=...,
+                  logo-align=left|center|right, title-align=...,
+                  course-align=..., major-align=..., department-align=...}
+\thesissetup{title, subtitle, candidate, idnumber, gender,
+             degree, chair,                 % bachelor/master
+             department, phdtitle, cycle,   % PhD
+             supervisor(s), cosupervisor(s), academicyear,
+             copyyear, authoremail, website, examdate, examiners}
+\frontpage
+\begin{abstractthesis}[language=..., keywords=..., title=...]
+  ... \end{abstractthesis}
+\begin{originality}[language=..., title=...] ... \end{originality}
+\begin{acknowledgements}[language=..., title=...]
+  ... \end{acknowledgements}
+\dedication[language=...]{...}
+\end{lstlisting}
+
+% ######################################################################
+\guidepart{Developer guide}{For those who maintain or extend the code: first how the shared
+core works, then how the LUISS package is built on it.}
+\label{part:dev}
+
+\input{common/dev-core}
+
+% ======================================================================
+\chapter{The LUISS package}
+\label{ch:unidev}
+
+\section{Files}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\file{academicthesis-luiss.cfg} & Base class \pkg{book} with no default options; second page on. \\
+\file{academicthesis-luiss.sty} & Setup keys, cover building blocks (\pkg{expl3}), loading of the cover file, requirements, bibliography defaults. \\
+\file{academicthesis-luiss-bachelor-master.def} & The bachelor's and master's cover, in normal syntax. \\
+\file{academicthesis-luiss-phd.def} & The PhD cover, in normal syntax. \\
+\file{logoluissblue.pdf}, \file{luiss.pdf} & Logos. \\
+\bottomrule
+\end{tabularx}
+
+LUISS has no \file{academicthesis-luiss-<lang>.ldf}: its labels are the
+core ones (``Supervisor'', ``Candidate'', ``Course of'', ``Chair of'',
+``PhD in'', ``Cycle'', ``Department of'').
+
+\section{The early configuration}
+
+\begin{lstlisting}
+\DeclareThesisBaseClass { book } { }
+\DeclareThesisSecondPage { true }
+\end{lstlisting}
+
+No formats, no extra class options, the core requirements on: the user
+chooses paper size and sides freely.
+
+\section{The package, section by section}
+
+\paragraph{1. LUISS metadata.} \opt{major} is stored under the private key
+\opt{luiss-major} through the key family
+\opt{academicthesis-luiss/meta}, used by \cs{major}. The core never reads
+it. (The core's own \opt{major} key exists for other universities; the
+LUISS cover reads \opt{luiss-major}.)
+
+\paragraph{2. Layout controller.} \cs{luissthesissetup} sets the key family
+\opt{academicthesis-luiss/layout}: \opt{logo-file}, \opt{logo-width} and
+the five alignment keys. Each alignment is stored in a token list
+(\cs{l\_\_luiss\_title\_align\_tl} and so on) and normalised to \opt{l},
+\opt{c} or \opt{r} by \cs{\_\_luiss\_norm\_align:N} after every call. The
+old name \cs{LuissThesisController} is kept as an alias.
+
+\paragraph{3. Building blocks.} The cover is assembled from blocks written
+in \pkg{expl3}, each reading the metadata store:
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Block (document-level name)} & \textbf{Prints} \\
+\midrule
+\cs{luiss@logobox} & The logo, at the chosen width and alignment. \\
+\cs{luiss@departmentline} & ``Department of \opt{department}'' (PhD). \\
+\cs{luiss@programmeblock}\opt{\{first\}\{middle\}\{second\}} & The course or programme line, an optional middle line, a gap and the chair or cycle line. \\
+\cs{luiss@majorline} & The major, when given. \\
+\cs{luiss@titleblock} & Title in \opt{BlueLuiss} (RGB 21,57,108) and subtitle. \\
+\cs{luiss@namesblock} & Supervisor(s), co-supervisor(s) and candidate with ID, in labelled columns; two layouts depending on whether there are co-supervisors. \\
+\cs{luiss@academicyear} & ``Academic Year'' and the year, centred. \\
+\bottomrule
+\end{tabularx}
+
+Fonts come from the core: \cs{TitleFont}, \cs{SubtitleFont},
+\cs{LowerFont}. The colour \opt{BlueLuiss} is also used for drop caps
+(\cs{LettrineFontHook}).
+
+\paragraph{4. Loading the cover.} The \file{.sty} reads exactly one
+\file{.def} with the document catcodes: \file{-phd.def} when the degree is
+\opt{phd}, \file{-bachelor-master.def} otherwise.
+
+\paragraph{5. Requirements.}
+
+\begin{lstlisting}
+% bachelor and master: degree and chair
+\DeclareThesisRequirement { luiss } \g__academicthesis_bachelor_bool { degree } {...}
+\DeclareThesisRequirement { luiss } \g__academicthesis_master_bool   { degree } {...}
+\DeclareThesisRequirement { luiss } \g__academicthesis_bachelor_bool { chair }  {...}
+\DeclareThesisRequirement { luiss } \g__academicthesis_master_bool   { chair }  {...}
+% PhD: cycle, department, programme
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { cycle }      {...}
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { department } {...}
+\DeclareThesisRequirement { luiss } \g__academicthesis_phd_bool { phdtitle }   {...}
+\end{lstlisting}
+
+The core adds title, candidate, academic year, supervisors, the degree for
+bachelor and master, and \opt{examdate} with \opt{discussion}.
+
+\paragraph{6. Bibliography.} Author--year by default:
+\begin{lstlisting}
+\DeclareThesisBibDefaults { luiss } { style = authoryear, backend = biber }
+\end{lstlisting}
+
+\section{The cover files}
+
+Both \file{.def} files follow the same plan and differ only in what they
+pass to the blocks:
+
+\begin{lstlisting}
+\newcommand\luiss@frontpage@bachelormaster{%
+  \begin{titlepage}%
+    \thispagestyle{empty}%
+    \newgeometry{left=2.75cm, right=2.75cm, top=3cm, bottom=2.5cm}%
+    \luiss@logobox\par
+    \vspace{0.1\textheight}%
+    \luiss@programmeblock
+      {\thesisstring{CourseOf} \thesismeta{degree}}%
+      {\luiss@majorline}%
+      {\thesisstring{ChairOf} \thesismeta{chair}}%
+    \par\vfill
+    \luiss@titleblock\par\vfill
+    \luiss@namesblock\par
+    \vspace{0.1\textheight}%
+    \luiss@academicyear\par
+    \vspace*{0.05\textheight}%
+    \restoregeometry
+  \end{titlepage}}
+\DeclareThesisFrontPage{luiss}{bachelor}{\luiss@frontpage@bachelormaster}
+\DeclareThesisFrontPage{luiss}{master}{\luiss@frontpage@bachelormaster}
+\end{lstlisting}
+
+The PhD page adds \cs{luiss@departmentline} under the logo and passes
+``PhD in \opt{phdtitle}'' and ``Cycle \opt{cycle}'' to the programme
+block. The second page is the core's, not the package's.
+
+\section{Common changes}
+
+\begin{tabularx}{\textwidth}{@{}L{5cm} Y@{}}
+\toprule
+\textbf{To change\dots} & \textbf{Edit\dots} \\
+\midrule
+the order or spacing of the cover & the \file{.def} of that degree. \\
+how a block looks (columns, colour, rule) & the block in section~3 of the \file{.sty}. \\
+a label's wording & add \file{academicthesis-luiss-<lang>.ldf} with \cs{ProvideThesisString} for the core key (e.g.\ \opt{SupervisorLabel}). \\
+which fields are required & section~5 of the \file{.sty}. \\
+the default bibliography & section~6 of the \file{.sty}. \\
+the default class options & the \file{.cfg}. \\
+\bottomrule
+\end{tabularx}
+
+Keep the two rules of Section~\ref{sec:catcodes}: text in the \file{.def}
+files, packages loaded only from the \file{.sty}.
+
+% ======================================================================
+\chapter*{Licence and credits}
+\addcontentsline{toc}{chapter}{Licence and credits}
+
+\pkg{academicthesis} is released under the \LaTeX{} Project Public Licence
+(LPPL) 1.3c or later; copyright 2025--2026 Luca Salvatore. The LUISS name
+and logo belong to LUISS Guido Carli. \pkg{academicthesis} is not
+published by LUISS: before submitting a thesis, check the current rules of
+your degree programme.
+
+\end{document}

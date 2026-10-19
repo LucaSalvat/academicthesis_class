@@ -1,0 +1,718 @@
+% !TEX TS-program = pdflatex
+% academicthesis-polimi-guide.tex
+% User and developer guide of the academicthesis class for Politecnico di
+% Milano. Compile from this folder with pdfLaTeX, twice:
+%   pdflatex academicthesis-polimi-guide.tex
+% Standalone: it does not need the academicthesis class itself.
+\documentclass[11pt,a4paper,oneside]{report}
+\newcommand{\doctitleshort}{academicthesis --- Politecnico di Milano guide}
+\input{common/docstyle}
+\colorlet{docaccent}{bluepoli!80!black}
+
+\newcommand{\uniname}{Politecnico di Milano}
+\newcommand{\unishort}{PoliMi}
+\newcommand{\uniid}{polimi}
+\newcommand{\uniotherlangnote}{English and Italian are always loaded for
+  PoliMi, so an Italian abstract needs nothing more; for a third language,
+  list it in the \opt{other-languages} class option.}
+\newcommand{\unibibdefault}{PoliMi sets none, so the numeric style applies}
+
+\hypersetup{pdftitle={academicthesis: Politecnico di Milano user and developer guide},
+            pdfauthor={Luca Salvatore}}
+
+\begin{document}
+
+\guidetitlepage{Politecnico di Milano}{%
+  \preview[0.21\textwidth]{polimi-classical-cover}{\opt{classical}}\hspace{0.4cm}%
+  \preview[0.21\textwidth]{polimi-article-cover}{\opt{article}}\hspace{0.4cm}%
+  \preview[0.21\textwidth]{polimi-summary-cover}{\opt{summary}}\hspace{0.4cm}%
+  \preview[0.17\textwidth]{polimi-phd-cover}{\opt{phd}}}
+
+{\setlength{\parskip}{0pt}\tableofcontents}
+
+% ######################################################################
+\guidepart{User guide}{For students writing a thesis, an Executive
+Summary or a doctoral dissertation at Politecnico di Milano: what the
+class does, how to set it up, every option and command available, and
+complete examples.}
+
+% ======================================================================
+\chapter{What this package does}
+
+Politecnico di Milano provides \LaTeX{} templates for its theses. Using a
+template means copying a folder, editing its configuration by hand and
+keeping track of which file prints what. \pkg{academicthesis} turns those
+layouts into a class: you choose the format with one option, give the data
+of the thesis once, and the class produces the cover, the headings and the
+page layout of that format.
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=classical]{academicthesis}
+\end{lstlisting}
+
+\begin{notebox}{The PoliMi layouts are Politecnico di Milano's design}
+The layouts produced by this package are \textbf{not original work of
+academicthesis}. They reproduce the official \LaTeX{} templates provided by
+Politecnico di Milano:
+\begin{itemize}
+  \item the thesis templates of the School of Industrial and Information
+    Engineering (Scuola di Ingegneria Industriale e dell'Informazione,
+    ``Scuola 3I''), revision of October 2021: \emph{Thesis classical
+    format}, \emph{Thesis article format} and \emph{Executive Summary},
+    the models of the \opt{classical}, \opt{article} and \opt{summary}
+    formats;
+  \item the PoliMi doctoral dissertation template (\file{phdthesis.sty},
+    \file{phdtitle.sty}, by J.~Stevens and L.~Fossati), the model of the
+    \opt{phd} format.
+\end{itemize}
+The page designs, the colour \opt{bluepoli}, the cover arrangements, the
+heading styles, the ``raggiera'' background and the Politecnico logos and
+seal belong to Politecnico di Milano and to the authors of those
+templates. This package re-implements them on the shared
+\pkg{academicthesis} core, so that they are selected with a class option
+and share its data handling, checks and multilingual blocks.
+\end{notebox}
+
+\section{The four formats}
+
+\begin{center}
+  \preview[0.22\textwidth]{polimi-classical-cover}{\opt{classical}}\hfill
+  \preview[0.22\textwidth]{polimi-article-cover}{\opt{article}}\hfill
+  \preview[0.22\textwidth]{polimi-summary-cover}{\opt{summary}}\hfill
+  \preview[0.18\textwidth]{polimi-phd-cover}{\opt{phd}}
+\end{center}
+
+\begin{tabularx}{\textwidth}{@{}l Y l l@{}}
+\toprule
+\textbf{Format} & \textbf{What it is} & \textbf{Degrees} & \textbf{Built on} \\
+\midrule
+\opt{classical} & The full thesis as a book: cover page, abstracts, chapters. Default for bachelor and master. & bachelor, master & \pkg{book}, 12pt, two-sided, A4 \\
+\opt{article} & The thesis as a paper: a header block with the abstract on page~1, then sections. & bachelor, master & \pkg{article}, 11pt, A4 \\
+\opt{summary} & The Executive Summary, in two columns under a blue page header. & bachelor, master & \pkg{article}, 11pt, 2 columns, A4 \\
+\opt{phd} & The doctoral dissertation. Default for the \opt{phd} degree. & PhD & \pkg{book}, 10pt, 17$\times$24\,cm \\
+\bottomrule
+\end{tabularx}
+
+\section{What you get}
+
+\begin{itemize}
+  \item \textbf{The right base class, page size and layout} for the
+    chosen format, chosen for you.
+  \item \textbf{The cover or first-page block} of the format, filled from
+    your data.
+  \item \textbf{PoliMi headings, colours and captions}: blue chapter and
+    section titles, blue caption labels, theorem and proposition
+    environments in the PoliMi style.
+  \item \textbf{Labels in PoliMi's wording} (``Advisor'', ``Student ID'',
+    ``Master's Thesis in'') in English or Italian, following the language
+    of the thesis.
+  \item \textbf{An English and an Italian abstract}, with the correct
+    headings and hyphenation, without extra options.
+  \item \textbf{Checks}: if a field the format needs is missing,
+    compilation stops with a message naming it.
+\end{itemize}
+
+\section{How it is organised}
+
+The class has a core shared by every university and one package per
+university. With \opt{university=polimi} the core loads the PoliMi package
+by itself, and the PoliMi package loads the code of the chosen format.
+Part~\ref{part:dev} of this guide explains the code.
+
+% ======================================================================
+\input{common/user-install}
+
+% ======================================================================
+\chapter{Writing your thesis}
+\label{ch:writing}
+
+\section{The shape of a thesis file}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=classical,
+               language=english]{academicthesis}
+
+\usepackage{amssymb, bm}         % your own packages, if any
+\usepackage{hyperref}
+
+\thesissetup{                    % the data printed on the cover
+  title         = {Title},
+  candidate     = {Name Surname},
+  idnumber      = {000000},
+  degree        = {Mathematical Engineering - Ingegneria Matematica},
+  supervisor    = {Prof. Name Surname},
+  cosupervisors = {Name Surname, Name Surname},
+  academicyear  = {2025-26},
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage                       % the cover (classical, phd) or page-1 block
+
+\frontmatter
+\begin{abstractthesis}[keywords = {first, second}]
+  English abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian, keywords = {primo, secondo}]
+  Abstract in lingua italiana.
+\end{abstractthesis}
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+...
+\printbibliography
+\end{document}
+\end{lstlisting}
+
+\section{Class options}
+
+\begin{tabularx}{\textwidth}{@{}L{3.1cm} L{3.6cm} Y@{}}
+\toprule
+\textbf{Option} & \textbf{Values} & \textbf{Meaning} \\
+\midrule
+\opt{university} & \opt{polimi} & Selects the PoliMi package. Required. \\
+degree & \opt{bachelor}, \opt{master}, \opt{phd} & Written on its own. Bachelor and master print ``Bachelor's / Master's Thesis in'' (Italian: ``Tesi di Laurea Triennale / Magistrale in''). Default: \opt{bachelor}. \\
+\opt{format} & \opt{classical}, \opt{article}, \opt{summary}, \opt{phd} & The layout. Default: \opt{classical}, or \opt{phd} with the \opt{phd} degree. \opt{phd} requires that degree. \\
+\opt{language} & \opt{english}, \opt{italian} & Language of every label, and hyphenation. Default: \opt{english}. \\
+\opt{other-languages} & e.g.\ \opt{\{french\}} & A third language used by single blocks. \\
+\opt{secondpage} & & Adds the core's examination and copyright page, which PoliMi does not use (off by default). \\
+\opt{biblatex-options} & e.g.\ \opt{\{style=numeric-comp\}} & Options for \pkg{biblatex} (Section~\ref{sec:bib}). \\
+anything else & \opt{11pt}, \opt{oneside}, \dots & Passed to the base class; your choice wins over the format's default. \\
+\bottomrule
+\end{tabularx}
+
+\section{The data of your thesis}
+\label{sec:data}
+
+All the data is given with \cs{thesissetup} in the preamble. Write academic
+titles (``Prof.'') yourself.
+
+\subsection{Bachelor's and master's (classical, article, summary)}
+
+\begin{longtable}{@{}L{3.0cm} L{5.4cm} c c c@{}}
+\toprule
+\textbf{Key} & \textbf{Printed as (English / Italian)} & \textbf{classical} & \textbf{article} & \textbf{summary} \\
+\midrule
+\endhead
+\opt{title} & Title, in blue & \req & \req & \req \\
+\opt{subtitle} & Under the title & \optional & \optional & \optional \\
+\opt{candidate} & Author / Candidato & \req & \req & \req \\
+\opt{idnumber} & Student ID / Matricola & \req & \req & \na \\
+\opt{degree} & After ``Master's Thesis in'' & \req & \req & \req \\
+\opt{supervisor(s)} & Advisor(s) / Relatore, Relatori & \req & \req & \req \\
+\opt{cosupervisor(s)} & Co-advisor(s) / Correlatore, Correlatori & \optional & \optional & \optional \\
+\opt{academicyear} & Academic Year / Anno Accademico & \req & \req & \req \\
+\opt{abstract} & English abstract on page~1 & \na & \req & \na \\
+\opt{keywords} & Its keywords, in a blue box & \na & \optional & \na \\
+\opt{gender} & Candidato / Candidata (Italian) & \optional & \optional & \optional \\
+\bottomrule
+\end{longtable}
+
+\subsection{Doctoral dissertation (phd)}
+
+\begin{longtable}{@{}L{3.0cm} L{9.0cm} c@{}}
+\toprule
+\textbf{Key} & \textbf{Printed as (English / Italian)} & \textbf{Required} \\
+\midrule
+\endhead
+\opt{title}, \opt{subtitle} & Title; subtitle when given & title \\
+\opt{candidate} & Under ``Doctoral Dissertation of'' / ``Tesi di Dottorato di'' & \req \\
+\opt{department} & In full, as printed: ``Department of Electronics, Information and Bioengineering'' & \req \\
+\opt{phdtitle} & In full, as printed: ``Doctoral Program in Information Technology'' & \req \\
+\opt{supervisor(s)} & Supervisor(s) / Relatore, Relatori & \req \\
+\opt{tutor(s)} & Tutor(s) / Tutor & \optional \\
+\opt{coordinator} & The Chair of the Doctoral Program / Il Coordinatore del Dottorato & \optional \\
+\opt{academicyear}, \opt{cycle} & Bottom line: ``2025--2026 -- Cycle XXXVIII'' & \req \\
+\bottomrule
+\end{longtable}
+
+\begin{notebox}{One person or several}
+\opt{supervisor} takes one name and keeps any comma in it;
+\opt{supervisors} takes several, separated by commas, and the label
+becomes ``Advisors''. The same holds for \opt{cosupervisor(s)} and
+\opt{tutor(s)}. \cs{thesissetup} can be used several times; a later value
+replaces an earlier one.
+\end{notebox}
+
+\section{PoliMi options: \texorpdfstring{\cs{polimithesissetup}}{\\polimithesissetup}}
+
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Key} & \textbf{Default} & \textbf{Effect} \\
+\midrule
+\opt{logo-file} & \opt{logopolimi3i} & Logo on the cover or first page, file name without extension. The \opt{phd} format uses the round seal, \opt{logopolimiseal}. \\
+\opt{watermark} & \opt{true} & The ``raggiera'' in the background of the cover, of page~1 and of blank pages; \opt{false} removes it. Not used by \opt{phd}. \\
+\opt{paper} & \opt{17x24} & \opt{phd} only: \opt{17x24} (as in the template) or \opt{a4}. \\
+\bottomrule
+\end{tabularx}
+
+\begin{lstlisting}
+\polimithesissetup{watermark = false}
+\end{lstlisting}
+
+% ======================================================================
+\chapter{The formats in detail}
+
+\section{classical}
+
+\begin{itemize}
+  \item \textbf{Page}: A4, 12pt, two-sided; inner margin 3\,cm, outer
+    2\,cm, top and bottom 2.5\,cm; 1.5 line spacing; no paragraph indent.
+  \item \textbf{Cover}: Scuola 3I logo, title in blue, ``Master's Thesis
+    in \textit{degree}'', ``Author: \textit{name}'', and at the bottom
+    student ID, advisor(s), co-advisor(s) and academic year; raggiera at
+    the top right.
+  \item \textbf{Chapters}: a large blue number and bar, ``\textbf{1$|$}
+    Chapter title''. Starred chapters (\verb|\chapter*{Introduction}|)
+    still enter the table of contents and the running header.
+  \item \textbf{Running header}: page number outside, chapter inside.
+  \item \textbf{Blank pages} before a chapter carry the raggiera;
+    \cs{blankpage} inserts one by hand.
+\end{itemize}
+
+Typical order: \cs{frontpage}, \cs{frontmatter}, English and Italian
+abstracts, \cs{tableofcontents}, \cs{mainmatter}, chapters, bibliography,
+\cs{appendix}, \cs{backmatter}, lists of figures and tables,
+acknowledgements.
+
+\section{article}
+
+\begin{itemize}
+  \item \textbf{Page}: A4, 11pt, 2\,cm margins, no indent; page number
+    centred at the bottom.
+  \item \textbf{Page 1}: no separate cover. \cs{frontpage} prints a header
+    block (logo, title, programme, ``author, student ID'', a rule, advisors
+    and academic year beside the \textbf{abstract}, and the keywords in a
+    blue box); the text starts right after it.
+  \item \textbf{Sections} instead of chapters. A \cs{chapter} still
+    compiles, as a section, with a warning.
+\end{itemize}
+
+The English abstract is therefore data (\opt{abstract}, \opt{keywords} in
+\cs{thesissetup}); an Italian abstract goes at the end with
+\env{abstractthesis}.
+
+\section{summary (Executive Summary)}
+
+\begin{itemize}
+  \item \textbf{Page}: A4, 11pt, two columns 30\,pt apart, 2\,cm side
+    margins.
+  \item \textbf{Page 1}: a full-width block (logo, ``Executive Summary of
+    the Thesis'', title, programme, author, advisor(s), co-advisor(s),
+    academic year, a rule), then the two columns.
+  \item \textbf{Following pages}: a blue box at the top with ``Executive
+    summary'' and the author; page number centred.
+\end{itemize}
+
+The student ID is not printed and not required. As in the template, the
+summary usually ends with a short bibliography.
+
+\section{phd (doctoral dissertation)}
+
+\begin{itemize}
+  \item \textbf{Page}: 10pt, two-sided, chapters on right-hand pages;
+    17$\times$24\,cm with 2\,cm margins, or A4 with \opt{paper=a4}. Times
+    for the text, Helvetica for headings.
+  \item \textbf{Cover}: PoliMi seal, ``Politecnico di Milano'', department
+    and programme in small capitals, a rule, the title, ``Doctoral
+    Dissertation of'' and the author on the right, supervisor, tutor and
+    chair of the programme on the left, academic year and cycle at the
+    bottom.
+  \item \textbf{Chapters} in the \pkg{fncychap} ``Sonny'' style; sections
+    in bold sans serif with a rule; running headers with chapter (even
+    pages) and section (odd pages).
+  \item A \env{defn} (Definition) environment numbered by chapter; grey
+    drop caps with \cs{lettrine}.
+\end{itemize}
+
+Not taken over from the template, on purpose: \pkg{psboxit} (not in
+\TeX{}~Live), \pkg{fancybox} (unused) and its \pkg{glossaries} set-up (its
+\cs{glossarystyle} command no longer exists). Load \pkg{glossaries},
+\pkg{crop}, \pkg{listings} and so on yourself if you need them.
+
+\section{Colours, theorems, extra packages}
+
+\begin{itemize}
+  \item \opt{bluepoli} (CMYK 0.4, 0.1, 0, 0.4) is defined in every format,
+    and also as \opt{bluePoli} in \opt{article} and \opt{summary}, the name
+    used by the templates: \verb|\rowcolor{bluepoli!40}| with \pkg{colortbl}.
+  \item \env{theorem} and \env{proposition} have blue headings, numbered
+    by chapter (\opt{classical}) or section (\opt{article},
+    \opt{summary}); your own \cs{newtheorem}s take the same style.
+  \item Left to you, as in the templates: \pkg{hyperref}, \pkg{cleveref},
+    \pkg{amssymb}, \pkg{bm}, \pkg{float}, \pkg{colortbl}, \pkg{subfig},
+    \pkg{tikz}, \pkg{algorithm}, \pkg{enumitem}.
+\end{itemize}
+
+% ======================================================================
+\chapter{Front matter and bibliography}
+
+\input{common/user-blocks}
+
+\section{How the blocks look at PoliMi}
+
+\begin{tabularx}{\textwidth}{@{}l Y Y@{}}
+\toprule
+\textbf{Block} & \textbf{classical, phd} & \textbf{article, summary} \\
+\midrule
+\env{abstractthesis} & Unnumbered chapter; keywords as a bold line & Unnumbered section; keywords in a blue box \\
+\env{originality} & Unnumbered chapter & Unnumbered section \\
+\env{acknowledgements} & Unnumbered chapter, upright text & Unnumbered section, upright text \\
+\cs{dedication} & Own page, right-aligned italic & same \\
+\bottomrule
+\end{tabularx}
+
+With \opt{language=italian}, the abstract heading becomes ``Abstract in
+lingua italiana'' and the keywords label ``Parole chiave''.
+
+% ======================================================================
+\chapter{Complete examples}
+
+\section{classical}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=classical,
+               language=english]{academicthesis}
+\usepackage{amssymb, bm, float, colortbl}
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black]{hyperref}
+
+\thesissetup{
+  title         = {Title},
+  candidate     = {Name Surname},
+  idnumber      = {000000},
+  degree        = {Mathematical Engineering - Ingegneria Matematica},
+  supervisor    = {Prof. Name Surname},
+  cosupervisors = {Name Surname, Name Surname},
+  academicyear  = {2025-26},
+}
+\addbibresource{references.bib}
+
+\begin{document}
+\frontpage
+\frontmatter
+\begin{abstractthesis}[keywords = {first, second, third}]
+  English abstract.
+\end{abstractthesis}
+\begin{abstractthesis}[language = italian, keywords = {primo, secondo}]
+  Abstract in lingua italiana.
+\end{abstractthesis}
+\tableofcontents
+
+\mainmatter
+\chapter*{Introduction}
+\chapter{Chapter one}
+...
+\printbibliography
+\appendix
+\chapter{Appendix A}
+
+\backmatter
+\listoffigures
+\listoftables
+\begin{acknowledgements} Thanks to ... \end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+\section{article}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=article,
+               language=english]{academicthesis}
+\thesissetup{
+  title        = {Title},
+  candidate    = {Name Surname},
+  idnumber     = {000000},
+  degree       = {Mathematical Engineering - Ingegneria Matematica},
+  supervisor   = {Prof. Name Surname},
+  academicyear = {2025-26},
+  abstract     = {The English abstract, printed on page 1.},
+  keywords     = {here, the keywords},
+}
+\begin{document}
+\frontpage
+\section{Introduction}
+...
+\appendix
+\section{Appendix A}
+\clearpage
+\begin{abstractthesis}[language = italian, keywords = {qui, le parole chiave}]
+  Abstract in lingua italiana.
+\end{abstractthesis}
+\begin{acknowledgements} ... \end{acknowledgements}
+\end{document}
+\end{lstlisting}
+
+\section{summary}
+
+\begin{lstlisting}
+\documentclass[university=polimi, master, format=summary,
+               language=english]{academicthesis}
+\thesissetup{
+  title        = {Title of the thesis},
+  candidate    = {Name Surname},
+  degree       = {Mathematical Engineering - Ingegneria Matematica},
+  supervisor   = {Prof. Name Surname},
+  cosupervisor = {Name Surname},
+  academicyear = {2025-26},
+}
+\begin{document}
+\frontpage
+\section{Introduction}
+...
+\printbibliography
+\end{document}
+\end{lstlisting}
+
+\section{phd}
+
+\begin{lstlisting}
+\documentclass[university=polimi, phd, language=english]{academicthesis}
+\polimithesissetup{paper = 17x24}            % or a4
+\thesissetup{
+  title        = {Title},
+  candidate    = {Name Surname},
+  department   = {Department of Electronics, Information and Bioengineering},
+  phdtitle     = {Doctoral Program in Information Technology},
+  supervisor   = {Prof. Name Surname},
+  tutor        = {Prof. Name Surname},
+  coordinator  = {Prof. Name Surname},
+  academicyear = {2025--2026},
+  cycle        = {XXXVIII},
+}
+\begin{document}
+\frontpage
+\frontmatter
+\begin{abstractthesis} The abstract. \end{abstractthesis}
+\tableofcontents
+\mainmatter
+\chapter{Introduction}
+...
+\end{document}
+\end{lstlisting}
+
+Complete, compilable versions: \file{showcases/example-polimi-classical.tex},
+\file{-article.tex}, \file{-summary.tex} and \file{-phd.tex}.
+
+% ======================================================================
+\chapter{Troubleshooting}
+
+\begin{longtable}{@{}L{5.2cm} L{4.2cm} L{4.6cm}@{}}
+\toprule
+\textbf{Message (abridged)} & \textbf{Cause} & \textbf{Fix} \\
+\midrule
+\endhead
+Missing required thesis metadata: `\textit{key}' & A required field is not in \cs{thesissetup} & Add it; the message shows an example. See Section~\ref{sec:data}. \\
+Missing required thesis metadata: `abstract' & \opt{format=article} without the abstract & Add \opt{abstract} (and \opt{keywords}). \\
+Missing required thesis metadata: `idnumber' & No student ID (classical, article) & Add \opt{idnumber}. \\
+Missing required thesis metadata: `department' (or `phdtitle', `cycle') & PhD cover data missing & Add it to \cs{thesissetup}. \\
+Unknown format `\textit{x}' for university `polimi' & Typo in \opt{format} & Use \opt{classical}, \opt{article}, \opt{summary} or \opt{phd}. \\
+format=phd is the PoliMi doctoral dissertation: use the `phd' degree & \opt{format=phd} with \opt{bachelor} or \opt{master} & Use the \opt{phd} degree. \\
+No front page registered for university `polimi', degree `phd' & \opt{phd} degree with another format & Use \opt{format=phd}, or leave \opt{format} out. \\
+File `academicthesis.cls' not found & \LaTeX{} cannot see the class files & Keep the line that inputs \file{academicthesis-repo-paths}, or copy the files next to the thesis (Chapter~\ref{ch:install}). \\
+Warning: The base class `article' has no chapters & \cs{chapter} in \opt{article} or \opt{summary} & Use \cs{section}. \\
+Warning: `french' \dots{} was not loaded by babel & A block with \opt{language=french} & Add \opt{french} to the \opt{other-languages} option. \\
+\bottomrule
+\end{longtable}
+
+\section*{Quick reference}
+
+\begin{lstlisting}
+\documentclass[university=polimi, bachelor|master,
+               format=classical|article|summary,
+               language=english|italian]{academicthesis}
+\documentclass[university=polimi, phd]{academicthesis}     % format=phd
+\polimithesissetup{logo-file=..., watermark=true|false,
+                   paper=17x24|a4}                           % paper: phd only
+% classical: title candidate idnumber degree supervisor(s) academicyear
+% article:   the same + abstract (keywords optional)
+% summary:   as classical, without idnumber
+% phd:       title candidate department phdtitle supervisor(s)
+%            academicyear cycle  (tutor(s), coordinator optional)
+\frontpage
+\begin{abstractthesis}[language=..., keywords=..., title=...]
+  ... \end{abstractthesis}
+\begin{acknowledgements}[language=..., title=...]
+  ... \end{acknowledgements}
+\end{lstlisting}
+
+% ######################################################################
+\guidepart{Developer guide}{For those who maintain or extend the code:
+first how the shared core works, then how the PoliMi package and its four
+formats are built on it.}
+\label{part:dev}
+
+\input{common/dev-core}
+
+% ======================================================================
+\chapter{The PoliMi package}
+\label{ch:unidev}
+
+\begin{notebox}{Origin of the layout code}
+The layout files re-implement Politecnico di Milano's official templates
+(Scuola 3I, October 2021; PhD template by J.~Stevens and L.~Fossati).
+Measurements, colours and heading styles are taken from those templates;
+when changing them, compare with the originals.
+\end{notebox}
+
+\section{Files}
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{File} & \textbf{Role} \\
+\midrule
+\file{academicthesis-polimi.cfg} & Formats, base class per format, the \opt{phd} rule, no second page, English and Italian always loaded. \\
+\file{academicthesis-polimi.sty} & \cs{polimithesissetup}, requirements per format, packages per format, reading the format's \file{.def}. \\
+\file{academicthesis-polimi-classical.def} & Classical layout. \\
+\file{academicthesis-polimi-article.def} & Article layout. \\
+\file{academicthesis-polimi-summary.def} & Executive Summary layout. \\
+\file{academicthesis-polimi-phd.def} & Doctoral dissertation layout. \\
+\file{academicthesis-polimi-english.ldf}, \file{-italian.ldf} & PoliMi wording of core strings, and PoliMi-only strings. \\
+\file{logopolimi3i.pdf}, \file{raggierapolimi.pdf}, \file{logopolimiseal.png} & Scuola 3I logo, background, PhD seal (converted from the templates). \\
+\file{academicthesis-polimi-doc.tex} & The package's own short manual. \\
+\bottomrule
+\end{tabularx}
+
+\section{The early configuration}
+
+The \file{.cfg} is where the four formats become four base classes:
+
+\begin{lstlisting}
+% the phd degree defaults to the phd format
+\bool_if:NT \g__academicthesis_phd_bool
+  { \tl_if_empty:NT \g__academicthesis_format_tl
+      { \tl_gset:Nn \g__academicthesis_format_tl { phd } } }
+\DeclareThesisFormats { classical , article , summary , phd } { classical }
+% format=phd needs the phd degree (error polimi-phd-needs-phd)
+
+\str_case:VnF \g__academicthesis_format_tl
+  {
+    { classical } { \DeclareThesisBaseClass { book }    { 12pt , twoside , a4paper } }
+    { article }   { \DeclareThesisBaseClass { article } { 11pt , a4paper } }
+    { summary }   { \DeclareThesisBaseClass { article } { 11pt , a4paper , twocolumn } }
+    { phd }       { \DeclareThesisBaseClass { book }    { 10pt , twoside , openright } }
+  }
+  { ... }
+\DeclareThesisSecondPage { false }
+\DeclareThesisOtherLanguages { english , italian }
+\end{lstlisting}
+
+Because \cs{DeclareThesisFormats} resolves the format at once, the rest of
+the file can branch on it. The core then merges these defaults with the
+user's options and loads the class.
+
+\section{The package}
+
+\paragraph{1. Options.} \cs{polimithesissetup} sets the key family
+\opt{academicthesis-polimi/layout}: \opt{logo-file} (default chosen by
+format: \opt{logopolimiseal} for \opt{phd}, \opt{logopolimi3i} otherwise),
+\opt{watermark} (the switch \cs{ifpolimi@watermark}) and \opt{paper} (runs
+\cs{polimi@paper@17x24} or \cs{polimi@paper@a4}, defined by the PhD
+layout). \cs{polimi@logofile} gives the logo to the layout files.
+
+\paragraph{2. Requirements.} On top of the core's (title, candidate,
+degree, supervisors, academic year): \opt{idnumber} for \opt{classical}
+and \opt{article}; \opt{department}, \opt{phdtitle} and \opt{cycle} for
+\opt{phd}; \opt{abstract} for \opt{article}.
+
+\paragraph{3. Packages per format,} loaded from the \file{.sty} (never from
+a \file{.def}):
+
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+\textbf{Format} & \textbf{Packages} \\
+\midrule
+\opt{classical} & \pkg{titlesec}, \pkg{caption}, \pkg{setspace}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm} \\
+\opt{article} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm}, \pkg{tcolorbox} \\
+\opt{summary} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm}, \pkg{tcolorbox} \\
+\opt{phd} & \pkg{times}, \pkg{caption}, \pkg{amsthm}, \pkg{fncychap} (Sonny), \pkg{titlesec} (calcwidth), \pkg{tocloft} (titles) \\
+\bottomrule
+\end{tabularx}
+
+\paragraph{4. The layout.} Finally the \file{.sty} reads
+\file{academicthesis-polimi-<format>.def} with the document catcodes.
+
+\section{The layout files}
+
+All four follow the same plan, in numbered sections:
+
+\begin{enumerate}
+  \item \textbf{Colour, page, paragraphs}: \opt{bluepoli}, \cs{geometry},
+    spacing, drop-cap colour.
+  \item \textbf{Captions and theorems}: the \opt{polimi} theorem style,
+    \env{theorem} and \env{proposition} (PhD: \env{defn}), labels from
+    \cs{thesisstring}.
+  \item \textbf{Headings} with \pkg{titlesec}. The classical format also
+    redefines \cs{chapter} so that starred chapters reach the table of
+    contents and the running header.
+  \item \textbf{Watermark}: the raggiera placed with \pkg{eso-pic}
+    (\cs{AddToShipoutPicture*}) on the cover, page~1 or blank pages; the
+    classical format redefines \cs{cleardoublepage} for that.
+  \item \textbf{Front page}: \cs{polimi@frontpage}, registered for the
+    degrees of that format:
+\begin{lstlisting}
+\DeclareThesisFrontPage{polimi}{bachelor}{\polimi@frontpage}
+\DeclareThesisFrontPage{polimi}{master}{\polimi@frontpage}
+% academicthesis-polimi-phd.def:
+\DeclareThesisFrontPage{polimi}{phd}{\polimi@frontpage}
+\end{lstlisting}
+  \item \textbf{Core pieces redefined}, inside
+    \verb|\AddToHook{class/academicthesis/after}{...}|: the page styles
+    \opt{Thesis} and \opt{plain}, \cs{thesisfrontchapter},
+    \cs{thesiskeywords} (the blue box in \opt{article} and \opt{summary})
+    and the acknowledgements frame.
+\end{enumerate}
+
+Metadata is read with \cs{thesismeta}, \cs{IfThesisMetaEmptyTF},
+\cs{IfThesisListEmptyTF} and \cs{IfThesisDegreeTF}; labels with
+\cs{thesisstring}.
+
+\section{Strings}
+
+\file{academicthesis-polimi-<lang>.ldf} changes the wording of core keys
+(\opt{CandidateLabel} = Author, \opt{IDNumber} = Student ID,
+\opt{SupervisorLabel} = Advisor, \opt{CoSupervisorLabel} = Co-advisor) and
+adds PoliMi keys: \opt{BachelorThesisIn}, \opt{MasterThesisIn},
+\opt{CoverAbstractLabel}, \opt{ExecutiveSummaryOfThesis},
+\opt{ExecutiveSummaryHeader}, \opt{DoctoralDissertationOf},
+\opt{PhDSupervisorLabel(s)}, \opt{TutorLabel(s)}, \opt{CoordinatorLabel},
+\opt{DefinitionLabel}, \opt{TheoremLabel}, \opt{PropositionLabel}.
+
+\section{Common changes}
+
+\begin{tabularx}{\textwidth}{@{}L{5cm} Y@{}}
+\toprule
+\textbf{To change\dots} & \textbf{Edit\dots} \\
+\midrule
+a cover or first-page block & section~5 (PhD: 4) of that format's \file{.def}. \\
+headings, captions, theorems & sections 2--3 of that format's \file{.def}. \\
+running headers, keywords, acknowledgements & the \opt{class/academicthesis/after} hook of that \file{.def}. \\
+a label's wording & \file{academicthesis-polimi-<lang>.ldf}. \\
+required fields & section~2 of the \file{.sty}. \\
+default class options of a format & the \file{.cfg}. \\
+\bottomrule
+\end{tabularx}
+
+\paragraph{Adding a format.} Add it to \cs{DeclareThesisFormats} and to
+the base-class switch in the \file{.cfg}, list its packages in the
+\file{.sty}, and write \file{academicthesis-polimi-<format>.def} with its
+front page registered by \cs{DeclareThesisFrontPage}.
+
+% ======================================================================
+\chapter*{Licence and credits}
+\addcontentsline{toc}{chapter}{Licence and credits}
+
+\pkg{academicthesis} is released under the \LaTeX{} Project Public Licence
+(LPPL) 1.3c or later; copyright 2025--2026 Luca Salvatore.
+
+The layouts of the PoliMi package are based on the official \LaTeX{}
+templates of Politecnico di Milano: the Scuola 3I thesis templates
+(classical format, article format, Executive Summary; revision of October
+2021) and the PoliMi doctoral dissertation template by J.~Stevens and
+L.~Fossati. Their design, and the Politecnico di Milano name, logos, seal
+and graphic elements, belong to Politecnico di Milano and to the
+templates' authors. \pkg{academicthesis} is not published by Politecnico
+di Milano: before submitting, check the current rules of your school or
+doctoral programme.
+
+\end{document}
