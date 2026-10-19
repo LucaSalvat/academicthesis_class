@@ -84,6 +84,9 @@ Part II explains the code, for those who want to change it.
 > format, Executive Summary) and the PoliMi doctoral dissertation template
 > by J. Stevens and L. Fossati. Their design, logos and graphic elements
 > belong to Politecnico di Milano and to the templates' authors.
+> For this reason the PoliMi package has its own licence,
+> [LICENSE-POLIMI.md](LICENSE-POLIMI.md) (CC BY-NC), separate from the
+> LPPL of the rest of the repository.
 
 ### Università Bocconi
 
@@ -208,6 +211,15 @@ and [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md), explain how.
 
 ## License
 
+The repository uses **two licences**, both in this folder:
+
+| What | Licence | File |
+| --- | --- | --- |
+| Everything except `universities/polimi/`: the core, the languages, the LUISS and Bocconi packages, the showcases and the user guides | LaTeX Project Public License 1.3c or later | [LICENSE](LICENSE) |
+| `universities/polimi/`, the Politecnico di Milano package | Creative Commons Attribution-NonCommercial (CC BY-NC), the terms of the official PoliMi templates it adapts | [LICENSE-POLIMI.md](LICENSE-POLIMI.md) |
+
+### LPPL part
+
 Copyright 2025–2026 Luca Salvatore.
 
 This work may be distributed and/or modified under the conditions of the
@@ -216,10 +228,19 @@ your option) any later version. The license is in [LICENSE](LICENSE) and at
 <https://www.latex-project.org/lppl.txt>.
 
 This work has the LPPL maintenance status `maintained`. The Current
-Maintainer of this work is Luca Salvatore.
+Maintainer of this work is Luca Salvatore. This work consists of all the
+files of this repository except those in `universities/polimi/`.
+
+### Politecnico di Milano part
+
+The PoliMi package adapts the official LaTeX templates of Politecnico di
+Milano (see [above](#politecnico-di-milano)) and is distributed under their
+CC BY-NC terms: credit to Politecnico di Milano and the template authors,
+and no commercial use. See [LICENSE-POLIMI.md](LICENSE-POLIMI.md).
+
+### Names and logos
 
 University names, logos and graphic elements belong to their respective
-universities. The Politecnico di Milano layouts are based on the official
-Politecnico di Milano templates (see [above](#politecnico-di-milano)).
-academicthesis is not published by any of the universities it supports;
-always check your university's current rules before submitting a thesis.
+universities and are not licensed by this project. academicthesis is not
+published by any of the universities it supports; always check your
+university's current rules before submitting a thesis.
