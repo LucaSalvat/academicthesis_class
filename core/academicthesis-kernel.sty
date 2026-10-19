@@ -158,6 +158,9 @@
     website      .code:n = { \academicthesis_meta_set:nn { website }      {#1} } ,
     cycle        .code:n = { \academicthesis_meta_set:nn { cycle }        {#1} } ,
     phdtitle     .code:n = { \academicthesis_meta_set:nn { phdtitle }     {#1} } ,
+    % text of the dedication page, for front pages that place it
+    % themselves (e.g. Bocconi); \dedication{...} is unaffected
+    dedication   .code:n = { \academicthesis_meta_set:nn { dedication }   {#1} } ,
     % for front pages that print the abstract themselves (e.g. PoliMi
     % article format); the abstractthesis environment is unaffected
     abstract     .code:n = { \academicthesis_meta_set:nn { abstract }     {#1} } ,
@@ -483,6 +486,41 @@
 \bool_gset_true:N \g__academicthesis_secondpage_default_bool
 \NewDocumentCommand \DeclareThesisSecondPage { m }
   { \bool_gset:Nn \g__academicthesis_secondpage_default_bool { \use:c { c_ #1 _bool } } }
+
+% \DeclareThesisClassOption{<name>}{<default>}
+%   Claims a \documentclass option for the university, e.g.
+%   \DeclareThesisClassOption{simil_frontpages}{false}. Its value is what
+%   the user typed (`name' alone means `true'), else <default>; it is not
+%   passed on to the base class. Read it with
+%   \academicthesis_class_option:n{<name>} (expandable) or, in normal
+%   syntax, \thesisclassoption{<name>}.
+\prop_new:N  \g__academicthesis_extra_options_prop     % every unknown option
+\prop_new:N  \g__academicthesis_class_options_prop     % claimed ones, resolved
+\clist_new:N \g__academicthesis_claimed_options_clist
+\NewDocumentCommand \DeclareThesisClassOption { m m }
+  {
+    \clist_gput_right:Nn \g__academicthesis_claimed_options_clist { #1 }
+    \prop_get:NnNTF \g__academicthesis_extra_options_prop { #1 } \l__academicthesis_tmp_tl
+      {
+        \tl_if_blank:VT \l__academicthesis_tmp_tl
+          { \tl_set:Nn \l__academicthesis_tmp_tl { true } }
+        \prop_gput:NnV \g__academicthesis_class_options_prop { #1 } \l__academicthesis_tmp_tl
+      }
+      { \prop_gput:Nnn \g__academicthesis_class_options_prop { #1 } { #2 } }
+  }
+\cs_new:Npn \academicthesis_class_option:n #1
+  { \prop_item:Nn \g__academicthesis_class_options_prop { #1 } }
+\NewExpandableDocumentCommand \thesisclassoption { m }
+  { \academicthesis_class_option:n { #1 } }
+
+% \DeclareThesisCoreRequirements{true|false}
+%   Whether the core checks its own required fields (title, candidate,
+%   academicyear, degree, supervisors). Default true. The university's
+%   own \DeclareThesisRequirement entries are checked either way.
+\bool_new:N \g__academicthesis_core_requirements_bool
+\bool_gset_true:N \g__academicthesis_core_requirements_bool
+\NewDocumentCommand \DeclareThesisCoreRequirements { m }
+  { \bool_gset:Nn \g__academicthesis_core_requirements_bool { \use:c { c_ #1 _bool } } }
 
 % \DeclareThesisOtherLanguages{<languages>}
 %   Extra languages to load with babel/polyglossia besides the main one

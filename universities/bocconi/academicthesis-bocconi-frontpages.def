@@ -1,0 +1,61 @@
+%%
+%% academicthesis-bocconi-frontpages.def
+%% --------------------------------------------------------------
+%% Bocconi opening pages, bachelor and master (one file: the two differ
+%% only in small details of the simil front page).
+%%
+%% Read by academicthesis-bocconi.sty with NORMAL LaTeX syntax (expl3 off).
+%%
+%% simil_frontpages=false (default):
+%%   page 1-2  blank (the university adds the official front page here)
+%%   page 3    dedication page: \thesissetup{dedication={...}}, or blank
+%%   page 4    blank (back of the dedication page)
+%%   then the thesis, as for LUISS
+%%
+%% simil_frontpages=true:
+%%   the printed (simil) front page instead of the two blank pages
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-bocconi-frontpages.def}[2026/10/19 v0.1.0 Bocconi opening pages]
+\makeatletter
+
+\newcommand\bocconi@emptypage{%
+  \null
+  \thispagestyle{empty}%
+  \newpage}
+
+% Always present: the dedication, or an empty page, then its blank back
+\newcommand\bocconi@dedicationpage{%
+  \thispagestyle{empty}%
+  \IfThesisMetaEmptyTF{dedication}
+    {\null}
+    {\null\vspace{\stretch{0.26}}%
+     \begin{flushright}\textit{\thesismeta{dedication}}\end{flushright}%
+     \vspace{\stretch{0.74}}\null}%
+  \newpage
+  \bocconi@emptypage}
+
+% The simil front page (simil_frontpages=true)
+\newcommand\bocconi@similfrontpage{%
+  \PackageError{academicthesis-bocconi}
+    {The simil front page (simil_frontpages=true) is not available yet}
+    {Its layout is still to be defined; two blank pages are used instead.}%
+  \bocconi@emptypage
+  \bocconi@emptypage}
+
+\newcommand\bocconi@frontpage{%
+  % letters for these pages, so their numbers never clash with the
+  % front matter's (\frontmatter switches to roman numerals)
+  \pagenumbering{Alph}%
+  \ifbocconi@simil
+    \bocconi@similfrontpage
+  \else
+    \bocconi@emptypage
+    \bocconi@emptypage
+  \fi
+  \bocconi@dedicationpage}
+
+\DeclareThesisFrontPage{bocconi}{bachelor}{\bocconi@frontpage}
+\DeclareThesisFrontPage{bocconi}{master}{\bocconi@frontpage}
+
+\makeatother
+\endinput

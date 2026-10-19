@@ -1,0 +1,39 @@
+% !TEX TS-program = pdflatex
+% Example: a Bocconi bachelor's thesis using the modular academicthesis
+% class + academicthesis-bocconi plugin, without a printed front page
+% (simil_frontpages=false, the default): two blank pages for the official
+% front page, the dedication page and its blank back, then the thesis.
+% Finds the packages in ../core, ../languages, ../universities (any editor).
+\input{academicthesis-repo-paths}
+\documentclass[university=bocconi, bachelor, language=english, twoside]{academicthesis}
+
+% With simil_frontpages=false no field is required; the dedication is
+% printed on page 3 (leave it out and page 3 stays blank).
+\thesissetup{
+  dedication = {To everyone who has ever fought with a \LaTeX{} class file.},
+}
+
+\begin{document}
+
+\frontpage
+
+\frontmatter
+\begin{abstractthesis}
+  A short abstract of the thesis.
+\end{abstractthesis}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+Hello, Bocconi!
+
+\chapter{Conclusion}
+It compiles.
+
+\backmatter
+\begin{acknowledgements}
+  Thanks to everyone who helped.
+\end{acknowledgements}
+
+\end{document}

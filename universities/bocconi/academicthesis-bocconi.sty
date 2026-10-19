@@ -1,0 +1,61 @@
+%%
+%% academicthesis-bocconi.sty
+%% --------------------------------------------------------------
+%% Università Bocconi plugin for the academicthesis class family.
+%%
+%%   \documentclass[university=bocconi, bachelor]{academicthesis}
+%%   \documentclass[university=bocconi, master, simil_frontpages=true]{academicthesis}
+%%
+%% Files:
+%%   academicthesis-bocconi.cfg             base class, simil_frontpages option
+%%   academicthesis-bocconi.sty             this file: requirements, loads the pages
+%%   academicthesis-bocconi-frontpages.def  the opening pages, bachelor and
+%%                                          master (normal LaTeX syntax)
+%%
+%% After the opening pages the thesis looks like the LUISS one: same base
+%% class, page styles and front-matter blocks, all from the core.
+%%--------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\ProvidesExplPackage{academicthesis-bocconi}{2026/10/19}{0.1.0}
+  {Universita Bocconi layouts for the academicthesis class}
+
+\RequirePackage{academicthesis-kernel}
+
+% =====================================================================
+% 1. simil_frontpages, readable from the layout file
+% =====================================================================
+\newif \ifbocconi@simil
+\bool_if:NT \g__bocconi_simil_bool { \bocconi@similtrue }
+
+% =====================================================================
+% 2. Required metadata: only with a simil front page, as for LUISS
+%    (the core's own checks are switched off in the .cfg otherwise)
+% =====================================================================
+\bool_if:NT \g__bocconi_simil_bool
+  {
+    \DeclareThesisRequirement { bocconi } \g__academicthesis_bachelor_bool { chair }
+      { \thesissetup{chair=The~Chair} }
+    \DeclareThesisRequirement { bocconi } \g__academicthesis_master_bool { chair }
+      { \thesissetup{chair=The~Chair} }
+  }
+
+% =====================================================================
+% 3. The opening pages (one file for bachelor and master)
+% =====================================================================
+% Typesetting code lives in a .def read with normal catcodes (spaces and
+% blank lines behave as usual); it must not load packages.
+% (inside a function: \cctab_begin:N must not change the catcodes of the
+% lines that follow it in this file)
+\cs_new_protected:Npn \__bocconi_input_layout:n #1
+  {
+    \cctab_begin:N \c_document_cctab
+      \file_input:n { academicthesis-bocconi-#1.def }
+    \cctab_end:
+  }
+\__bocconi_input_layout:n { frontpages }
+
+\ExplSyntaxOff
+\endinput

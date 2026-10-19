@@ -42,6 +42,9 @@
 % and, if ever desired, from \PassOptionsToClass / a wrapper package.
 
 \clist_new:N \l__academicthesis_classoptions_clist
+\clist_new:N \l__academicthesis_tmp_clist
+\clist_new:N \l__academicthesis_kept_clist
+\seq_new:N   \l__academicthesis_tmp_seq
 \tl_new:N \l__academicthesis_classoptions_tl
 
 % `secondpage' as typed by the user: empty = not given, so the
@@ -117,9 +120,14 @@
     biblatex-options .tl_set:N = \l__academicthesis_biblatex_options_tl ,
 
     % --- anything else: forward to the base class (book, article...) -
+    % (also remembered with its value, so a university can claim it as
+    % its own option with \DeclareThesisClassOption; claimed options are
+    % not passed on to the base class)
     unknown .code:n =
       {
         \clist_put_right:NV \l__academicthesis_classoptions_clist \l_keys_key_str
+        \exp_args:NNVV \prop_gput:Nnn \g__academicthesis_extra_options_prop
+          \l_keys_key_str \l_keys_value_tl
       } ,
   }
 
@@ -153,6 +161,25 @@
   {
     \bool_gset_eq:NN \g__academicthesis_secondpage_bool
       \g__academicthesis_secondpage_default_bool
+  }
+
+% Options claimed by the university (\DeclareThesisClassOption) belong to
+% it, not to the base class.
+% (compared as strings: catcodes of `_' differ between the sources)
+\bool_new:N \l__academicthesis_claimed_bool
+\cs_new_protected:Npn \__academicthesis_if_claimed:nTF #1 #2 #3
+  {
+    \bool_set_false:N \l__academicthesis_claimed_bool
+    \clist_map_inline:Nn \g__academicthesis_claimed_options_clist
+      { \str_if_eq:nnT { ##1 } { #1 } { \bool_set_true:N \l__academicthesis_claimed_bool } }
+    \bool_if:NTF \l__academicthesis_claimed_bool { #2 } { #3 }
+  }
+\clist_set_eq:NN \l__academicthesis_tmp_clist \l__academicthesis_classoptions_clist
+\clist_clear:N \l__academicthesis_classoptions_clist
+\clist_map_inline:Nn \l__academicthesis_tmp_clist
+  {
+    \__academicthesis_if_claimed:nTF { #1 } { }
+      { \clist_put_right:Nn \l__academicthesis_classoptions_clist { #1 } }
   }
 
 % Base-class options = university defaults + what the user typed. A
@@ -211,6 +238,23 @@
 \cs_generate_variant:Nn \__academicthesis_load_class:nn { VV }
 \__academicthesis_load_class:VV
   \l__academicthesis_classoptions_tl \g__academicthesis_baseclass_tl
+
+% Claimed options were not for the base class: drop them from LaTeX's
+% "Unused global option(s)" list (entries are `name' or `name=value').
+\clist_if_empty:NF \g__academicthesis_claimed_options_clist
+  {
+    \clist_set:Nx \l__academicthesis_tmp_clist { \@unusedoptionlist }
+    \clist_clear:N \l__academicthesis_kept_clist
+    \clist_map_inline:Nn \l__academicthesis_tmp_clist
+      {
+        \seq_set_split:Nnn \l__academicthesis_tmp_seq { = } { #1 }
+        \exp_args:Ne \__academicthesis_if_claimed:nTF
+          { \seq_item:Nn \l__academicthesis_tmp_seq { 1 } }
+          { }
+          { \clist_put_right:Nn \l__academicthesis_kept_clist { #1 } }
+      }
+    \cs_gset:Npx \@unusedoptionlist { \clist_use:Nn \l__academicthesis_kept_clist { , } }
+  }
 
 \academicthesis_meta_set:nn { uni-option-string } { \l__academicthesis_classoptions_tl }
 
@@ -739,6 +783,15 @@
 % =====================================================================
 \NewDocumentCommand \__academicthesis_check_metadata: { }
   {
+    % A university may switch the core checks off (\DeclareThesisCoreRequirements),
+    % e.g. Bocconi without a front page; its own requirements still run.
+    \bool_if:NT \g__academicthesis_core_requirements_bool
+      { \__academicthesis_check_core_metadata: }
+    % Plugin-specific requirements (e.g. LUISS PhD wants cycle/department)
+    \__academicthesis_run_requirements:
+  }
+\NewDocumentCommand \__academicthesis_check_core_metadata: { }
+  {
     \academicthesis_require:nn {title}        { \thesissetup{title=My~Thesis~Title} }
     \academicthesis_require:nn {candidate}    { \thesissetup{candidate=Your~Name} }
     \academicthesis_require:nn {academicyear} { \thesissetup{academicyear=20XX/20XX} }
@@ -755,9 +808,6 @@
 
     \academicthesis_require_if:Nnn \l__academicthesis_discussion_bool {examdate}
       { \thesissetup{examdate=29~October~2026} }
-
-    % Plugin-specific requirements (e.g. LUISS PhD wants cycle/department)
-    \__academicthesis_run_requirements:
   }
 
 \AtBeginDocument{ \__academicthesis_check_metadata: }

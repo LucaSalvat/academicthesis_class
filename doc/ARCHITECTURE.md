@@ -35,6 +35,10 @@ academicthesis_class/
 │   │   ├── academicthesis-luiss-phd.def              PhD front page
 │   │   ├── logoluissblue.pdf
 │   │   └── luiss.pdf
+│   ├── bocconi/
+│   │   ├── academicthesis-bocconi.cfg   Base class, simil_frontpages option
+│   │   ├── academicthesis-bocconi.sty   Requirements, loads the opening pages
+│   │   └── academicthesis-bocconi-frontpages.def  Opening pages (bachelor + master)
 │   └── polimi/
 │       ├── academicthesis-polimi.cfg  Formats + base class per format
 │       ├── academicthesis-polimi.sty  Options, requirements, loads the format
@@ -49,6 +53,7 @@ academicthesis_class/
 ├── showcases/                      Example documents / proofs
 │   ├── example-luiss-bachelor.tex
 │   ├── example-luiss-phd.tex
+│   ├── example-bocconi-bachelor.tex
 │   ├── example-polimi-classical.tex
 │   ├── example-polimi-article.tex
 │   ├── example-polimi-summary.tex
@@ -156,6 +161,8 @@ kernel commands (and expl3 logic, e.g. to branch on the format):
 | `\DeclareThesisFormats{<formats>}{<default>}` | Values accepted by `format=`. Resolved immediately, so the rest of the file can read `\g__academicthesis_format_tl`. A university that declares none rejects `format=`. |
 | `\DeclareThesisSecondPage{true\|false}` | Default for the second page; the user can always override it with `secondpage` / `no-secondpage`. |
 | `\DeclareThesisOtherLanguages{<langs>}` | Extra babel/polyglossia languages (e.g. PoliMi always needs Italian). |
+| `\DeclareThesisClassOption{<name>}{<default>}` | Claims a `\documentclass` option for the university (e.g. Bocconi's `simil_frontpages`); `name` alone means `true`. It is not passed to the base class. Read it with `\academicthesis_class_option:n{<name>}` or `\thesisclassoption{<name>}`. |
+| `\DeclareThesisCoreRequirements{true\|false}` | Whether the core checks title, candidate, academic year, degree, supervisors (default true). The university's own requirements are checked either way. |
 
 ```
 \documentclass[university=polimi, master, format=classical]{academicthesis}
