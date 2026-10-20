@@ -25,15 +25,12 @@
 %% variables directly. That is what keeps core and plugins decoupled.
 %%--------------------------------------------------------------
 
-\NeedsTeXFormat{LaTeX2e}
-\RequirePackage{expl3}
-\RequirePackage{xparse}
-\ProvidesExplPackage{academicthesis-kernel}{2026/01/01}{0.1.0}
+% expl3, xparse and key-value option processing are part of the LaTeX
+% kernel; the date is the oldest format the bundle is tested with (e-type
+% variants such as \tl_set:Ne, \cctab_select:N, class hooks).
+\NeedsTeXFormat{LaTeX2e}[2023-06-01]
+\ProvidesExplPackage{academicthesis-kernel}{2026/10/20}{0.2.0}
   {Shared internals for the academicthesis class family}
-
-\RequirePackage{l3keys2e}
-
-\ExplSyntaxOn
 
 % =====================================================================
 % 1. Messages
@@ -83,6 +80,7 @@
 % extension uniform and easy to reason about.
 
 \prop_new:N \g__academicthesis_meta_prop
+\tl_new:N \l__academicthesis_tmp_tl
 
 \cs_new_protected:Npn \academicthesis_meta_set:nn #1 #2
   { \prop_gput:Nnn \g__academicthesis_meta_prop { #1 } { #2 } }
@@ -93,17 +91,13 @@
     \prop_item:Nn \g__academicthesis_meta_prop { #1 }
   }
 
-\prop_new:N \l__academicthesis_tmp_prop
-
+% Expandable getter with a fallback for a key that was never set.
 \cs_new:Npn \academicthesis_meta_get:nF #1 #2
   {
-    \prop_get:NnNTF \g__academicthesis_meta_prop { #1 } \l__academicthesis_tmp_tl
-      { \tl_use:N \l__academicthesis_tmp_tl }
+    \prop_if_in:NnTF \g__academicthesis_meta_prop { #1 }
+      { \prop_item:Nn \g__academicthesis_meta_prop { #1 } }
       { #2 }
   }
-\tl_new:N \l__academicthesis_tmp_tl
-
-\prop_new:N \g__academicthesis_meta_prop_aux % (placeholder kept for clarity)
 
 % Expandable (p, T, F, TF): \prop_item:Nn is expandable, unlike
 % \prop_get:NnNTF, which assigns and so cannot be used inside a predicate
@@ -137,35 +131,43 @@
 % =====================================================================
 % 3. l3keys interface behind \thesissetup{...}
 % =====================================================================
-% Base (university-agnostic) keys. University plugins add their own
-% keys in their OWN namespaces (see \DeclareThesisKey below) so that
-% e.g. `major` from academicthesis-luiss can never collide with a key
-% of the same name from academicthesis-bocconi.
-
-\keys_define:nn { academicthesis / meta }
+% Every key stores its value under its own name in the metadata store.
+% University packages read the same names (major, phdtitle, ...); a
+% concept only one university knows can still be added from its package
+% with \academicthesis_meta_set:nn under a prefixed name.
+\clist_const:Nn \c__academicthesis_meta_keys_clist
   {
-    title        .code:n = { \academicthesis_meta_set:nn { title }        {#1} } ,
-    subtitle     .code:n = { \academicthesis_meta_set:nn { subtitle }     {#1} } ,
-    candidate    .code:n = { \academicthesis_meta_set:nn { candidate }    {#1} } ,
-    degree       .code:n = { \academicthesis_meta_set:nn { degree }       {#1} } ,
-    chair        .code:n = { \academicthesis_meta_set:nn { chair }        {#1} } ,
-    department   .code:n = { \academicthesis_meta_set:nn { department }   {#1} } ,
-    academicyear .code:n = { \academicthesis_meta_set:nn { academicyear } {#1} } ,
-    idnumber     .code:n = { \academicthesis_meta_set:nn { idnumber }     {#1} } ,
-    copyyear     .code:n = { \academicthesis_meta_set:nn { copyyear }     {#1} } ,
-    examdate     .code:n = { \academicthesis_meta_set:nn { examdate }     {#1} } ,
-    authoremail  .code:n = { \academicthesis_meta_set:nn { authoremail }  {#1} } ,
-    website      .code:n = { \academicthesis_meta_set:nn { website }      {#1} } ,
-    cycle        .code:n = { \academicthesis_meta_set:nn { cycle }        {#1} } ,
-    phdtitle     .code:n = { \academicthesis_meta_set:nn { phdtitle }     {#1} } ,
+    title , subtitle , candidate , degree , chair , department ,
+    academicyear , idnumber , copyyear , examdate , authoremail , website ,
+    cycle , phdtitle , major , coordinator ,
     % text of the dedication page, for front pages that place it
     % themselves (e.g. Bocconi); \dedication{...} is unaffected
-    dedication   .code:n = { \academicthesis_meta_set:nn { dedication }   {#1} } ,
-    major        .code:n = { \academicthesis_meta_set:nn { major }        {#1} } ,
+    dedication ,
     % for front pages that print the abstract themselves (e.g. PoliMi
     % article format); the abstractthesis environment is unaffected
-    abstract     .code:n = { \academicthesis_meta_set:nn { abstract }     {#1} } ,
-    keywords     .code:n = { \academicthesis_meta_set:nn { keywords }     {#1} } ,
+    abstract , keywords ,
+  }
+\clist_map_inline:Nn \c__academicthesis_meta_keys_clist
+  {
+    \keys_define:nn { academicthesis / meta }
+      { #1 .code:n = { \academicthesis_meta_set:nn { #1 } { ##1 } } }
+  }
+
+% List-valued fields (see \S4): `<name>' replaces the list with one
+% entry, `<name>s' with a comma-separated list. Examiners are always
+% given as a list.
+\clist_map_inline:nn { supervisor , cosupervisor , tutor }
+  {
+    \keys_define:nn { academicthesis / meta }
+      {
+        #1  .code:n = { \academicthesis_list_set:nn     { #1s } { ##1 } } ,
+        #1s .code:n = { \academicthesis_list_set_csv:nn { #1s } { ##1 } } ,
+      }
+  }
+\keys_define:nn { academicthesis / meta }
+  {
+    examiner      .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
+    examiners     .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
 
     %  Booleans / enumerations -----------------------------------
     gender       .choice: ,
@@ -173,20 +175,6 @@
     gender / female .code:n = { \bool_gset_true:N  \g__academicthesis_female_bool } ,
     gender / m      .code:n = { \bool_gset_false:N \g__academicthesis_female_bool } ,
     gender / f      .code:n = { \bool_gset_true:N  \g__academicthesis_female_bool } ,
-    gender .groups:n = { female-aware } ,
-
-    %  List-valued fields (see \S4) -------------------------------
-    supervisor    .code:n = { \academicthesis_list_set:nn   { supervisors }   {#1} } ,
-    supervisors   .code:n = { \academicthesis_list_set_csv:nn { supervisors } {#1} } ,
-    cosupervisor  .code:n = { \academicthesis_list_set:nn   { cosupervisors } {#1} } ,
-    cosupervisors .code:n = { \academicthesis_list_set_csv:nn { cosupervisors } {#1} } ,
-    examiner      .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
-    examiners     .code:n = { \academicthesis_list_set_csv:nn { examiners } {#1} } ,
-    % PhD roles (e.g. PoliMi): tutor(s), and the coordinator / chair of
-    % the doctoral programme
-    tutor         .code:n = { \academicthesis_list_set:nn   { tutors } {#1} } ,
-    tutors        .code:n = { \academicthesis_list_set_csv:nn { tutors } {#1} } ,
-    coordinator  .code:n = { \academicthesis_meta_set:nn { coordinator }  {#1} } ,
   }
 
 \bool_new:N \g__academicthesis_female_bool
@@ -205,31 +193,23 @@
 % Convenience "verb" commands kept for users who prefer the classic
 % \thtitle{..}/\candidate{..} style instead of \thesissetup{title=..}.
 % They are thin wrappers around the SAME key-value engine, so both
-% styles always stay in sync.
+% styles always stay in sync. (No \title, \abstract, \keywords or
+% \dedication: those names belong to LaTeX, the base class or the core.)
 \cs_new_protected:Npn \__academicthesis_def_setter:nn #1 #2
   {
     \exp_args:Nc \NewDocumentCommand { #2 } { m }
-      { \keys_set:nn { academicthesis / meta } { #1 = ##1 } }
+      { \keys_set:nn { academicthesis / meta } { #1 = { ##1 } } }
   }
-\__academicthesis_def_setter:nn { title }        { thtitle }
-\__academicthesis_def_setter:nn { subtitle }     { thsubtitle }
-\__academicthesis_def_setter:nn { candidate }    { candidate }
-\__academicthesis_def_setter:nn { degree }       { degree }
-\__academicthesis_def_setter:nn { chair }        { chair }
-\__academicthesis_def_setter:nn { department }   { department }
-\__academicthesis_def_setter:nn { academicyear } { academicyear }
-\__academicthesis_def_setter:nn { idnumber }     { idnumber }
-\__academicthesis_def_setter:nn { copyyear }     { copyyear }
-\__academicthesis_def_setter:nn { examdate }     { examdate }
-\__academicthesis_def_setter:nn { authoremail }  { authoremail }
-\__academicthesis_def_setter:nn { website }      { website }
-\__academicthesis_def_setter:nn { cycle }        { cycle }
-\__academicthesis_def_setter:nn { gender }       { gender }
-\__academicthesis_def_setter:nn { supervisor }   { supervisor }
-\__academicthesis_def_setter:nn { supervisors }  { supervisors }
-\__academicthesis_def_setter:nn { cosupervisor }  { cosupervisor }
-\__academicthesis_def_setter:nn { cosupervisors } { cosupervisors }
-\__academicthesis_def_setter:nn { examiner }     { examiner }
+\__academicthesis_def_setter:nn { title }    { thtitle }
+\__academicthesis_def_setter:nn { subtitle } { thsubtitle }
+\clist_map_inline:nn
+  {
+    candidate , degree , chair , department , academicyear , idnumber ,
+    copyyear , examdate , authoremail , website , cycle , phdtitle , major ,
+    coordinator , gender , supervisor , supervisors , cosupervisor ,
+    cosupervisors , tutor , tutors , examiner , examiners
+  }
+  { \__academicthesis_def_setter:nn { #1 } { #1 } }
 
 
 % =====================================================================
@@ -539,13 +519,8 @@
 % that makes the family genuinely modular: the core ships with ZERO
 % built-in knowledge of LUISS, Bocconi, LUMSA, etc.
 
-% NOTE: \RequirePackage is safe to call here while \ExplSyntaxOn is in
-% effect -- this is the same pattern other expl3-based packages use
-% (e.g. acro.sty calls \RequirePackage{translations} from inside its own
-% \ExplSyntaxOn block and never restores the standard regime). Toggling
-% \ExplSyntaxOff/\ExplSyntaxOn around the load is unnecessary and was
-% found, empirically, to corrupt expl3's internal state-tracking and
-% hang a later \ExplSyntaxOn call -- so we deliberately do not do that.
+% \RequirePackage is safe here with expl3 syntax on: LaTeX reads each
+% package with its own catcodes and restores ours afterwards.
 % Early configuration: academicthesis-<uni>.cfg is read by the class
 % BEFORE \LoadClass, so it may only use the \Declare... commands of
 % \S5 (base class, formats, second page, other languages) and plain
@@ -587,6 +562,20 @@
     \IfFileExists { academicthesis-#1.sty }
       { \RequirePackage { academicthesis-#1 } }
       { \msg_error:nnn { academicthesis } { unknown-university } { #1 } }
+  }
+
+% Layout files: university packages keep the code that TYPESETS (front
+% pages, heading formats, page styles) in .def files read with the
+% normal document catcodes, so spaces and blank lines behave as in a
+% document. \cctab_begin:N switches catcodes without a group, so the
+% definitions stay visible. A layout file must not load packages: the
+% package that reads it loads them first.
+%   \academicthesis_input_layout:n { academicthesis-<uni>-<name>.def }
+\cs_new_protected:Npn \academicthesis_input_layout:n #1
+  {
+    \cctab_begin:N \c_document_cctab
+      \file_input:n { #1 }
+    \cctab_end:
   }
 
 
@@ -747,5 +736,4 @@
     \group_end:
   }
 
-\ExplSyntaxOff
 \endinput

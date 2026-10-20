@@ -1,0 +1,108 @@
+%%
+%% academicthesis-polimi-common.def
+%% --------------------------------------------------------------
+%% Pieces shared by the PoliMi Scuola 3I layouts (classical, article,
+%% summary): colour, theorem style, heading formats, the "raggiera"
+%% watermark, the blue box and the thesis-type line.
+%%
+%% Read by academicthesis-polimi.sty with NORMAL LaTeX syntax (expl3
+%% off), before the format's own .def. No package may be loaded from
+%% here: the ones these pieces need are loaded by the .sty.
+%%--------------------------------------------------------------
+\ProvidesFile{academicthesis-polimi-common.def}[2026/10/20 v0.1.0 PoliMi shared layout pieces]
+\makeatletter
+
+% =====================================================================
+% 1. Colour
+% =====================================================================
+\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
+\colorlet{bluePoli}{bluepoli} % the name used by the official template
+
+\renewcommand{\LettrineFontHook}{\color{bluepoli}}
+
+% =====================================================================
+% 2. Theorems: blue bold heads, italic text
+% =====================================================================
+% \polimi@theorems{<counter within>}: theorem and proposition,
+% numbered within chapters (classical) or sections (article, summary)
+\newtheoremstyle{polimi}
+  {\topsep}{\topsep}
+  {\normalfont\itshape}{}
+  {\color{bluepoli}\normalfont\bfseries}{.}
+  { }{}
+\newcommand\polimi@theorems[1]{%
+  \theoremstyle{polimi}%
+  \newtheorem{theorem}{\thesisstring{TheoremLabel}}[#1]%
+  \newtheorem{proposition}{\thesisstring{PropositionLabel}}[#1]}
+
+% =====================================================================
+% 3. Headings:  "1.1. Section title" (spacing set by each format)
+% =====================================================================
+\titleformat{\section}
+  {\color{bluepoli}\normalfont\Large\bfseries}
+  {\color{bluepoli}\thesection.}{1em}{}
+\titleformat{\subsection}
+  {\color{bluepoli}\normalfont\large\bfseries}
+  {\color{bluepoli}\thesubsection.}{1em}{}
+
+% =====================================================================
+% 4. Watermark ("raggiera") at 40% opacity
+% =====================================================================
+% \polimi@watermark{<x>}{<y>}{<width as a fraction of \paperwidth>}
+% for \AddToShipoutPicture*; (x, y) offsets the centred picture
+\newcommand\polimi@watermark[3]{%
+  \put(#1,#2){%
+    \parbox[b][\paperheight]{\paperwidth}{%
+      \vfill
+      \centering
+      \transparent{0.4}%
+      \includegraphics[width=#3\paperwidth]{raggierapolimi}%
+      \vfill}}}
+
+% =====================================================================
+% 5. Blue box: white text on bluepoli!60, full text width
+% =====================================================================
+% (the official template draws it with tcolorbox; a \colorbox gives the
+% same box without loading TikZ: 5mm side and 3mm top/bottom padding,
+% baseline at the bottom edge)
+\newcommand\polimi@bluebox[1]{%
+  \begingroup
+  \setlength{\fboxsep}{0pt}%
+  \colorbox{bluepoli!60}{%
+    \begin{minipage}[b]{\linewidth}
+      \color{white}%
+      \setlength{\parindent}{0pt}%
+      \leftskip=5mm \rightskip=5mm
+      \vspace*{3mm}%
+      #1\par
+      \vspace*{3mm}%
+    \end{minipage}}%
+  \endgroup}
+
+% \polimi@blueboxpar{<text>}: the box as a paragraph of its own, spaced
+% as the template's tcolorbox (half a line above and below, measured
+% from the text lines around it)
+\newcommand\polimi@blueboxpar[1]{%
+  \par
+  \ifdim\prevdepth<\z@
+    \addvspace{\glueexpr 0.5\baselineskip plus 2pt - \parskip\relax}%
+  \else\ifdim\prevdepth>.3\baselineskip
+    \addvspace{\glueexpr 0.5\baselineskip plus 2pt - \parskip\relax}%
+  \else
+    \addvspace{\glueexpr 0.8\baselineskip plus 2pt - \prevdepth - \parskip\relax}%
+  \fi\fi
+  \nointerlineskip
+  {\lineskip\z@skip\noindent\polimi@bluebox{#1}\par}%
+  \prevdepth=.3\baselineskip
+  \addvspace{\glueexpr 0.5\baselineskip plus 2pt - \parskip\relax}}
+
+% =====================================================================
+% 6. "Bachelor's / Master's Thesis in"
+% =====================================================================
+\newcommand\polimi@thesistype{%
+  \IfThesisDegreeTF{bachelor}
+    {\thesisstring{BachelorThesisIn}}
+    {\thesisstring{MasterThesisIn}}}
+
+\makeatother
+\endinput

@@ -1,23 +1,9 @@
 %%
 %% academicthesis-bocconi-italian.ldf
-%% Labels of the Bocconi (simil) front page. The official page is
-%% bilingual, so the italian file has the same Italian / English text.
-%% Core keys keep their core name and only change their text.
+%% Bocconi front-page strings. The official front page is bilingual,
+%% so the Italian strings are the same Italian / English text as the
+%% English ones: this file reads academicthesis-bocconi-english.ldf.
 %%--------------------------------------------------------------
-\ProvidesFile{academicthesis-bocconi-italian.ldf}[2026/10/19 v0.1.0 Bocconi strings]
-
-% core keys, Bocconi wording
-\ProvideThesisString{SupervisorLabel}{Relatore / Advisor}
-\ProvideThesisString{SupervisorsLabel}{Relatori / Advisors}
-\ProvideThesisString{CoSupervisorLabel}{Correlatore / Co-advisor}
-\ProvideThesisString{CoSupervisorsLabel}{Correlatori / Co-advisors}
-\ProvideThesisString{IDNumber}{Matricola n. / student ID no}
-\ProvideThesisString{AcademicYear}{Anno Accademico / Academic Year}
-
-% Bocconi-only keys: programme line and "thesis by" line
-\ProvideThesisString{BocconiBachelorCourse}{Corso di Laurea Triennale / Bachelor of Science in}
-\ProvideThesisString{BocconiMasterCourse}{Corso di Laurea Magistrale / Master of Science in}
-\ProvideThesisString{BocconiBachelorThesisBy}{Tesi di Laurea Triennale di /\\ Bachelor of Science thesis by:}
-\ProvideThesisString{BocconiMasterThesisBy}{Tesi di Laurea Magistrale di /\\ Master of Science thesis by:}
-
+\ProvidesFile{academicthesis-bocconi-italian.ldf}[2026/10/20 v0.2.0 Bocconi strings]
+\input{academicthesis-bocconi-english.ldf}
 \endinput

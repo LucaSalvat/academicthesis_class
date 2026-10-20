@@ -25,43 +25,28 @@
 \ProvidesFile{academicthesis-polimi-article.def}[2026/10/18 v0.1.0 PoliMi article layout]
 \makeatletter
 
-% =====================================================================
-% 1. Colour, page, paragraphs
-% =====================================================================
-\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
-\colorlet{bluePoli}{bluepoli} % the name used by the official template
+% Colour, theorem style, heading formats, watermark, blue box and thesis
+% type come from academicthesis-polimi-common.def.
 
+% =====================================================================
+% 1. Page, paragraphs
+% =====================================================================
 \geometry{a4paper, top=2.0cm, bottom=2.0cm, left=2.0cm, right=2.0cm}
 
 \setlength{\parindent}{0pt}
 \raggedbottom
-
-\renewcommand{\LettrineFontHook}{\color{bluepoli}}
 
 % =====================================================================
 % 2. Captions and theorems
 % =====================================================================
 \captionsetup{labelfont={color=bluepoli}}
 
-\newtheoremstyle{polimi}
-  {\topsep}{\topsep}
-  {\normalfont\itshape}{}
-  {\color{bluepoli}\normalfont\bfseries}{.}
-  { }{}
-\theoremstyle{polimi}
-\newtheorem{theorem}{\thesisstring{TheoremLabel}}[section]
-\newtheorem{proposition}{\thesisstring{PropositionLabel}}[section]
+\polimi@theorems{section}
 
 % =====================================================================
 % 3. Headings:  "1. Section title"
 % =====================================================================
-\titleformat{\section}
-  {\color{bluepoli}\normalfont\Large\bfseries}
-  {\color{bluepoli}\thesection.}{1em}{}
 \titlespacing*{\section}{0pt}{3.3ex}{3.3ex}
-\titleformat{\subsection}
-  {\color{bluepoli}\normalfont\large\bfseries}
-  {\color{bluepoli}\thesubsection.}{1em}{}
 \titlespacing*{\subsection}{0pt}{3.3ex}{3.3ex}
 
 % =====================================================================
@@ -69,32 +54,16 @@
 % =====================================================================
 % Used by the cover and, through the core hook \thesiskeywords, by every
 % \begin{abstractthesis}[keywords=...].
-\newcommand\polimi@keywordsbox[2]{%
-  \begin{tcolorbox}[arc=0pt, boxrule=0pt, colback=bluepoli!60,
-                    width=\textwidth, colupper=white]
-    \textbf{#1:} #2
-  \end{tcolorbox}}
+\newcommand\polimi@keywordsbox[2]{\polimi@blueboxpar{\textbf{#1:} #2}}
 
 % =====================================================================
 % 5. Watermark ("raggiera") at the top right of page 1
 % =====================================================================
-\newcommand\polimi@watermarkarticle{%
-  \put(237,365){%
-    \parbox[b][\paperheight]{\paperwidth}{%
-      \vfill
-      \centering
-      \transparent{0.4}%
-      \includegraphics[width=0.44\paperwidth]{raggierapolimi}%
-      \vfill}}}
+\newcommand\polimi@watermarkarticle{\polimi@watermark{237}{365}{0.44}}
 
 % =====================================================================
 % 6. Front page: header block at the top of page 1 (bachelor and master)
 % =====================================================================
-\newcommand\polimi@thesistype{%
-  \IfThesisDegreeTF{bachelor}
-    {\thesisstring{BachelorThesisIn}}
-    {\thesisstring{MasterThesisIn}}}
-
 % one name per line, for the narrow left column
 \newcommand\polimi@namelist[1]{\academicthesislist[\\]{#1}}
 
@@ -145,26 +114,24 @@
 % =====================================================================
 % 7. Core pieces redefined for PoliMi article
 % =====================================================================
-\AddToHook{class/academicthesis/after}{%
-  % Page number centred in the footer, no header, no rules
-  \fancypagestyle{Thesis}{%
-    \fancyhf{}%
-    \fancyfoot[C]{\thepage}%
-    \renewcommand{\headrulewidth}{0pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  \fancypagestyle{plain}{%
-    \fancyhf{}%
-    \fancyfoot[C]{\thepage}%
-    \renewcommand{\headrulewidth}{0pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  \AtBeginDocument{\pagestyle{Thesis}}%
-  % Keywords after an abstract: the blue box
-  \RenewDocumentCommand\thesiskeywords{m m}{%
-    \par\vspace{15pt}\polimi@keywordsbox{#1}{#2}}%
-  % Acknowledgements: a plain unnumbered section, upright
-  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\section*{#1}}%
-  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
-}
+% Page number centred in the footer, no header, no rules
+\fancypagestyle{Thesis}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+\AtBeginDocument{\pagestyle{Thesis}}%
+% Keywords after an abstract: the blue box
+\RenewDocumentCommand\thesiskeywords{m m}{%
+  \par\vspace{15pt}\polimi@keywordsbox{#1}{#2}}%
+% Acknowledgements: a plain unnumbered section, upright
+\RenewDocumentCommand\thesisacknowledgementsbegin{m}{\section*{#1}}%
+\RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
 
 \makeatother
 \endinput

@@ -18,10 +18,8 @@
 %% class, page styles and front-matter blocks, all from the core.
 %%--------------------------------------------------------------
 
-\NeedsTeXFormat{LaTeX2e}
-\RequirePackage{expl3}
-\RequirePackage{xparse}
-\ProvidesExplPackage{academicthesis-bocconi}{2026/10/19}{0.1.0}
+\NeedsTeXFormat{LaTeX2e}[2023-06-01]
+\ProvidesExplPackage{academicthesis-bocconi}{2026/10/20}{0.2.0}
   {Universita Bocconi layouts for the academicthesis class}
 
 \RequirePackage{academicthesis-kernel}
@@ -73,15 +71,6 @@
 % =====================================================================
 % Typesetting code lives in a .def read with normal catcodes (spaces and
 % blank lines behave as usual); it must not load packages.
-% (inside a function: \cctab_begin:N must not change the catcodes of the
-% lines that follow it in this file)
-\cs_new_protected:Npn \__bocconi_input_layout:n #1
-  {
-    \cctab_begin:N \c_document_cctab
-      \file_input:n { academicthesis-bocconi-#1.def }
-    \cctab_end:
-  }
-\__bocconi_input_layout:n { frontpages }
+\academicthesis_input_layout:n { academicthesis-bocconi-frontpages.def }
 
-\ExplSyntaxOff
 \endinput

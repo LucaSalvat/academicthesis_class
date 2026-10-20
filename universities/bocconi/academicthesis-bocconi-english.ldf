@@ -1,7 +1,8 @@
 %%
 %% academicthesis-bocconi-english.ldf
 %% Labels of the Bocconi (simil) front page. The official page is
-%% bilingual, so the english file has the same Italian / English text.
+%% bilingual, so the text is Italian / English; the italian file reads
+%% this one.
 %% Core keys keep their core name and only change their text.
 %%--------------------------------------------------------------
 \ProvidesFile{academicthesis-bocconi-english.ldf}[2026/10/19 v0.1.0 Bocconi strings]

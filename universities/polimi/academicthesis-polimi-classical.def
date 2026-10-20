@@ -21,11 +21,12 @@
 % that package ends (LaTeX restores the syntax of the file that loaded
 % it, i.e. the class), and every space after it would be lost.
 
-% =====================================================================
-% 1. Colour, page, paragraphs
-% =====================================================================
-\definecolor{bluepoli}{cmyk}{0.4,0.1,0,0.4}
+% Colour, theorem style, heading formats, watermark and thesis type
+% come from academicthesis-polimi-common.def.
 
+% =====================================================================
+% 1. Page, paragraphs
+% =====================================================================
 \geometry{a4paper, includehead, headheight=0.6cm,
   inner=3.0cm, outer=2.0cm, top=2.5cm, bottom=2.5cm}
 
@@ -34,21 +35,12 @@
 \raggedbottom
 \AtBeginDocument{\onehalfspacing}
 
-\renewcommand{\LettrineFontHook}{\color{bluepoli}}
-
 % =====================================================================
 % 2. Captions and theorems
 % =====================================================================
 \captionsetup{labelfont={bf,color=bluepoli}, font=onehalfspacing}
 
-\newtheoremstyle{polimi}
-  {\topsep}{\topsep}
-  {\normalfont\itshape}{}
-  {\color{bluepoli}\normalfont\bfseries}{.}
-  { }{}
-\theoremstyle{polimi}
-\newtheorem{theorem}{\thesisstring{TheoremLabel}}[chapter]
-\newtheorem{proposition}{\thesisstring{PropositionLabel}}[chapter]
+\polimi@theorems{chapter}
 
 % =====================================================================
 % 3. Headings:  "1| Chapter title"  and  "1.1. Section title"
@@ -60,12 +52,6 @@
   {\huge\bfseries\color{bluepoli}}
 \titlespacing*{\chapter}{0pt}{50pt}{11.5pt}
 
-\titleformat{\section}
-  {\color{bluepoli}\normalfont\Large\bfseries}
-  {\color{bluepoli}\thesection.}{1em}{}
-\titleformat{\subsection}
-  {\color{bluepoli}\normalfont\large\bfseries}
-  {\color{bluepoli}\thesubsection.}{1em}{}
 \titleformat{\subsubsection}
   {\color{bluepoli}\normalfont\large\bfseries}
   {\color{bluepoli}\thesubsubsection.}{1em}{}
@@ -100,22 +86,8 @@
 % =====================================================================
 % 4. Watermark ("raggiera") on the cover and on blank pages
 % =====================================================================
-\newcommand\polimi@watermarkcenter{%
-  \put(-150,-200){%
-    \parbox[b][\paperheight]{\paperwidth}{%
-      \vfill
-      \centering
-      \transparent{0.4}%
-      \includegraphics[width=0.85\paperwidth]{raggierapolimi}%
-      \vfill}}}
-\newcommand\polimi@watermarktopright{%
-  \put(200,330){%
-    \parbox[b][\paperheight]{\paperwidth}{%
-      \vfill
-      \centering
-      \transparent{0.4}%
-      \includegraphics[width=0.70\paperwidth]{raggierapolimi}%
-      \vfill}}}
+\newcommand\polimi@watermarkcenter{\polimi@watermark{-150}{-200}{0.85}}
+\newcommand\polimi@watermarktopright{\polimi@watermark{200}{330}{0.70}}
 
 % Blank left-hand pages left by \cleardoublepage: empty style + raggiera
 \renewcommand*\cleardoublepage{%
@@ -139,11 +111,6 @@
 % =====================================================================
 % 5. Front page (bachelor and master)
 % =====================================================================
-\newcommand\polimi@thesistype{%
-  \IfThesisDegreeTF{bachelor}
-    {\thesisstring{BachelorThesisIn}}
-    {\thesisstring{MasterThesisIn}}}
-
 \newcommand\polimi@frontpage{%
   % letters for the cover and its blank back, so their page numbers
   % never clash with the front matter's (hyperref anchors); \frontmatter
@@ -183,31 +150,28 @@
 % =====================================================================
 % 6. Core pieces redefined for PoliMi
 % =====================================================================
-% The core defines its page styles and front-matter helpers AFTER
-% loading the university package, so these run at the end of the class.
-\AddToHook{class/academicthesis/after}{%
-  % Header: page number outside, "1| Chapter" inside, no rules
-  \fancypagestyle{Thesis}{%
-    \fancyhf{}%
-    \fancyhead[LE,RO]{\thepage}%
-    \fancyhead[LO,RE]{\bfseries\leftmark}%
-    \renewcommand{\headrulewidth}{0pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  % Chapter opening pages: page number on the right
-  \fancypagestyle{plain}{%
-    \fancyhf{}%
-    \fancyhead[RO,RE]{\thepage}%
-    \renewcommand{\headrulewidth}{0pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  \g@addto@macro\frontmatter{\pagestyle{Thesis}}%
-  \g@addto@macro\mainmatter{\addtocontents{toc}{\protect\vspace{2em}}}%
-  % Starred \chapter already adds the ToC entry and the header mark
-  \RenewDocumentCommand\thesisfrontchapter{m}{\chapter*{#1}}%
-  % Acknowledgements: a plain starred chapter, upright (the core still
-  % handles language= and title=)
-  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
-  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
-}
+% (the core has defined them before loading this package)
+% Header: page number outside, "1| Chapter" inside, no rules
+\fancypagestyle{Thesis}{%
+  \fancyhf{}%
+  \fancyhead[LE,RO]{\thepage}%
+  \fancyhead[LO,RE]{\bfseries\leftmark}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+% Chapter opening pages: page number on the right
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[RO,RE]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+\g@addto@macro\frontmatter{\pagestyle{Thesis}}%
+\g@addto@macro\mainmatter{\addtocontents{toc}{\protect\vspace{2em}}}%
+% Starred \chapter already adds the ToC entry and the header mark
+\RenewDocumentCommand\thesisfrontchapter{m}{\chapter*{#1}}%
+% Acknowledgements: a plain starred chapter, upright (the core still
+% handles language= and title=)
+\RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
+\RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
 
 \makeatother
 \endinput

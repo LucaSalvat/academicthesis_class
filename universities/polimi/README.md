@@ -290,9 +290,13 @@ Only what the layout needs is loaded, to avoid clashes:
 | Format | Packages loaded |
 | --- | --- |
 | classical | titlesec, caption, setspace, eso-pic, transparent, amsthm |
-| article | titlesec, caption, eso-pic, transparent, amsthm, tcolorbox |
-| summary | titlesec, caption, eso-pic, transparent, amsthm, tcolorbox |
-| phd | times, caption, amsthm, fncychap, titlesec, tocloft |
+| article | titlesec, caption, eso-pic, transparent, amsthm |
+| summary | titlesec, caption, eso-pic, transparent, amsthm |
+| phd | caption, amsthm, fncychap, titlesec, tocloft (fonts: Times / Helvetica / Courier, TeX Gyre clones with LuaLaTeX) |
+
+The blue boxes (keywords, summary header) are drawn with `\colorbox`, so
+tcolorbox and TikZ are not loaded; load them yourself if your text uses
+them.
 
 (The core class adds graphicx, geometry, fancyhdr, xcolor, amsmath,
 lettrine, babel, and biblatex.)
@@ -372,9 +376,11 @@ Rules to keep in mind when editing:
   package to the format's list in the `.sty` instead.
 - Each `.def` registers its own front page with
   `\DeclareThesisFrontPage{polimi}{bachelor|master}{...}` and changes core
-  pieces (page styles, acknowledgements, keywords) inside
-  `\AddToHook{class/academicthesis/after}{...}`, because the core defines them
-  after loading this package.
+  pieces (page styles, acknowledgements, keywords) directly: the core has
+  defined them before loading this package.
+- Pieces shared by classical, article and summary (colour, theorem style,
+  section headings, watermark, blue box) live in
+  `academicthesis-polimi-common.def`, read before the format's file.
 - Metadata is read with the core accessors `\thesismeta{key}`,
   `\IfThesisMetaEmptyTF`, `\IfThesisListEmptyTF`, `\IfThesisDegreeTF`, and
   labels with `\thesisstring{Key}`.
