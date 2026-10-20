@@ -10,6 +10,7 @@
 %% Files:
 %%   academicthesis-polimi.cfg            base class + formats (read before \LoadClass)
 %%   academicthesis-polimi.sty            this file: options, metadata, registration
+%%   academicthesis-polimi-common.def     pieces shared by classical, article, summary
 %%   academicthesis-polimi-classical.def  the classical layout (normal LaTeX syntax)
 %%   academicthesis-polimi-article.def    the article layout (normal LaTeX syntax)
 %%   academicthesis-polimi-summary.def    the executive summary layout
@@ -23,10 +24,8 @@
 %% strings, in academicthesis-polimi-<lang>.ldf.
 %%--------------------------------------------------------------
 
-\NeedsTeXFormat{LaTeX2e}
-\RequirePackage{expl3}
-\RequirePackage{xparse}
-\ProvidesExplPackage{academicthesis-polimi}{2026/10/10}{0.1.0}
+\NeedsTeXFormat{LaTeX2e}[2023-06-01]
+\ProvidesExplPackage{academicthesis-polimi}{2026/10/20}{0.2.0}
   {Politecnico di Milano layouts for the academicthesis class}
 
 \RequirePackage{academicthesis-kernel}
@@ -84,6 +83,21 @@
   }
 
 
+% PhD fonts with LuaLaTeX / XeLaTeX: \__polimi_set_texgyre:w main / termes \q_stop
+% sets the main font to TeX Gyre Termes, read by file name
+\cs_new_protected:Npn \__polimi_set_texgyre:w #1 / #2 \q_stop
+  {
+    \use:c { set #1 font }
+      [ Extension = .otf , UprightFont = *-regular , BoldFont = *-bold ,
+        ItalicFont = *-italic , BoldItalicFont = *-bolditalic ]
+      { texgyre #2 }
+  }
+\msg_new:nnn { academicthesis } { polimi-no-texgyre }
+  {
+    The~TeX~Gyre~fonts~(Times~/~Helvetica~/~Courier~clones)~are~not~
+    installed:~the~PhD~format~keeps~Latin~Modern.
+  }
+
 % =====================================================================
 % 3. The layout of the selected format
 % =====================================================================
@@ -107,7 +121,6 @@
         \RequirePackage { eso-pic }     % background "raggiera"
         \RequirePackage { transparent } % ... at 40% opacity
         \RequirePackage { amsthm }      % coloured theorem heads
-        \RequirePackage { tcolorbox }   % keywords box
         % the cover prints the abstract, so it is required metadata
         \DeclareThesisRequirement { polimi } { \c_true_bool } { abstract }
           { \thesissetup{abstract={...},~keywords={...}} }
@@ -119,11 +132,27 @@
         \RequirePackage { eso-pic }     % background "raggiera"
         \RequirePackage { transparent } % ... at 40% opacity
         \RequirePackage { amsthm }      % coloured theorem heads
-        \RequirePackage { tcolorbox }   % blue page header
       }
     { phd }
       {
-        \RequirePackage { times }       % Times / Helvetica / Courier
+        % Times / Helvetica / Courier, as the template's `times' package
+        % (obsolete) did: the same Type 1 fonts with pdfLaTeX, their TeX
+        % Gyre clones with LuaLaTeX / XeLaTeX (fontspec is loaded)
+        \sys_if_engine_pdftex:TF
+          {
+            \tl_set:Nn \rmdefault { ptm }
+            \tl_set:Nn \sfdefault { phv }
+            \tl_set:Nn \ttdefault { pcr }
+          }
+          {
+            \fontspec_font_if_exist:nTF { texgyretermes-regular.otf }
+              {
+                \clist_map_inline:nn
+                  { main / termes , sans / heros , mono / cursor }
+                  { \__polimi_set_texgyre:w #1 \q_stop }
+              }
+              { \msg_warning:nn { academicthesis } { polimi-no-texgyre } }
+          }
         \RequirePackage { caption }     % caption style
         \RequirePackage { amsthm }      % definition environment
         \RequirePackage [ Sonny ] { fncychap }     % chapter headings
@@ -132,21 +161,13 @@
       }
   }
 
-% ---------------------------------------------------------------------
 % =====================================================================
-% Layout code typesets text, so it lives in a .def file read with the
-% normal document catcodes: under \ExplSyntaxOn spaces are dropped and
-% blank lines do not end paragraphs (the problem met in the LUISS
-% package). \cctab_begin:N switches catcodes WITHOUT a group, so the
-% definitions in the file stay visible. The .def must not load
-% packages (\RequirePackage would end with expl3 syntax back on).
-\cs_new_protected:Npn \__polimi_input_layout:n #1
-  {
-    \cctab_begin:N \c_document_cctab
-      \file_input:n { academicthesis-polimi-#1.def }
-    \cctab_end:
-  }
-\exp_args:NV \__polimi_input_layout:n \g__academicthesis_format_tl
+% Layout code typesets text, so it lives in .def files read with the
+% normal document catcodes (see \academicthesis_input_layout:n in the
+% kernel): the pieces the Scuola 3I formats share, then the format.
+\str_if_eq:VnF \g__academicthesis_format_tl { phd }
+  { \academicthesis_input_layout:n { academicthesis-polimi-common.def } }
+\academicthesis_input_layout:n
+  { academicthesis-polimi- \g__academicthesis_format_tl .def }
 
-\ExplSyntaxOff
 \endinput

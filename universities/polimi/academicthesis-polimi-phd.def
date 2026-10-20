@@ -129,28 +129,26 @@
 % =====================================================================
 % 5. Core pieces redefined for the PhD
 % =====================================================================
-\AddToHook{class/academicthesis/after}{%
-  % Running headers in sans-serif bold: chapter on even pages, section
-  % on odd pages; page number centred at the bottom
-  \fancypagestyle{Thesis}{%
-    \fancyhf{}%
-    \fancyhead[RO]{\sffamily\bfseries\nouppercase{\rightmark}}%
-    \fancyhead[LE]{\sffamily\bfseries\nouppercase{\leftmark}}%
-    \fancyfoot[C]{\thepage}%
-    \renewcommand{\headrulewidth}{0.4pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  % Chapter opening pages: page number only
-  \fancypagestyle{plain}{%
-    \fancyhf{}%
-    \fancyfoot[C]{\thepage}%
-    \renewcommand{\headrulewidth}{0pt}%
-    \renewcommand{\footrulewidth}{0pt}}%
-  % Front matter: running headers, capital Roman page numbers
-  \g@addto@macro\frontmatter{\pagestyle{Thesis}\pagenumbering{Roman}}%
-  % Acknowledgements: a plain starred chapter, upright
-  \RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
-  \RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
-}
+% Running headers in sans-serif bold: chapter on even pages, section
+% on odd pages; page number centred at the bottom
+\fancypagestyle{Thesis}{%
+  \fancyhf{}%
+  \fancyhead[RO]{\sffamily\bfseries\nouppercase{\rightmark}}%
+  \fancyhead[LE]{\sffamily\bfseries\nouppercase{\leftmark}}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+% Chapter opening pages: page number only
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}%
+% Front matter: running headers, capital Roman page numbers
+\g@addto@macro\frontmatter{\pagestyle{Thesis}\pagenumbering{Roman}}%
+% Acknowledgements: a plain starred chapter, upright
+\RenewDocumentCommand\thesisacknowledgementsbegin{m}{\chapter*{#1}}%
+\RenewDocumentCommand\thesisacknowledgementsend{}{\par}%
 
 \makeatother
 \endinput

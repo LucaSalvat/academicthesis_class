@@ -66,8 +66,8 @@ names are explained where they matter.
   \node[stepbox, below=of s2] (s3) {\textbf{3.} Merge the university's default class options with the user's, drop the claimed options, and \cs{LoadClass} the base class.};
   \node[stepbox, below=of s3] (s4) {\textbf{4.} Fonts and languages (\pkg{babel} or \pkg{polyglossia}); read the strings: generic \file{.ldf}, then the university's.};
   \node[stepbox, below=of s4] (s5) {\textbf{5.} Layout packages: \pkg{graphicx}, \pkg{geometry}, \pkg{etoolbox}, \pkg{fancyhdr}, \pkg{xcolor}, \pkg{amsmath}, \pkg{lettrine}.};
-  \node[unibox, below=of s5] (s6) {\textbf{6.} Load \file{academicthesis-<uni>.sty}: it registers its front pages and requirements and reads its \file{.def} files.};
-  \node[stepbox, below=of s6] (s7) {\textbf{7.} Define labels, \cs{frontpage}, the second page, the front-matter blocks and page styles. At the end of the class: the hook \opt{class/academicthesis/after} (university overrides) and \pkg{biblatex}.};
+  \node[stepbox, below=of s5] (s6) {\textbf{6.} Define labels, \cs{frontpage}, the second page, the front-matter blocks and page styles.};
+  \node[unibox, below=of s6] (s7) {\textbf{7.} Load \file{academicthesis-<uni>.sty}: it registers its front pages and requirements, reads its \file{.def} files and may redefine anything of step~6. At the end of the class: \pkg{biblatex}.};
   \node[stepbox, below=of s7] (s8) {\textbf{8.} At \cs{begin}\opt{\{document\}}: check the required fields, core and university.};
   \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6,s6/s7,s7/s8} \draw[arr] (\a) -- (\b);
 \end{tikzpicture}
@@ -80,13 +80,12 @@ matter when writing a university package:
   \item The \file{.cfg} runs before \cs{LoadClass}: it may only use the
     early-configuration commands (Section~\ref{sec:cfg}) and \pkg{expl3}
     logic, not packages or document commands.
-  \item The \file{.sty} runs \emph{before} the core defines its labels,
-    blocks and page styles (step~7). To change one of those, a university
-    wraps its redefinition in the hook that \LaTeX{} runs once the class
-    has finished:
+  \item The \file{.sty} runs \emph{after} the core has defined its
+    labels, blocks and page styles (step~6), so a university redefines
+    any of them directly, in its \file{.sty} or \file{.def}:
 \begin{lstlisting}
-\AddToHook{class/academicthesis/after}{%
-  \RenewDocumentCommand\thesiskeywords{mm}{...}}
+\RenewDocumentCommand\thesiskeywords{mm}{...}
+\fancypagestyle{Thesis}{...}
 \end{lstlisting}
 \end{itemize}
 
@@ -230,12 +229,8 @@ text. University packages therefore keep their \pkg{expl3} code in the
 catcodes:
 
 \begin{lstlisting}
-\cs_new_protected:Npn \__myuni_input_layout:n #1
-  {
-    \cctab_begin:N \c_document_cctab   % no group: definitions survive
-      \file_input:n { academicthesis-myuni-#1.def }
-    \cctab_end:
-  }
+% kernel function: document catcodes, no group (definitions survive)
+\academicthesis_input_layout:n { academicthesis-myuni-frontpage.def }
 \end{lstlisting}
 
 \paragraph{Never load a package from a \texttt{.def} file.} When a package

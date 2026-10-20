@@ -623,30 +623,40 @@ a \file{.def}):
 \textbf{Format} & \textbf{Packages} \\
 \midrule
 \opt{classical} & \pkg{titlesec}, \pkg{caption}, \pkg{setspace}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm} \\
-\opt{article} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm}, \pkg{tcolorbox} \\
-\opt{summary} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm}, \pkg{tcolorbox} \\
-\opt{phd} & \pkg{times}, \pkg{caption}, \pkg{amsthm}, \pkg{fncychap} (Sonny), \pkg{titlesec} (calcwidth), \pkg{tocloft} (titles) \\
+\opt{article} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm} \\
+\opt{summary} & \pkg{titlesec}, \pkg{caption}, \pkg{eso-pic}, \pkg{transparent}, \pkg{amsthm} \\
+\opt{phd} & Times / Helvetica / Courier (TeX Gyre with Lua\LaTeX), \pkg{caption}, \pkg{amsthm}, \pkg{fncychap} (Sonny), \pkg{titlesec} (calcwidth), \pkg{tocloft} (titles) \\
 \bottomrule
 \end{tabularx}
 
-\paragraph{4. The layout.} Finally the \file{.sty} reads
-\file{academicthesis-polimi-<format>.def} with the document catcodes.
+The blue boxes of \opt{article} and \opt{summary} (keywords, page header)
+are a \cs{colorbox} with the template's padding and spacing, so
+\pkg{tcolorbox} (and TikZ) is not loaded. For \opt{phd}, the obsolete
+\pkg{times} package is replaced by the same fonts set directly
+(pdf\LaTeX) or their TeX Gyre clones (Lua\LaTeX, Xe\LaTeX).
+
+\paragraph{4. The layout.} Finally the \file{.sty} reads, with the
+document catcodes, \file{academicthesis-polimi-common.def} (classical,
+article, summary: colour, theorem style, section headings, watermark
+macro, blue box, thesis-type line), then
+\file{academicthesis-polimi-<format>.def}.
 
 \section{The layout files}
 
 All four follow the same plan, in numbered sections:
 
 \begin{enumerate}
-  \item \textbf{Colour, page, paragraphs}: \opt{bluepoli}, \cs{geometry},
-    spacing, drop-cap colour.
-  \item \textbf{Captions and theorems}: the \opt{polimi} theorem style,
-    \env{theorem} and \env{proposition} (PhD: \env{defn}), labels from
-    \cs{thesisstring}.
+  \item \textbf{Page, paragraphs}: \cs{geometry}, spacing (the colour
+    \opt{bluepoli} and the drop-cap colour are in the common file).
+  \item \textbf{Captions and theorems}: \env{theorem} and
+    \env{proposition} with the common \opt{polimi} style, numbered within
+    chapters or sections (PhD: \env{defn}), labels from \cs{thesisstring}.
   \item \textbf{Headings} with \pkg{titlesec}. The classical format also
     redefines \cs{chapter} so that starred chapters reach the table of
     contents and the running header.
   \item \textbf{Watermark}: the raggiera placed with \pkg{eso-pic}
-    (\cs{AddToShipoutPicture*}) on the cover, page~1 or blank pages; the
+    (\cs{AddToShipoutPicture*}) on the cover, page~1 or blank pages, through
+    the common \cs{polimi@watermark}\opt{\{x\}\{y\}\{width\}}; the
     classical format redefines \cs{cleardoublepage} for that.
   \item \textbf{Front page}: \cs{polimi@frontpage}, registered for the
     degrees of that format:
@@ -656,8 +666,8 @@ All four follow the same plan, in numbered sections:
 % academicthesis-polimi-phd.def:
 \DeclareThesisFrontPage{polimi}{phd}{\polimi@frontpage}
 \end{lstlisting}
-  \item \textbf{Core pieces redefined}, inside
-    \verb|\AddToHook{class/academicthesis/after}{...}|: the page styles
+  \item \textbf{Core pieces redefined} (directly: the core has defined
+    them before loading the package): the page styles
     \opt{Thesis} and \opt{plain}, \cs{thesisfrontchapter},
     \cs{thesiskeywords} (the blue box in \opt{article} and \opt{summary})
     and the acknowledgements frame.
@@ -686,7 +696,8 @@ adds PoliMi keys: \opt{BachelorThesisIn}, \opt{MasterThesisIn},
 \midrule
 a cover or first-page block & section~5 (PhD: 4) of that format's \file{.def}. \\
 headings, captions, theorems & sections 2--3 of that format's \file{.def}. \\
-running headers, keywords, acknowledgements & the \opt{class/academicthesis/after} hook of that \file{.def}. \\
+running headers, keywords, acknowledgements & the last section of that format's \file{.def}. \\
+colour, section headings, blue box, watermark & \file{academicthesis-polimi-common.def}. \\
 a label's wording & \file{academicthesis-polimi-<lang>.ldf}. \\
 required fields & section~2 of the \file{.sty}. \\
 default class options of a format & the \file{.cfg}. \\

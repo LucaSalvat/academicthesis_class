@@ -31,9 +31,7 @@
   \thispagestyle{empty}%
   \IfThesisMetaEmptyTF{dedication}
     {\null}
-    {\null\vspace{\stretch{0.26}}%
-     \begin{flushright}\textit{\thesismeta{dedication}}\end{flushright}%
-     \vspace{\stretch{0.74}}\null}%
+    {\thesisdedicationtext{\thesismeta{dedication}}}%
   \newpage
   \bocconi@emptypage}
 

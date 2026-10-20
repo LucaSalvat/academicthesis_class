@@ -121,20 +121,27 @@ Processed top-to-bottom in numbered sections. All code lives inside a single
 |---------|-------------|
 | 1 — Class options | `\keys_define:nn {academicthesis/class}` declares `university`, `format`, `bachelor`/`master`/`phd`, `language`, `other-languages`, `discussion`, `secondpage`/`no-secondpage`, `biblatex-options`. Unknown options are collected for the base class. |
 | 1b — Base class | Reads `academicthesis-<uni>.cfg` (see below), resolves `format` and the second-page default, merges the university's default class options with the user's, then `\LoadClass`es the base class **the university declared** (book, article, ...). The core no longer hard-codes `book`. |
-| 2 — Font & language | Loads `fontenc`/`inputenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` with the main language last and any extra languages before it. **Note:** babel must be loaded with `_`/`:` catcodes temporarily restored to "other" (see comment in source). Then loads the strings (generic + university). |
+| 2 — Font & language | Loads `fontenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` (or `polyglossia`) with the main language last and any extra languages before it. The language list is computed first; the packages themselves are loaded in a short `\ExplSyntaxOff` stretch, because babel stores code that must not be read with expl3 catcodes. Then loads the strings (generic + university). |
 | 3 — Layout packages | `graphicx`, `geometry`, `etoolbox`, `fancyhdr`, `xcolor`, `amsmath`, `lettrine`. Nothing else: hyperref, titlesec, setspace, ... are left to the university package (only if its layout needs them) or to the user. |
 | 4 — Bibliography | Prefers `biblatex`+`biber`; falls back to `natbib`+BibTeX if biblatex is unavailable, with a package warning. |
-| 5 — University plugin | `\exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl` loads `academicthesis-<uni>.sty`. |
 | 6–7 — Labels, front page | `\authorlabel`, `\supervisorlabel`, ...; `\frontpage` dispatches to the registered front page and, unless switched off, adds the second page. |
 | 8 — Second page | Examination commission + copyright block. |
 | 9 — Front-matter helpers | `\thesisfrontchapter`; the blocks `\dedication[..]{..}`, `abstractthesis`, `originality` (statement of originality), `acknowledgements`, which all take `language=` and `title=` (abstract also `keywords=`). The acknowledgements look is in `\thesisacknowledgementsbegin{<heading>}` / `\thesisacknowledgementsend`, which a university may redefine. |
 | 10 — Page styles | `Thesis`, `acknowledgments`, `plain`. |
+| 5 — University plugin | `\exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl` loads `academicthesis-<uni>.sty`, **after** sections 6–10. |
 | 11 — Validation | Required metadata, core + plugin-registered. |
 
-Because sections 6–11 run **after** the university package is loaded, a
-plugin that wants to change them (page styles, `acknowledgements`, ...)
-does so in `\AddToHook{class/academicthesis/after}{...}` (see the PoliMi
-package).
+The university package is loaded **after** the core has defined its
+labels, front-matter blocks and page styles (sections 6–10), so a plugin
+that wants to change them redefines them directly, e.g.
+`\fancypagestyle{Thesis}{...}` or
+`\RenewDocumentCommand\thesisacknowledgementsbegin{m}{...}` (see the PoliMi
+layout files). No hook is needed.
+
+The class and every package declare `\NeedsTeXFormat{LaTeX2e}[2023-06-01]`:
+expl3, xparse and key-value option processing come from the LaTeX kernel
+(no `expl3`, `xparse` or `l3keys2e` packages are loaded), and an older
+LaTeX stops with one clear message instead of cryptic errors.
 
 ### Any base class
 
@@ -174,7 +181,7 @@ kernel commands (and expl3 logic, e.g. to branch on the format):
 
 ---------|-------------|
 | 1 — Class options | `\keys_define:nn {academicthesis/class}` declares `university`, `bachelor`/`master`/`phd`, `language`, `twoside`, `discussion`, `biblatex-options`. `\ProcessKeysOptions` populates the global state variables. |
-| 2 — Font & language | Loads `fontenc`/`inputenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` with the chosen language. **Note:** babel must be loaded with `_`/`:` catcodes temporarily restored to "other" (see comment in source). |
+| 2 — Font & language | Loads `fontenc`/`lmodern` (pdfLaTeX) or `fontspec` (XeLaTeX/LuaLaTeX). Loads `babel` with the chosen language, with standard catcodes. |
 | 3 — Layout packages | `geometry`, `fancyhdr`, `titlesec`, `microtype`, `setspace`, `lettrine`, `xcolor`, `graphicx`, `amsmath`. |
 | 4 — Bibliography | Prefers `biblatex`+`biber`; falls back to `natbib`+BibTeX if biblatex is unavailable, with a package warning. |
 | 5 — University plugin | `\exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl` — expands the stored university ID to a string and calls the loader defined in the kernel. |
@@ -349,12 +356,9 @@ paragraphs. Keep expl3 for logic (keys, registration) and put everything
 that typesets text in a separate `.def` file read with normal catcodes:
 
 ```latex
-\cs_new_protected:Npn \__myuni_input_layout:n #1
-  {
-    \cctab_begin:N \c_document_cctab   % no group: definitions survive
-      \file_input:n { academicthesis-myuni-#1.def }
-    \cctab_end:
-  }
+% kernel function: reads the file with document catcodes, no group,
+% so its definitions survive
+\academicthesis_input_layout:n { academicthesis-myuni-frontpage.def }
 ```
 
 The `.def` must **not** load packages: when a package loaded from there

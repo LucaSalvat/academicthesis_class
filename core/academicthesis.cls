@@ -19,12 +19,21 @@
 %% Released under the LPPL 1.3c (or later); see https://www.latex-project.org/lppl.txt
 %%--------------------------------------------------------------
 
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{academicthesis}[2026/10/10 v0.2.0 Modular academic thesis class]
-
-\RequirePackage{expl3}
-\RequirePackage{xparse}
-\RequirePackage{l3keys2e}
+% expl3, xparse and \ProcessKeyOptions are part of the LaTeX kernel;
+% the date is the oldest format the bundle is tested with.
+\NeedsTeXFormat{LaTeX2e}[2023-06-01]
+\ProvidesClass{academicthesis}[2026/10/20 v0.3.0 Modular academic thesis class]
+% (\NeedsTeXFormat only warns: stop here with a clear message instead of
+% the cryptic errors an older kernel would give further on)
+\IfFormatAtLeastTF{2023-06-01}{}
+  {%
+    \ClassError{academicthesis}
+      {Your LaTeX (\fmtversion) is too old: academicthesis needs\MessageBreak
+       LaTeX 2023-06-01 or later}
+      {Update your TeX distribution (TeX Live 2023 or later, or\MessageBreak
+       an up-to-date MiKTeX).}%
+    \endinput
+  }
 
 % Pull in the shared registries / metadata engine described in
 % academicthesis-kernel.sty BEFORE option processing: the option keys
@@ -136,7 +145,7 @@
 \tl_gset:Nn \g__academicthesis_degree_tl     { }
 \bool_gset_true:N \g__academicthesis_bachelor_bool
 
-\ProcessKeysOptions { academicthesis / class }
+\ProcessKeyOptions [ academicthesis / class ]
 
 % ---------------------------------------------------------------------
 % The base class is NOT fixed here: the university decides it, possibly
@@ -221,16 +230,9 @@
 \tl_set:Nx \l__academicthesis_classoptions_tl
   { \clist_use:Nn \l__academicthesis_classoptions_clist { , } }
 
-% NOTE: \ExplSyntaxOn remaps the catcodes of `_', `:' and SPACE for the
-% remainder of this file. Foreign LaTeX2e package/class sources are
-% loaded directly below -- this mirrors the standard, well-tested
-% pattern used by other expl3-based packages (e.g. acro.sty loads
-% \RequirePackage{translations} while \ExplSyntaxOn is in effect, and
-% never calls \ExplSyntaxOff again). Toggling the regime off and back on
-% repeatedly around each \RequirePackage is unnecessary and was found,
-% empirically, to corrupt expl3's internal catcode-tracking state and
-% hang \ExplSyntaxOn on a later call -- so we deliberately do NOT do
-% that here.
+% Packages and classes may be loaded with expl3 syntax on: LaTeX reads
+% each file with its own catcodes and restores ours afterwards. (babel is
+% the exception, see \S2.)
 % (A helper, because \LoadClass must see a literal `[' -- see the
 % biblatex loader in \S4 for the same issue.)
 \cs_new_protected:Npn \__academicthesis_load_class:nn #1 #2
@@ -272,57 +274,38 @@
 \cs_generate_variant:Nn \clist_gremove_all:Nn { NV }
 \clist_gremove_all:NV \g__academicthesis_otherlanguages_clist \l__academicthesis_language_tl
 
+% babel / polyglossia are loaded with the standard catcodes: babel
+% stores code at load time that it reads back at \begin{document}, and
+% that code must not be tokenised with expl3 catcodes. The language
+% list is computed first, into a macro whose name is safe under both
+% regimes. (The main language goes LAST: babel makes the last option
+% the main one.)
+\cs_gset_nopar:Npx \academicthesis@languages
+  {
+    \clist_use:Nn \g__academicthesis_otherlanguages_clist { , }
+    \clist_if_empty:NF \g__academicthesis_otherlanguages_clist { , }
+    \l__academicthesis_language_tl
+  }
+\cs_gset_nopar:Npx \academicthesis@mainlanguage { \l__academicthesis_language_tl }
+\cs_gset_nopar:Npx \academicthesis@otherlanguages
+  { \clist_use:Nn \g__academicthesis_otherlanguages_clist { , } }
+\ExplSyntaxOff
 \ifPDFTeX
   \RequirePackage[T1]{fontenc}
-  \RequirePackage[utf8]{inputenc}
   \RequirePackage{lmodern}
-  % BABEL CATCODE WORKAROUND
-  % \RequirePackage[<lang>]{babel} must NOT be called while `_' and `:'
-  % have catcode "letter" (as \ExplSyntaxOn sets them for this whole file).
-  % Babel tokenises its begindocument-hook code at load time; if `_'/`:'
-  % are letters when that happens, the stored control-sequence tokens
-  % mismatch the ones looked up at \begin{document} (catcode "other"
-  % inside babel's own groups) -- producing cascades of "Undefined control
-  % sequence / Extra \fi" errors.  A full \ExplSyntaxOff/\ExplSyntaxOn
-  % toggle would fix catcodes but break tokenisation of the rest of *this*
-  % file (every subsequent \academicthesis_..:N-style name gets mis-split).
-  %
-  % Proven solution (babelmin7.tex test):
-  %   1. \cs_set:Npx bakes the language string into a plain-named macro
-  %      (\BabelLangNow has no `_'/`:' so it tokenises identically at any
-  %      catcode regime) while ExplSyntaxOn's catcodes are still active.
-  %   2. Flip only the two problem catcodes (numeric codes: 95=`_', 58=`:')
-  %      using plain \catcode -- no catcode-sensitive names required.
-  %   3. Write \RequirePackage[\BabelLangNow]{babel} INLINE here (not via
-  %      a second wrapper macro -- a wrapper's invocation token would be
-  %      mis-tokenised if its name contains `_'/`:' and appears after the
-  %      toggle; \BabelLangNow contains neither, so it's safe).
-  %   4. Restore the two catcodes immediately after.
-  % (the main language goes LAST: babel makes the last option the main one)
-  \cs_set:Npx \BabelLangNow
-    {
-      \clist_use:Nn \g__academicthesis_otherlanguages_clist { , }
-      \clist_if_empty:NF \g__academicthesis_otherlanguages_clist { , }
-      \l__academicthesis_language_tl
-    }
-  \catcode 95 =12 \catcode 58 =12
-  \RequirePackage[\BabelLangNow]{babel}
-  \catcode 95 =11 \catcode 58 =11
+  \RequirePackage[\academicthesis@languages]{babel}
 \else
   \RequirePackage{fontspec}
   \RequirePackage{polyglossia}
-  \cs_set:Npx \__academicthesis_set_mainlanguage:w { }
-    { \setmainlanguage { \l__academicthesis_language_tl } }
-  \__academicthesis_set_mainlanguage:w
-  \clist_if_empty:NF \g__academicthesis_otherlanguages_clist
-    {
-      \exp_args:Nx \setotherlanguages
-        { \clist_use:Nn \g__academicthesis_otherlanguages_clist { , } }
-    }
+  \expandafter\setmainlanguage\expandafter{\academicthesis@mainlanguage}
+  \ifx\academicthesis@otherlanguages\@empty\else
+    \expandafter\setotherlanguages\expandafter{\academicthesis@otherlanguages}
+  \fi
   \setmainfont{Latin Modern Roman}
   \setsansfont{Latin Modern Sans}
   \setmonofont{Latin Modern Mono}
 \fi
+\ExplSyntaxOn
 
 \exp_args:NV \academicthesis_set_main_language:n \l__academicthesis_language_tl
 
@@ -339,16 +322,11 @@
 
 % Drop-cap configuration (kept from the original class; universities
 % may override \LettrineFontHook for their own colour scheme).
-\RequirePackage{type1cm}
 \RequirePackage{lettrine}
 \setcounter{DefaultLines}{2}
 \renewcommand{\LettrineTextFont}{\normalfont}
 \renewcommand{\DefaultLoversize}{0.25}
 \renewcommand{\DefaultLhang}{0.25}
-
-\newcommand{\TitleFont}{\fontsize{16}{20}\selectfont}
-\newcommand{\SubtitleFont}{\fontsize{14}{18}\selectfont}
-\newcommand{\LowerFont}{\fontsize{12}{14.5}\selectfont}
 
 
 % =====================================================================
@@ -422,30 +400,6 @@
 
 
 % =====================================================================
-% 5. Load the university plugin  (the actual "modularity" seam)
-% =====================================================================
-\tl_if_empty:NTF \g__academicthesis_university_tl
-  {
-    \msg_error:nnnn { academicthesis } { invalid-key-value }
-      { university } { (none) }
-      {
-        Pass~university=<id>~as~a~class~option,~e.g.~\MessageBreak
-        \exp_not:n{ \documentclass[university=luiss,bachelor]{academicthesis} }
-      }
-  }
-  {
-    % \academicthesis_load_university:n takes its argument as a literal
-    % university id (e.g. "luiss"), not as a token-list-variable name --
-    % \exp_args:NV expands \g__academicthesis_university_tl to its stored
-    % string first, so the function receives "luiss", not the csname
-    % \g__academicthesis_university_tl itself (passing the csname verbatim
-    % previously caused infinite expansion -- see the note at
-    % \academicthesis_load_university:n's definition in the kernel).
-    \exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl
-  }
-
-
-% =====================================================================
 % 6. Author / supervisor / examiner labels  (gender- & count-aware)
 % =====================================================================
 \NewDocumentCommand \authorlabel { }
@@ -484,7 +438,7 @@
 % =====================================================================
 % 8. Second page: examination commission + copyright block
 % =====================================================================
-\NewDocumentCommand \__academicthesis_examination_commission: { }
+\cs_new_protected:Npn \__academicthesis_examination_commission:
   {
     \bool_if:NTF \l__academicthesis_discussion_bool
       {
@@ -496,7 +450,7 @@
       { \thesisstring{NoDiscussion} }
   }
 
-\NewDocumentCommand \__academicthesis_copyright_section: { }
+\cs_new_protected:Npn \__academicthesis_copyright_section:
   {
     \footnotesize
     \textbf{\academicthesis_meta_get:n{title}} \linebreak
@@ -514,7 +468,7 @@
     \ignorespacesafterend
   }
 
-\NewDocumentCommand \__academicthesis_secondpage: { }
+\cs_new_protected:Npn \__academicthesis_secondpage:
   {
     \thispagestyle{empty}
     \makebox[0.8\textwidth][l]{%
@@ -613,6 +567,16 @@
       { \academicthesis_string_get:nN { #2 } \l__academicthesis_block_title_tl }
   }
 
+% \thesisdedicationtext{text}: the text of a dedication page, set high
+% on the right; also used by front pages that place the dedication
+% themselves (e.g. Bocconi).
+\NewDocumentCommand \thesisdedicationtext { +m }
+  {
+    \null\vspace{\stretch{0.26}}
+    \begin{flushright}\textit{#1}\end{flushright}
+    \vspace{\stretch{0.74}}\null
+  }
+
 % \dedication[language=...]{text}
 \NewDocumentCommand \dedication { O{} +m }
   {
@@ -620,9 +584,7 @@
     \thispagestyle{empty}
     \group_begin:
       \__academicthesis_block_setup:nn { #1 } { }
-      \null\vspace{\stretch{0.26}}
-      \begin{flushright}\textit{#2}\end{flushright}
-      \vspace{\stretch{0.74}}\null
+      \thesisdedicationtext { #2 }
     \group_end:
   }
 
@@ -779,9 +741,37 @@
 
 
 % =====================================================================
+% 5. Load the university plugin  (the actual "modularity" seam)
+% =====================================================================
+% Loaded AFTER the core has defined its labels, front-matter blocks and
+% page styles (\S6-10), so a university package redefines any of them
+% directly (\fancypagestyle{Thesis}{...}, \RenewDocumentCommand ...)
+% instead of waiting for a hook at the end of the class.
+\tl_if_empty:NTF \g__academicthesis_university_tl
+  {
+    \msg_error:nnnn { academicthesis } { invalid-key-value }
+      { university } { (none) }
+      {
+        Pass~university=<id>~as~a~class~option,~e.g.~\MessageBreak
+        \exp_not:n{ \documentclass[university=luiss,bachelor]{academicthesis} }
+      }
+  }
+  {
+    % \academicthesis_load_university:n takes its argument as a literal
+    % university id (e.g. "luiss"), not as a token-list-variable name --
+    % \exp_args:NV expands \g__academicthesis_university_tl to its stored
+    % string first, so the function receives "luiss", not the csname
+    % \g__academicthesis_university_tl itself (passing the csname verbatim
+    % previously caused infinite expansion -- see the note at
+    % \academicthesis_load_university:n's definition in the kernel).
+    \exp_args:NV \academicthesis_load_university:n \g__academicthesis_university_tl
+  }
+
+
+% =====================================================================
 % 11. Metadata validation  (common fields + plugin-registered ones)
 % =====================================================================
-\NewDocumentCommand \__academicthesis_check_metadata: { }
+\cs_new_protected:Npn \__academicthesis_check_metadata:
   {
     % A university may switch the core checks off (\DeclareThesisCoreRequirements),
     % e.g. Bocconi without a front page; its own requirements still run.
@@ -790,7 +780,7 @@
     % Plugin-specific requirements (e.g. LUISS PhD wants cycle/department)
     \__academicthesis_run_requirements:
   }
-\NewDocumentCommand \__academicthesis_check_core_metadata: { }
+\cs_new_protected:Npn \__academicthesis_check_core_metadata:
   {
     \academicthesis_require:nn {title}        { \thesissetup{title=My~Thesis~Title} }
     \academicthesis_require:nn {candidate}    { \thesissetup{candidate=Your~Name} }

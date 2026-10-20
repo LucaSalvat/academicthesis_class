@@ -402,9 +402,9 @@ Only what the layout needs is loaded, to avoid clashes:
 \textbf{Format} & \textbf{Packages loaded} \\
 \midrule
 classical & titlesec, caption, setspace, eso-pic, transparent, amsthm \\
-article   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
-summary   & titlesec, caption, eso-pic, transparent, amsthm, tcolorbox \\
-phd       & times, caption, amsthm, fncychap, titlesec, tocloft \\
+article   & titlesec, caption, eso-pic, transparent, amsthm \\
+summary   & titlesec, caption, eso-pic, transparent, amsthm \\
+phd       & caption, amsthm, fncychap, titlesec, tocloft (Times fonts) \\
 \bottomrule
 \end{tabularx}
 
@@ -516,9 +516,10 @@ Rules to keep in mind when editing:
     instead.
   \item Each \opt{.def} registers its own front page with
     \cs{DeclareThesisFrontPage} (for \opt{bachelor} and \opt{master}) and
-    changes core pieces (page styles, acknowledgements, keywords) with
-    \cs{AddToHook} on the hook \opt{class/academicthesis/after}, because the
-    core defines them after loading this package.
+    changes core pieces (page styles, acknowledgements, keywords) directly:
+    the core has defined them before loading this package. Pieces shared
+    by classical, article and summary live in
+    \opt{academicthesis-polimi-common.def}.
   \item Metadata is read with the core accessors \cs{thesismeta}\opt{\{key\}},
     \cs{IfThesisMetaEmptyTF}, \cs{IfThesisListEmptyTF},
     \cs{IfThesisDegreeTF}, and labels with \cs{thesisstring}\opt{\{Key\}}.
